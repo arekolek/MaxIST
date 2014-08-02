@@ -25,7 +25,7 @@ int eval(Graph const & T) {
   for(auto vit = vs.first; vit != vs.second; ++vit)
     internal += degree(*vit, T) > 1;
 
-  cout << n-internal << " " << internal << " " << upper
+  cerr << n-internal << " " << internal << " " << upper
     << " " << n << " " << (upper-internal)/(double)upper << endl;
 
   return n-internal;
@@ -41,19 +41,24 @@ int main(int argc, char** argv){
 
   test_suite<graph> suite(z, n, p);
 
-  int sum = 0;
+  int sumDfs = 0, sumRdfs = 0;
 
   for(auto G : suite) {
     auto T = dfs_tree(G);
 
-    sum += eval(T);
+    sumDfs += eval(T);
+
+    cerr << endl;
 
     T = rdfs_tree(G);
+
+    sumRdfs += eval(T);
 
     //show("graph.dot", G, T);
   }
 
-  cout << sum/(double)suite.size() << endl;
+  cout << sumDfs/(double)suite.size() << " "
+    << sumRdfs/(double)suite.size() << endl;
 
   return 0;
 }
