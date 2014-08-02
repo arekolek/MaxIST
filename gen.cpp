@@ -1,3 +1,4 @@
+// (C) 2014 Arek Olek
 
 #include <iostream>
 
