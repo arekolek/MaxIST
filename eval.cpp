@@ -1,6 +1,8 @@
 // (C) 2014 Arek Olek
 
+#include <functional>
 #include <iostream>
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -41,8 +43,10 @@ float average_degree(Graph const & G) {
   return sum / num_vertices(G);
 }
 
+function<graph(graph&)> typedef solution;
+
 int main(int argc, char** argv){
-  std::ios_base::sync_with_stdio(0);
+  ios_base::sync_with_stdio(0);
 
   options opt(argc, argv);
   int z = opt.get<int>("-z", 1);
@@ -53,34 +57,39 @@ int main(int argc, char** argv){
     0.1, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
     0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99};
 
+  vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>};
+
   timing timer;
 
   for(auto p : ps) {
     test_suite<graph> suite(z, n, p);
 
-    int sumDfs = 0, sumRdfs = 0;
-    float sumDeg = 0, timDfs = 0, timRdfs = 0;
+    double degree = 0;
+    vector<double> quality(algo.size(), 0), time(algo.size(), 0);
 
     for(auto G : suite) {
-      sumDeg += average_degree(G);
-      timer.start();
-      auto T = dfs_tree(G);
-      timDfs += timer.stop();
-      sumDfs += eval(T);
-      cerr << endl;
+      degree += average_degree(G);
 
-      timer.start();
-      T = rdfs_tree(G);
-      timRdfs += timer.stop();
-      sumRdfs += eval(T);
+      for(unsigned i = 0; i < algo.size(); ++i) {
+        timer.start();
+        auto T = algo[i](G);
+        time[i] += timer.stop();
+        quality[i] += eval(T);
+        cerr << endl;
+      }
+
       //show("graph.dot", G, T);
     }
 
-    cout << p << '\t' << sumDeg / suite.size() << '\t'
-      << sumDfs/(double)suite.size() << '\t'
-      << timDfs/suite.size() << '\t'
-      << sumRdfs/(double)suite.size() << '\t'
-      << timRdfs/suite.size() << endl;
+    int count = suite.size();
+    cout << p << '\t' << degree / count << '\t';
+
+    for(unsigned i = 0; i < algo.size(); ++i)
+      cout
+        << quality[i] / count << '\t'
+        << time[i] / count << '\t';
+
+    cout << endl;
   }
 
 
