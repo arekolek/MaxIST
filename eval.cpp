@@ -13,6 +13,8 @@
 #include "options.hpp"
 #include "timing.hpp"
 
+using namespace std;
+
 boost::property<boost::edge_color_t,
   boost::default_color_type>            typedef color;
 boost::adjacency_list<

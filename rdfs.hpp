@@ -7,17 +7,13 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-using namespace std;
-
 unsigned typedef node;
-pair<node, node> typedef edge;
+std::pair<node, node> typedef edge;
 
 template <class Graph>
 void visit(Graph& G, Graph& T, node v,
-  node& next_rank, vector<node>& rank,
-  vector<node>& deg, stack<edge>& edges) {
-
-  cerr << "visit " << v << endl;
+  node& next_rank, std::vector<node>& rank,
+  std::vector<node>& deg, std::stack<edge>& edges) {
 
   rank[v] = next_rank++;
 
@@ -34,17 +30,13 @@ void visit(Graph& G, Graph& T, node v,
     }
   }
 
-  cerr << 1 << endl;
-
   if(min_deg == UINT_MAX) {
     while(!edges.empty() && rank[edges.top().second] != 0)
       edges.pop();
     if(edges.empty())
       return;
-    tie(x, y) = edges.top();
-  } else tie(x, y) = edge(v, w);
-
-  cerr << 2 << endl;
+    std::tie(x, y) = edges.top();
+  } else std::tie(x, y) = edge(v, w);
 
   add_edge(x, y, T);
 
@@ -52,8 +44,6 @@ void visit(Graph& G, Graph& T, node v,
   for(auto vit = vs.first; vit != vs.second; ++vit)
     if(*vit != y && rank[*vit] == 0)
       edges.emplace(x, *vit);
-
-  cerr << 3 << endl;
 
   visit(G, T, y, next_rank, rank, deg, edges);
 }
@@ -63,8 +53,8 @@ Graph rdfs_tree(Graph& G) {
   unsigned n = num_vertices(G);
   Graph T(n);
   unsigned next_rank = 1;
-  vector<node> rank(n, 0), deg(n);
-  stack<edge> edges;
+  std::vector<node> rank(n, 0), deg(n);
+  std::stack<edge> edges;
 
   auto vs = vertices(G);
   for(auto vit = vs.first; vit != vs.second; ++vit)

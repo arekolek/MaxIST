@@ -8,12 +8,17 @@
 
 #include <boost/iterator/counting_iterator.hpp>
 
-using namespace std;
-
 auto range_iterator = boost::make_counting_iterator<int>;
 
 unsigned time_seed() {
-  return chrono::system_clock::now().time_since_epoch().count();
+  return std::chrono::system_clock::now().time_since_epoch().count();
+}
+
+template <class Iterator>
+void generate_seeds(Iterator begin, Iterator end) {
+  std::string seed = std::to_string(time_seed());
+  std::seed_seq seq(seed.begin(), seed.end());
+  seq.generate(begin, end);
 }
 
 template <class Graph>
@@ -61,27 +66,25 @@ public:
 
   test_suite(unsigned z, unsigned n, float p) : n_(n), p_(p) {
     seeds_.resize(z);
-    string seed = to_string(time_seed());
-    seed_seq seq(seed.begin(), seed.end());
-    seq.generate(seeds_.begin(), seeds_.end());
+    generate_seeds(seeds_.begin(), seeds_.end());
   }
 private:
   unsigned n_;
   float p_;
-  vector<unsigned> seeds_;
+  std::vector<unsigned> seeds_;
 };
 
 template <class Graph>
 Graph test_suite<Graph>::iterator::operator *() const {
   auto const& test = suite_.test(i_);
   unsigned n = test.size();
-  default_random_engine generator(test.seed());
-  bernoulli_distribution trial(test.probability());
+  std::default_random_engine generator(test.seed());
+  std::bernoulli_distribution trial(test.probability());
   Graph G(n);
 
   // add random path
-  vector<int> path(range_iterator(0), range_iterator(n));
-  shuffle(path.begin(), path.end(), generator);
+  std::vector<int> path(range_iterator(0), range_iterator(n));
+  std::shuffle(path.begin(), path.end(), generator);
   for(unsigned i = 0; i < n-1; ++i)
     add_edge(path[i], path[i+1], G);
 

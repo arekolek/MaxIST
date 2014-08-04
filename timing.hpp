@@ -4,8 +4,6 @@
 
 #include <ctime>
 
-using namespace std;
-
 class timing {
 public:
   float stop() {
