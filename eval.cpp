@@ -6,9 +6,11 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "debug.hpp"
 #include "dfs.hpp"
 #include "rdfs.hpp"
+#include "lost.hpp"
+
+#include "debug.hpp"
 #include "test_suite.hpp"
 #include "options.hpp"
 #include "timing.hpp"
@@ -63,7 +65,7 @@ int main(int argc, char** argv){
     ps.push_back(pp);
   }
 
-  vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>};
+  vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>, prieto<graph>};
 
   timing timer;
 
@@ -93,7 +95,8 @@ int main(int argc, char** argv){
     for(unsigned i = 0; i < algo.size(); ++i)
       cout
         << quality[i] / count << '\t'
-        << time[i] / count << '\t';
+        << time[i] / count << '\t'
+        ;
 
     cout << endl;
   }
