@@ -51,11 +51,15 @@ int main(int argc, char** argv){
   options opt(argc, argv);
   int z = opt.get<int>("-z", 1);
   int n = opt.get<int>("-n", 5);
-  //float p = opt.get<float>("-p", 1);
-  auto ps = {0.0001, 0.0005, 0.001, 0.003, 0.005, 0.008,
+  float pp = opt.get<float>("-p", -1);
+  vector<float> ps {0.0001, 0.0005, 0.001, 0.003, 0.005, 0.008,
     0.01, 0.03, 0.05, 0.08,
     0.1, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
     0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99};
+  if(pp >= 0 && pp <= 1) {
+    ps.clear();
+    ps.push_back(pp);
+  }
 
   vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>};
 
@@ -76,9 +80,9 @@ int main(int argc, char** argv){
         time[i] += timer.stop();
         quality[i] += eval(T);
         cerr << endl;
-      }
 
-      //show("graph.dot", G, T);
+        //show("graph" + to_string(i) + ".dot", G, T);
+      }
     }
 
     int count = suite.size();
