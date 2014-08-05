@@ -4,6 +4,8 @@
 
 #include <boost/graph/adjacency_matrix.hpp>
 
+#include "debug.hpp"
+
 namespace detail {
   boost::adjacency_matrix<boost::undirectedS> typedef graph;
 }
@@ -63,7 +65,10 @@ Graph prieto(Graph& G) {
   auto T = dfs_tree(G);
   std::cerr << "info" << std::endl;
   leaf_info<Graph> info(T);
-  while(!info.is_path() && rule2(G, T, info));
+  int i = 0;
+  do {
+    show("tree" + std::to_string(i++) + ".dot", G, T);
+  } while(!info.is_path() && rule2(G, T, info));
   return T;
 }
 

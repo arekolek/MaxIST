@@ -90,12 +90,12 @@ int main(int argc, char** argv){
     }
 
     int count = suite.size();
-    cout << p << '\t' << degree / count << '\t';
+    cout << p << '\t' << degree / count;
 
     for(unsigned i = 0; i < algo.size(); ++i)
       cout
-        << quality[i] / count << '\t'
-        << time[i] / count << '\t'
+        << '\t' << quality[i] / count
+        << '\t' << time[i] / count
         ;
 
     cout << endl;
