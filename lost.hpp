@@ -39,9 +39,7 @@ public:
         L.push_back(l);
         unsigned p = l;
         unsigned x = *adjacent_vertices(l, T).first;
-        std::cerr << "leaf " << l << std::endl;
         while(degree(x, T) == 2) {
-          std::cerr << x << std::endl;
           auto it = adjacent_vertices(x, T).first;
           unsigned tmp = x;
           x = p == *it ? *(++it) : *it;
@@ -61,9 +59,7 @@ private:
 
 template <class Graph>
 Graph prieto(Graph& G) {
-  std::cerr << "dfs" << std::endl;
   auto T = dfs_tree(G);
-  std::cerr << "info" << std::endl;
   leaf_info<Graph> info(T);
   int i = 0;
   do {
@@ -74,7 +70,6 @@ Graph prieto(Graph& G) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
-  std::cerr << "rule" << std::endl;
   for(auto x : info.leaves())
     for(auto y : info.leaves())
       if(edge(x, y, G).second) {
@@ -88,7 +83,6 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
         //info.remove_leaf(y);
         //if(degree(bxx, T) == 1)
           //info.add_leaf(bxx);
-        std::cerr << "update" << std::endl;
         info.update();
         return true;
       }
