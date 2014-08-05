@@ -14,6 +14,9 @@ public:
   leaf_info(Graph const & T_) : T(T_) {
     update();
   }
+  bool is_path() const {
+    return L.size() == 2;
+  }
   std::vector<unsigned> const & leaves() const {
     return L;
   }
@@ -60,7 +63,7 @@ Graph prieto(Graph& G) {
   auto T = dfs_tree(G);
   std::cerr << "info" << std::endl;
   leaf_info<Graph> info(T);
-  while(rule2(G, T, info));
+  while(!info.is_path() && rule2(G, T, info));
   return T;
 }
 
