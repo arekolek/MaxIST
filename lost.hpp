@@ -73,16 +73,8 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   for(auto x : info.leaves())
     for(auto y : info.leaves())
       if(edge(x, y, G).second) {
-        // add x - y
         add_edge(x, y, T);
-        // remove b(x) - b(x)->x
-        auto bxx = info.branching_neighbor(x);
-        remove_edge(info.branching(x), bxx, T);
-        // update leaf list
-        //info.remove_leaf(x);
-        //info.remove_leaf(y);
-        //if(degree(bxx, T) == 1)
-          //info.add_leaf(bxx);
+        remove_edge(info.branching(x), info.branching_neighbor(x), T);
         info.update();
         return true;
       }
