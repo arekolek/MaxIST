@@ -34,10 +34,10 @@ node_writer<Graph> make_node_writer(Graph t) {
   return node_writer<Graph>(t);
 }
 
-template <class Graph>
+template<class Graph, class Tree>
 class edge_writer {
 public:
-  edge_writer(Graph const& g, Graph const& t) : G(g), T(t) {}
+  edge_writer(Graph const& g, Tree const& t) : G(g), T(t) {}
   template <class E>
   void operator()(std::ostream& out, const E& e) const {
     auto vs = adjacent_vertices(source(e, G), T);
@@ -49,16 +49,16 @@ public:
   }
 private:
   Graph const& G;
-  Graph const& T;
+  Tree const& T;
 };
 
-template <class Graph>
-edge_writer<Graph> make_edge_writer(Graph g, Graph t) {
-  return edge_writer<Graph>(g, t);
+template<class Graph, class Tree>
+edge_writer<Graph, Tree> make_edge_writer(Graph g, Tree t) {
+  return edge_writer<Graph, Tree>(g, t);
 }
 
-template<class Graph>
-void show(std::string file, Graph g, Graph t) {
+template<class Graph, class Tree>
+void show(std::string file, Graph g, Tree t) {
   std::ofstream f(file);
   write_graphviz(f, g,
     make_node_writer(t), make_edge_writer(g, t), red_points_dashed());
