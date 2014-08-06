@@ -55,19 +55,27 @@ int main(int argc, char** argv){
   options opt(argc, argv);
   int z = opt.get<int>("-z", 1);
   int n = opt.get<int>("-n", 5);
-  float pp = opt.get<float>("-p", -1);
+  float p = opt.get<float>("-p", -1);
+  string a = opt.get<string>("-a");
   vector<float> ps {0.0001, 0.0005, 0.001, 0.003, 0.005, 0.008,
     0.01, 0.03, 0.05, 0.08,
     0.1, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
     0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99};
-  if(pp >= 0 && pp <= 1) {
+  if(p >= 0 && p <= 1) {
     ps.clear();
-    ps.push_back(pp);
+    ps.push_back(p);
   }
 
+  vector<string> name {"dfs", "rdfs", "prieto"};
   vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>, prieto<graph>};
 
   timing timer;
+
+  cout << "p\tE[deg]";
+  for(auto n : name)
+    if(a.empty() || a == n)
+      cout << '\t' << n << '\t' << "time";
+  cout << endl;
 
   for(auto p : ps) {
     test_suite<graph> suite(z, n, p);
@@ -78,25 +86,26 @@ int main(int argc, char** argv){
     for(auto G : suite) {
       degree += average_degree(G);
 
-      for(unsigned i = 0; i < algo.size(); ++i) {
-        timer.start();
-        auto T = algo[i](G);
-        time[i] += timer.stop();
-        quality[i] += eval(T);
-        cerr << endl;
-
-        //show("graph" + to_string(i) + ".dot", G, T);
-      }
+      for(unsigned i = 0; i < algo.size(); ++i)
+        if(a.empty() || a == name[i]) {
+          timer.start();
+          auto T = algo[i](G);
+          time[i] += timer.stop();
+          quality[i] += eval(T);
+          cerr << endl;
+          //show("graph" + to_string(i) + ".dot", G, T);
+        }
     }
 
     int count = suite.size();
     cout << p << '\t' << degree / count;
 
     for(unsigned i = 0; i < algo.size(); ++i)
-      cout
-        << '\t' << quality[i] / count
-        << '\t' << time[i] / count
-        ;
+      if(a.empty() || a == name[i])
+        cout
+          << '\t' << quality[i] / count
+          << '\t' << time[i] / count
+          ;
 
     cout << endl;
   }
