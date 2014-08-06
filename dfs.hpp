@@ -26,7 +26,7 @@ private:
 
 template <class NewGraph, class Tag>
 inline graph_copier<NewGraph, Tag>
-copy_graph(NewGraph& g, Tag) {
+copy_visitor(NewGraph& g, Tag) {
   return graph_copier<NewGraph, Tag>(g);
 }
 
@@ -35,7 +35,7 @@ Graph dfs_tree(Graph& G) {
   Graph T;
 
   undirected_dfs(G,
-    visitor(make_dfs_visitor(copy_graph(T, on_tree_edge())))
+    visitor(make_dfs_visitor(copy_visitor(T, on_tree_edge())))
       .edge_color_map(get(edge_color, G)));
 
   return T;
