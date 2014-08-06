@@ -8,6 +8,13 @@
 
 namespace detail {
   boost::adjacency_matrix<boost::undirectedS> typedef graph;
+
+  template <class Input, class Output>
+  void copy_edges(const Input& in, Output& out) {
+    auto es = edges(in);
+    for(auto e = es.first; e != es.second; ++e)
+      add_edge(source(*e, in), target(*e, in), out);
+  }
 }
 
 template <class Graph>
@@ -59,12 +66,14 @@ private:
 
 template <class Graph>
 Graph prieto(Graph& G) {
+  detail::graph M(num_vertices(G));
+  detail::copy_edges(G, M);
   auto T = dfs_tree(G);
   leaf_info<Graph> info(T);
   int i = 0;
   do {
-    show("tree" + std::to_string(i++) + ".dot", G, T);
-  } while(!info.is_path() && rule2(G, T, info));
+    show("tree" + std::to_string(i++) + ".dot", M, T);
+  } while(!info.is_path() && rule2(M, T, info));
   return T;
 }
 
