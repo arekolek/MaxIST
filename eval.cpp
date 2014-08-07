@@ -66,8 +66,9 @@ int main(int argc, char** argv){
     ps.push_back(p);
   }
 
-  vector<string> name {"dfs", "rdfs", "prieto"};
-  vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>, prieto<graph>};
+  vector<string> name {"dfs", "rdfs", "prieto", "lostl"};
+  vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>,
+    prieto<graph>, lost_light<graph>};
 
   timing timer;
 

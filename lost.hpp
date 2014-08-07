@@ -1,5 +1,6 @@
 // (C) 2014 Arek Olek
 
+#include <functional>
 #include <unordered_map>
 
 #include <boost/functional/hash.hpp>
@@ -116,4 +117,23 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
         return true;
       }
   return false;
+}
+
+template <class Graph>
+Graph lost_light(Graph& G) {
+  auto T = dfs_tree(G);
+  leaf_info<Graph> info(T);
+  std::function<bool(Graph&,Graph&,leaf_info<Graph>&)> typedef rule;
+  std::vector<rule> rules {rule2<Graph,Graph,leaf_info<Graph>>};
+  bool applied = true;
+  while(applied && !info.is_path()) {
+    applied = false;
+    for(auto rule : rules) {
+      if(rule(G, T, info)) {
+        applied = true;
+        break;
+      }
+    }
+  }
+  return T;
 }
