@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include <boost/functional/hash.hpp>
 #include <boost/graph/adjacency_matrix.hpp>
 
 #include "debug.hpp"
@@ -17,6 +18,18 @@ namespace detail {
   }
 }
 
+namespace std {
+  template<typename S, typename T>
+  struct hash<pair<S, T>> {
+    inline size_t operator()(const pair<S, T> & v) const {
+      size_t seed = 0;
+      boost::hash_combine(seed, v.first);
+      boost::hash_combine(seed, v.second);
+      return seed;
+    }
+  };
+}
+
 template <class Graph>
 class leaf_info {
 public:
@@ -29,30 +42,34 @@ public:
   std::vector<unsigned> const & leaves() const {
     return L;
   }
-  unsigned branching(unsigned x) const {
-    return B.at(x);
+  unsigned branching(unsigned l) const {
+    return B.at(l);
   }
-  unsigned branching_neighbor(unsigned x) const {
-    return N.at(x);
+  unsigned parent(unsigned x, unsigned l) const {
+    return P.at(uintpair(l, x));
   }
   void update() {
     L.clear();
     B.clear();
-    N.clear();
+    P.clear();
     auto vs = vertices(T);
     for(auto vit = vs.first; vit != vs.second; ++vit)
       if(degree(*vit, T) == 1) {
-        unsigned l = *vit;
-        L.push_back(l);
-        unsigned p = l;
-        unsigned x = *adjacent_vertices(l, T).first;
-        while(degree(x, T) == 2)
-          std::tie(p, x) = next(p, x, T);
-        if(degree(x, T) > 2) {
-          B[l] = x;
-          N[l] = p;
-        }
+        L.push_back(*vit);
+        traverse(*vit, T);
       }
+  }
+  void traverse(unsigned l, Graph const & T) {
+    traverse(l, l, l, T);
+  }
+  void traverse(unsigned l, unsigned a, unsigned b, Graph const & T) {
+    do {
+      std::tie(a, b) = next(a, b, T);
+      P[uintpair(l, b)] = a;
+    } while(degree(b, T) == 2);
+    if(degree(b, T) > 2) {
+      B[l] = b;
+    }
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
     auto it = adjacent_vertices(b, T).first;
@@ -61,7 +78,9 @@ public:
 private:
   Graph const& T;
   std::vector<unsigned> L;
-  std::unordered_map<unsigned, unsigned> B, N;
+  std::pair<unsigned, unsigned> typedef uintpair;
+  std::unordered_map<unsigned, unsigned> B;
+  std::unordered_map<uintpair, unsigned> P;
 };
 
 template <class Graph>
@@ -79,11 +98,12 @@ Graph prieto(Graph& G) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto x : info.leaves())
-    for(auto y : info.leaves())
-      if(edge(x, y, G).second) {
-        add_edge(x, y, T);
-        remove_edge(info.branching(x), info.branching_neighbor(x), T);
+  for(auto l1 : info.leaves())
+    for(auto l2 : info.leaves())
+      if(edge(l1, l2, G).second) {
+        add_edge(l1, l2, T);
+        auto b = info.branching(l1);
+        remove_edge(b, info.parent(b, l1), T);
         info.update();
         return true;
       }
