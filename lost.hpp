@@ -68,7 +68,15 @@ public:
       P[uintpair(l, b)] = a;
     } while(degree(b, T) == 2);
     if(degree(b, T) > 2) {
-      B[l] = b;
+      if(B.count(l) == 0)
+        B[l] = b;
+      auto vs = adjacent_vertices(b, T);
+      for(auto v = vs.first; v != vs.second; ++v)
+        if(*v != a) {
+          P[uintpair(l, *v)] = b;
+          if(degree(*v, T) > 1)
+            traverse(l, b, *v, T);
+        }
     }
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
