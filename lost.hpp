@@ -46,17 +46,17 @@ public:
         L.push_back(l);
         unsigned p = l;
         unsigned x = *adjacent_vertices(l, T).first;
-        while(degree(x, T) == 2) {
-          auto it = adjacent_vertices(x, T).first;
-          unsigned tmp = x;
-          x = p == *it ? *(++it) : *it;
-          p = tmp;
-        }
+        while(degree(x, T) == 2)
+          std::tie(p, x) = next(p, x, T);
         if(degree(x, T) > 2) {
           B[l] = x;
           N[l] = p;
         }
       }
+  }
+  std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
+    auto it = adjacent_vertices(b, T).first;
+    return make_pair(b, a == *it ? *(++it) : *it);
   }
 private:
   Graph const& T;
