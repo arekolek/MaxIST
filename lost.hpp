@@ -66,14 +66,14 @@ private:
 
 template <class Graph>
 Graph prieto(Graph& G) {
-  detail::graph M(num_vertices(G));
-  detail::copy_edges(G, M);
+  //detail::graph M(num_vertices(G));
+  //detail::copy_edges(G, M);
   auto T = dfs_tree(G);
   leaf_info<Graph> info(T);
-  int i = 0;
+  //int i = 0;
   do {
-    show("tree" + std::to_string(i++) + ".dot", M, T);
-  } while(!info.is_path() && rule2(M, T, info));
+    //show("tree" + std::to_string(i++) + ".dot", M, T);
+  } while(!info.is_path() && rule2(G, T, info));
   return T;
 }
 
