@@ -40,12 +40,8 @@ public:
   edge_writer(Graph const& g, Tree const& t) : G(g), T(t) {}
   template <class E>
   void operator()(std::ostream& out, const E& e) const {
-    auto vs = adjacent_vertices(source(e, G), T);
-    for(auto vit = vs.first; vit != vs.second; ++vit)
-      if(*vit == target(e, G)) {
-        out << "[style=solid color=burlywood]";
-        break;
-      }
+    if(boost::edge(source(e, G), target(e, G), T).second)
+      out << "[style=solid color=burlywood]";
   }
 private:
   Graph const& G;
