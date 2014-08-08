@@ -117,12 +117,34 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule3(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l : info.leaves()) {
+    auto treeNeighbor = *adjacent_vertices(l, T).first;
+    auto vs = adjacent_vertices(l, G);
+    for(auto x = vs.first; x != vs.second; ++x)
+      if(*x != treeNeighbor) {
+        auto xl = info.parent(*x, l);
+        if(degree(xl, T) > 2) {
+          add_edge(l, *x, T);
+          remove_edge(*x, xl, T);
+          info.update();
+          return true;
+        }
+      }
+  }
+  return false;
+}
+
 template <class Graph>
 Graph lost_light(Graph& G) {
   auto T = dfs_tree(G);
   leaf_info<Graph> info(T);
   std::function<bool(Graph&,Graph&,leaf_info<Graph>&)> typedef rule;
-  std::vector<rule> rules {rule2<Graph,Graph,leaf_info<Graph>>};
+  std::vector<rule> rules {
+    rule2<Graph,Graph,leaf_info<Graph>>,
+    rule3<Graph,Graph,leaf_info<Graph>>,
+  };
   bool applied = true;
   while(applied && !info.is_path()) {
     applied = false;
