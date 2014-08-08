@@ -27,14 +27,9 @@ template <class Graph>
 int eval(Graph const & T) {
   int n = num_vertices(T);
   int internal = 0;
-  int upper = n - 2;
   auto vs = vertices(T);
   for(auto vit = vs.first; vit != vs.second; ++vit)
     internal += degree(*vit, T) > 1;
-
-  cerr << n-internal << " " << internal << " " << upper
-    << " " << n << " " << (upper-internal)/(double)upper << endl;
-
   return n-internal;
 }
 
@@ -93,7 +88,6 @@ int main(int argc, char** argv){
           auto T = algo[i](G);
           time[i] += timer.stop();
           quality[i] += eval(T);
-          cerr << endl;
           //show("graph" + to_string(i) + ".dot", G, T);
         }
     }
