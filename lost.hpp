@@ -136,6 +136,33 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule4(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l : info.leaves()) {
+    auto treeNeighbor = *adjacent_vertices(l, T).first;
+    auto vs = adjacent_vertices(l, G);
+    for(auto x = vs.first; x != vs.second; ++x)
+      if(*x != treeNeighbor) {
+        auto xl = info.parent(*x, l);
+        if(degree(xl, T) == 2) {
+          for(auto l2 : info.leaves())
+            if(l2 != l && edge(l2, xl, G).second) {
+              add_edge(l, *x, T);
+              remove_edge(*x, xl, T);
+
+              add_edge(l2, xl, T);
+              auto b = info.branching(l2);
+              remove_edge(b, info.parent(b, l2), T);
+
+              info.update();
+              return true;
+            }
+        }
+      }
+  }
+  return false;
+}
+
 template <class Graph>
 Graph lost_light(Graph& G) {
   auto T = dfs_tree(G);
@@ -144,6 +171,7 @@ Graph lost_light(Graph& G) {
   std::vector<rule> rules {
     rule2<Graph,Graph,leaf_info<Graph>>,
     rule3<Graph,Graph,leaf_info<Graph>>,
+    rule4<Graph,Graph,leaf_info<Graph>>,
   };
   bool applied = true;
   while(applied && !info.is_path()) {
