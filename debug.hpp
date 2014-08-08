@@ -9,8 +9,8 @@
 
 struct red_points_dashed {
   void operator()(std::ostream& out) const {
-    out << "node [shape=point color=brown]" << std::endl;
-    out << "edge [style=dashed color=burlywood1]" << std::endl;
+    out << "node [shape=circle color=burlywood style=filled]" << std::endl;
+    out << "edge [style=dashed color=burlywood penwidth=4 weight=0.3]" << std::endl;
   }
 };
 
@@ -21,9 +21,9 @@ public:
   template <class V>
   void operator()(std::ostream& out, const V& v) const {
     if(degree(v, T) == 1)
-      out << "[color=green]";
+      out << "[shape=square color=forestgreen]";
     if(degree(v, T) > 2)
-      out << "[color=red]";
+      out << "[color=brown1]";
   }
 private:
   Graph const& T;
@@ -41,7 +41,7 @@ public:
   template <class E>
   void operator()(std::ostream& out, const E& e) const {
     if(boost::edge(source(e, G), target(e, G), T).second)
-      out << "[style=solid color=burlywood]";
+      out << "[style=solid]";
   }
 private:
   Graph const& G;
