@@ -49,10 +49,17 @@ public:
   unsigned parent(unsigned x, unsigned l) const {
     return P.at(uintpair(l, x));
   }
+  unsigned branching_neighbor(unsigned l, unsigned x) const {
+    return BN.at(uintpair(l, x));
+  }
+  bool on_branch(unsigned l, unsigned x) const {
+    return BN.count(uintpair(l, x)) == 0;
+  }
   void update() {
     L.clear();
     B.clear();
     P.clear();
+    BN.clear();
     auto vs = vertices(T);
     for(auto vit = vs.first; vit != vs.second; ++vit)
       if(degree(*vit, T) == 1) {
@@ -78,9 +85,11 @@ public:
   }
   void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Graph const & T) {
     P[uintpair(l, b)] = a;
+    BN[uintpair(l, b)] = blx;
     while(degree(b, T) == 2) {
       std::tie(a, b) = next(a, b, T);
       P[uintpair(l, b)] = a;
+      BN[uintpair(l, b)] = blx;
     }
     if(degree(b, T) > 2) {
       auto vs = adjacent_vertices(b, T);
@@ -98,7 +107,7 @@ private:
   std::vector<unsigned> L;
   std::pair<unsigned, unsigned> typedef uintpair;
   std::unordered_map<unsigned, unsigned> B;
-  std::unordered_map<uintpair, unsigned> P;
+  std::unordered_map<uintpair, unsigned> P, BN;
 };
 
 template <class Graph>
@@ -174,6 +183,26 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule5(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l : info.leaves()) {
+    auto treeNeighbor = *adjacent_vertices(l, T).first;
+    auto vs = adjacent_vertices(l, G);
+    for(auto x = vs.first; x != vs.second; ++x)
+      if(*x != treeNeighbor && !info.on_branch(l, *x)) {
+        auto bl = info.branching(l);
+        auto blx = info.branching_neighbor(l, *x);
+        if(degree(blx, T) > 2) {
+          add_edge(l, *x, T);
+          remove_edge(bl, blx, T);
+          info.update();
+          return true;
+        }
+      }
+  }
+  return false;
+}
+
 template <class Graph>
 Graph lost_light(Graph& G) {
   auto T = dfs_tree(G);
@@ -183,6 +212,7 @@ Graph lost_light(Graph& G) {
     rule2<Graph,Graph,leaf_info<Graph>>,
     rule3<Graph,Graph,leaf_info<Graph>>,
     rule4<Graph,Graph,leaf_info<Graph>>,
+    rule5<Graph,Graph,leaf_info<Graph>>,
   };
   bool applied = true;
   while(applied && !info.is_path()) {
