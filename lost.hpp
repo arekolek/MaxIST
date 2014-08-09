@@ -170,6 +170,8 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
               add_edge(l, *x, T);
               remove_edge(*x, xl, T);
 
+              info.update();
+
               add_edge(l2, xl, T);
               auto b = info.branching(l2);
               remove_edge(b, info.parent(b, l2), T);
