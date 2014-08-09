@@ -169,13 +169,6 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
             if(l2 != l && edge(l2, xl, G).second) {
               add_edge(l, *x, T);
               remove_edge(*x, xl, T);
-
-              info.update();
-
-              add_edge(l2, xl, T);
-              auto b = info.branching(l2);
-              remove_edge(b, info.parent(b, l2), T);
-
               info.update();
               return true;
             }
@@ -219,13 +212,6 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
             if(l2 != l && edge(l2, blx, G).second) {
               add_edge(l, *x, T);
               remove_edge(bl, blx, T);
-
-              info.update();
-
-              add_edge(l2, blx, T);
-              auto b = info.branching(l2);
-              remove_edge(b, info.parent(b, l2), T);
-
               info.update();
               return true;
             }
