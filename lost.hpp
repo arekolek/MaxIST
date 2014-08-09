@@ -205,6 +205,36 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule6(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l : info.leaves()) {
+    auto treeNeighbor = *adjacent_vertices(l, T).first;
+    auto vs = adjacent_vertices(l, G);
+    for(auto x = vs.first; x != vs.second; ++x)
+      if(*x != treeNeighbor && !info.on_branch(l, *x)) {
+        auto bl = info.branching(l);
+        auto blx = info.branching_neighbor(l, *x);
+        if(degree(blx, T) == 2) {
+          for(auto l2 : info.leaves())
+            if(l2 != l && edge(l2, blx, G).second) {
+              add_edge(l, *x, T);
+              remove_edge(bl, blx, T);
+
+              info.update();
+
+              add_edge(l2, blx, T);
+              auto b = info.branching(l2);
+              remove_edge(b, info.parent(b, l2), T);
+
+              info.update();
+              return true;
+            }
+        }
+      }
+  }
+  return false;
+}
+
 template <class Graph>
 Graph lost_light(Graph& G) {
   auto T = dfs_tree(G);
@@ -215,6 +245,7 @@ Graph lost_light(Graph& G) {
     rule3<Graph,Graph,leaf_info<Graph>>,
     rule4<Graph,Graph,leaf_info<Graph>>,
     rule5<Graph,Graph,leaf_info<Graph>>,
+    rule6<Graph,Graph,leaf_info<Graph>>,
   };
   bool applied = true;
   while(applied && !info.is_path()) {
