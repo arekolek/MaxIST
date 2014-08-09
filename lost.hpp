@@ -61,21 +61,32 @@ public:
       }
   }
   void traverse(unsigned l, Graph const & T) {
-    traverse(l, l, next(l, l, T).second, T);
+    traverse(l, l, l, T);
   }
   void traverse(unsigned l, unsigned a, unsigned b, Graph const & T) {
+    do {
+      std::tie(a, b) = next(a, b, T);
+      P[uintpair(l, b)] = a;
+    } while(degree(b, T) == 2);
+    if(degree(b, T) > 2) {
+      B[l] = b;
+      auto vs = adjacent_vertices(b, T);
+      for(auto v = vs.first; v != vs.second; ++v)
+        if(*v != a)
+          traverse(l, *v, b, *v, T);
+    }
+  }
+  void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Graph const & T) {
     P[uintpair(l, b)] = a;
     while(degree(b, T) == 2) {
       std::tie(a, b) = next(a, b, T);
       P[uintpair(l, b)] = a;
     }
     if(degree(b, T) > 2) {
-      if(B.count(l) == 0)
-        B[l] = b;
       auto vs = adjacent_vertices(b, T);
       for(auto v = vs.first; v != vs.second; ++v)
         if(*v != a)
-          traverse(l, b, *v, T);
+          traverse(l, blx, b, *v, T);
     }
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
