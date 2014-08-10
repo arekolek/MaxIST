@@ -7,10 +7,17 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 
-struct red_points_dashed {
-  void operator()(std::ostream& out) const {
-    out << "node [shape=circle color=burlywood style=filled]" << std::endl;
-    out << "edge [style=dashed color=burlywood penwidth=4 weight=0.3]" << std::endl;
+struct graph_writer {
+  bool labels;
+  graph_writer(bool l) : labels(l) {}
+  virtual void operator()(std::ostream& out) const {
+    if(labels) {
+      out << "node [shape=circle color=burlywood style=filled]" << std::endl;
+      out << "edge [style=dashed color=burlywood penwidth=4 weight=0.3]" << std::endl;
+    } else {
+      out << "node [shape=point color=burlywood style=filled label=\"\" width=0.05]" << std::endl;
+      out << "edge [style=dashed color=burlywood]" << std::endl;
+    }
   }
 };
 
@@ -57,7 +64,9 @@ template<class Graph, class Tree>
 void show(std::string file, Graph g, Tree t) {
   std::ofstream f(file);
   write_graphviz(f, g,
-    make_node_writer(t), make_edge_writer(g, t), red_points_dashed());
+    make_node_writer(t),
+    make_edge_writer(g, t),
+    graph_writer(num_vertices(g) < 50));
   f.close();
 }
 
