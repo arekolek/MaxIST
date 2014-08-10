@@ -6,6 +6,7 @@
 
 #include "options.hpp"
 #include "test_suite.hpp"
+#include "range.hpp"
 
 using namespace std;
 
@@ -26,9 +27,8 @@ int main(int argc, char** argv) {
   for(auto const& G : suite) {
 
     cout << num_vertices(G) << " " << num_edges(G) << endl;
-    auto es = edges(G);
-    for(auto eit = es.first; eit != es.second; ++eit)
-      cout << source(*eit, G) << " " << target(*eit, G) << endl;
+    for(auto e : range(edges(G)))
+      cout << source(e, G) << " " << target(e, G) << endl;
 
   }
 

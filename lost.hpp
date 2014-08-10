@@ -7,15 +7,15 @@
 #include <boost/graph/adjacency_matrix.hpp>
 
 #include "debug.hpp"
+#include "range.hpp"
 
 namespace detail {
   boost::adjacency_matrix<boost::undirectedS> typedef graph;
 
   template <class Input, class Output>
   void copy_edges(const Input& in, Output& out) {
-    auto es = edges(in);
-    for(auto e = es.first; e != es.second; ++e)
-      add_edge(source(*e, in), target(*e, in), out);
+    for(auto e : range(edges(in)))
+      add_edge(source(e, in), target(e, in), out);
   }
 }
 
@@ -60,11 +60,10 @@ public:
     B.clear();
     P.clear();
     BN.clear();
-    auto vs = vertices(T);
-    for(auto vit = vs.first; vit != vs.second; ++vit)
-      if(degree(*vit, T) == 1) {
-        L.push_back(*vit);
-        traverse(*vit, T);
+    for(auto v : range(vertices(T)))
+      if(degree(v, T) == 1) {
+        L.push_back(v);
+        traverse(v, T);
       }
   }
   void traverse(unsigned l, Graph const & T) {
@@ -77,10 +76,9 @@ public:
     } while(degree(b, T) == 2);
     if(degree(b, T) > 2) {
       B[l] = b;
-      auto vs = adjacent_vertices(b, T);
-      for(auto v = vs.first; v != vs.second; ++v)
-        if(*v != a)
-          traverse(l, *v, b, *v, T);
+      for(auto v : range(adjacent_vertices(b, T)))
+        if(v != a)
+          traverse(l, v, b, v, T);
     }
   }
   void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Graph const & T) {
@@ -92,10 +90,9 @@ public:
       BN[uintpair(l, b)] = blx;
     }
     if(degree(b, T) > 2) {
-      auto vs = adjacent_vertices(b, T);
-      for(auto v = vs.first; v != vs.second; ++v)
-        if(*v != a)
-          traverse(l, blx, b, *v, T);
+      for(auto v : range(adjacent_vertices(b, T)))
+        if(v != a)
+          traverse(l, blx, b, v, T);
     }
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
@@ -141,13 +138,12 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves()) {
     auto treeNeighbor = *adjacent_vertices(l, T).first;
-    auto vs = adjacent_vertices(l, G);
-    for(auto x = vs.first; x != vs.second; ++x)
-      if(*x != treeNeighbor) {
-        auto xl = info.parent(*x, l);
+    for(auto x : range(adjacent_vertices(l, G)))
+      if(x != treeNeighbor) {
+        auto xl = info.parent(x, l);
         if(degree(xl, T) > 2) {
-          add_edge(l, *x, T);
-          remove_edge(*x, xl, T);
+          add_edge(l, x, T);
+          remove_edge(x, xl, T);
           info.update();
           return true;
         }
@@ -160,15 +156,14 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule4(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves()) {
     auto treeNeighbor = *adjacent_vertices(l, T).first;
-    auto vs = adjacent_vertices(l, G);
-    for(auto x = vs.first; x != vs.second; ++x)
-      if(*x != treeNeighbor) {
-        auto xl = info.parent(*x, l);
+    for(auto x : range(adjacent_vertices(l, G)))
+      if(x != treeNeighbor) {
+        auto xl = info.parent(x, l);
         if(degree(xl, T) == 2) {
           for(auto l2 : info.leaves())
             if(l2 != l && edge(l2, xl, G).second) {
-              add_edge(l, *x, T);
-              remove_edge(*x, xl, T);
+              add_edge(l, x, T);
+              remove_edge(x, xl, T);
               info.update();
               return true;
             }
@@ -182,13 +177,12 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves()) {
     auto treeNeighbor = *adjacent_vertices(l, T).first;
-    auto vs = adjacent_vertices(l, G);
-    for(auto x = vs.first; x != vs.second; ++x)
-      if(*x != treeNeighbor && !info.on_branch(l, *x)) {
+    for(auto x : range(adjacent_vertices(l, G)))
+      if(x != treeNeighbor && !info.on_branch(l, x)) {
         auto bl = info.branching(l);
-        auto blx = info.branching_neighbor(l, *x);
+        auto blx = info.branching_neighbor(l, x);
         if(degree(blx, T) > 2) {
-          add_edge(l, *x, T);
+          add_edge(l, x, T);
           remove_edge(bl, blx, T);
           info.update();
           return true;
@@ -202,15 +196,14 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves()) {
     auto treeNeighbor = *adjacent_vertices(l, T).first;
-    auto vs = adjacent_vertices(l, G);
-    for(auto x = vs.first; x != vs.second; ++x)
-      if(*x != treeNeighbor && !info.on_branch(l, *x)) {
+    for(auto x : range(adjacent_vertices(l, G)))
+      if(x != treeNeighbor && !info.on_branch(l, x)) {
         auto bl = info.branching(l);
-        auto blx = info.branching_neighbor(l, *x);
+        auto blx = info.branching_neighbor(l, x);
         if(degree(blx, T) == 2) {
           for(auto l2 : info.leaves())
             if(l2 != l && edge(l2, blx, G).second) {
-              add_edge(l, *x, T);
+              add_edge(l, x, T);
               remove_edge(bl, blx, T);
               info.update();
               return true;

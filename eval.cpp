@@ -14,6 +14,7 @@
 #include "test_suite.hpp"
 #include "options.hpp"
 #include "timing.hpp"
+#include "range.hpp"
 
 using namespace std;
 
@@ -27,18 +28,16 @@ template <class Graph>
 int eval(Graph const & T) {
   int n = num_vertices(T);
   int internal = 0;
-  auto vs = vertices(T);
-  for(auto vit = vs.first; vit != vs.second; ++vit)
-    internal += degree(*vit, T) > 1;
+  for(auto v : range(vertices(T)))
+    internal += degree(v, T) > 1;
   return n-internal;
 }
 
 template <class Graph>
 float average_degree(Graph const & G) {
-  auto vs = vertices(G);
   float sum = 0;
-  for(auto vit = vs.first; vit != vs.second; ++vit)
-    sum += degree(*vit, G);
+  for(auto v : range(vertices(G)))
+    sum += degree(v, G);
   return sum / num_vertices(G);
 }
 

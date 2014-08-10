@@ -7,6 +7,8 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "range.hpp"
+
 namespace detail {
 
   unsigned typedef node;
@@ -22,13 +24,12 @@ namespace detail {
     node w, x, y;
     unsigned min_deg = UINT_MAX;
 
-    auto vs = adjacent_vertices(v, G);
-    for(auto vit = vs.first; vit != vs.second; ++vit) {
-      --deg[*vit];
+    for(auto u : range(adjacent_vertices(v, G))) {
+      --deg[u];
 
-      if(rank[*vit] == 0 && deg[*vit] < min_deg) {
-        w = *vit;
-        min_deg = deg[*vit];
+      if(rank[u] == 0 && deg[u] < min_deg) {
+        w = u;
+        min_deg = deg[u];
       }
     }
 
@@ -42,10 +43,9 @@ namespace detail {
 
     add_edge(x, y, T);
 
-    vs = adjacent_vertices(x, G);
-    for(auto vit = vs.first; vit != vs.second; ++vit)
-      if(*vit != y && rank[*vit] == 0)
-        edges.emplace(x, *vit);
+    for(auto u : range(adjacent_vertices(x, G)))
+      if(u != y && rank[u] == 0)
+        edges.emplace(x, u);
 
     visit(G, T, y, next_rank, rank, deg, edges);
   }
@@ -60,9 +60,8 @@ Graph rdfs_tree(Graph& G) {
   std::vector<detail::node> rank(n, 0), deg(n);
   std::stack<detail::edge> edges;
 
-  auto vs = vertices(G);
-  for(auto vit = vs.first; vit != vs.second; ++vit)
-    deg[*vit] = degree(*vit, G);
+  for(auto v : range(vertices(G)))
+    deg[v] = degree(v, G);
 
   detail::visit(G, T, 0, next_rank, rank, deg, edges);
 
