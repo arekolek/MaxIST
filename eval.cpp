@@ -6,6 +6,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "bfs.hpp"
 #include "dfs.hpp"
 #include "rdfs.hpp"
 #include "lost.hpp"
@@ -43,6 +44,57 @@ float average_degree(Graph const & G) {
 
 function<graph(graph&)> typedef solution;
 
+class dummy {
+public:
+  template<class Graph>
+  void operator()(Graph& G, Graph& T) {
+  }
+};
+
+template <class Improvement>
+void run(int z, int n, vector<float> ps, vector<string> name,
+  vector<solution> algo, Improvement improve, string iname) {
+  timing timer;
+
+  cout << endl << iname << endl << endl;
+
+  cout << "p\tE[deg]";
+  for(auto n : name)
+    cout << '\t' << n << '\t' << "time";
+  cout << endl;
+
+  for(auto p : ps) {
+    test_suite<graph> suite(z, n, p);
+
+    double degree = 0;
+    vector<double> quality(algo.size(), 0), time(algo.size(), 0);
+
+    for(auto G : suite) {
+      degree += average_degree(G);
+
+      for(unsigned i = 0; i < algo.size(); ++i) {
+        timer.start();
+        auto T = algo[i](G);
+        improve(G, T);
+        time[i] += timer.stop();
+        quality[i] += eval(T);
+        //show("graph" + to_string(i) + ".dot", G, T);
+      }
+    }
+
+    int count = suite.size();
+    cout << p << '\t' << degree / count;
+
+    for(unsigned i = 0; i < algo.size(); ++i)
+      cout
+        << '\t' << quality[i] / count
+        << '\t' << time[i] / count
+        ;
+
+    cout << endl;
+  }
+}
+
 int main(int argc, char** argv){
   ios_base::sync_with_stdio(0);
 
@@ -60,50 +112,14 @@ int main(int argc, char** argv){
     ps.push_back(p);
   }
 
-  vector<string> name {"dfs", "rdfs", "prieto", "lostl"};
-  vector<solution> algo {dfs_tree<graph>, rdfs_tree<graph>,
-    prieto<graph>, lost_light<graph>};
+  vector<string> name {"bfs", "dfs", "rdfs"};
+  vector<solution> algo {bfs_tree<graph>, dfs_tree<graph>, rdfs_tree<graph>};
 
-  timing timer;
+  run(z, n, ps, name, algo, dummy(), "no improvement");
 
-  cout << "p\tE[deg]";
-  for(auto n : name)
-    if(a.empty() || a == n)
-      cout << '\t' << n << '\t' << "time";
-  cout << endl;
+  run(z, n, ps, name, algo, prieto(), "prieto");
 
-  for(auto p : ps) {
-    test_suite<graph> suite(z, n, p);
-
-    double degree = 0;
-    vector<double> quality(algo.size(), 0), time(algo.size(), 0);
-
-    for(auto G : suite) {
-      degree += average_degree(G);
-
-      for(unsigned i = 0; i < algo.size(); ++i)
-        if(a.empty() || a == name[i]) {
-          timer.start();
-          auto T = algo[i](G);
-          time[i] += timer.stop();
-          quality[i] += eval(T);
-          //show("graph" + to_string(i) + ".dot", G, T);
-        }
-    }
-
-    int count = suite.size();
-    cout << p << '\t' << degree / count;
-
-    for(unsigned i = 0; i < algo.size(); ++i)
-      if(a.empty() || a == name[i])
-        cout
-          << '\t' << quality[i] / count
-          << '\t' << time[i] / count
-          ;
-
-    cout << endl;
-  }
-
+  run(z, n, ps, name, algo, lost_light(), "lost-light");
 
   return 0;
 }

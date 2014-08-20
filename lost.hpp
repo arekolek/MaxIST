@@ -107,18 +107,19 @@ private:
   std::unordered_map<uintpair, unsigned> P, BN;
 };
 
-template <class Graph>
-Graph prieto(Graph& G) {
-  //detail::graph M(num_vertices(G));
-  //detail::copy_edges(G, M);
-  auto T = dfs_tree(G);
-  leaf_info<Graph> info(T);
-  //int i = 0;
-  do {
-    //show("tree" + std::to_string(i++) + ".dot", M, T);
-  } while(!info.is_path() && rule2(G, T, info));
-  return T;
-}
+class prieto {
+public:
+  template<class Graph>
+  void operator()(Graph& G, Graph& T) {
+    //detail::graph M(num_vertices(G));
+    //detail::copy_edges(G, M);
+    leaf_info<Graph> info(T);
+    //int i = 0;
+    do {
+      //show("tree" + std::to_string(i++) + ".dot", M, T);
+    } while(!info.is_path() && rule2(G, T, info));
+  }
+};
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
@@ -214,27 +215,29 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph>
-Graph lost_light(Graph& G) {
-  auto T = dfs_tree(G);
-  leaf_info<Graph> info(T);
-  std::function<bool(Graph&,Graph&,leaf_info<Graph>&)> typedef rule;
-  std::vector<rule> rules {
-    rule2<Graph,Graph,leaf_info<Graph>>,
-    rule3<Graph,Graph,leaf_info<Graph>>,
-    rule4<Graph,Graph,leaf_info<Graph>>,
-    rule5<Graph,Graph,leaf_info<Graph>>,
-    rule6<Graph,Graph,leaf_info<Graph>>,
-  };
-  bool applied = true;
-  while(applied && !info.is_path()) {
-    applied = false;
-    for(auto rule : rules) {
-      if(rule(G, T, info)) {
-        applied = true;
-        break;
+class lost_light {
+public:
+  template <class Graph>
+  Graph operator() (Graph& G, Graph& T) {
+    leaf_info<Graph> info(T);
+    std::function<bool(Graph&,Graph&,leaf_info<Graph>&)> typedef rule;
+    std::vector<rule> rules {
+      rule2<Graph,Graph,leaf_info<Graph>>,
+      rule3<Graph,Graph,leaf_info<Graph>>,
+      rule4<Graph,Graph,leaf_info<Graph>>,
+      rule5<Graph,Graph,leaf_info<Graph>>,
+      rule6<Graph,Graph,leaf_info<Graph>>,
+    };
+    bool applied = true;
+    while(applied && !info.is_path()) {
+      applied = false;
+      for(auto rule : rules) {
+        if(rule(G, T, info)) {
+          applied = true;
+          break;
+        }
       }
     }
+    return T;
   }
-  return T;
-}
+};
