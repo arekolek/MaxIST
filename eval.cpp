@@ -12,10 +12,11 @@
 #include "lost.hpp"
 
 #include "debug.hpp"
-#include "test_suite.hpp"
 #include "options.hpp"
 #include "timing.hpp"
 #include "range.hpp"
+
+#include "test_suite.hpp"
 
 using namespace std;
 
