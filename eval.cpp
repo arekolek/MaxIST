@@ -48,7 +48,8 @@ function<graph(graph&)> typedef solution;
 class dummy {
 public:
   template<class Graph>
-  void operator()(Graph& G, Graph& T) {
+  int operator()(Graph& G, Graph& T) {
+    return 0;
   }
 };
 
@@ -57,18 +58,24 @@ void run(int z, int n, vector<float> ps, vector<string> name,
   vector<solution> algo, Improvement improve, string iname) {
   timing timer;
 
-  cout << endl << iname << endl << endl;
+  cout << endl << iname << endl;
 
-  cout << "p\tE[deg]";
+  cout << "\t\t";
   for(auto n : name)
-    cout << '\t' << n << '\t' << "time";
+    cout << n << "\t\t\t";
+  cout << "\np\tE[deg]";
+  for(auto n : name)
+    cout << '\t' << "leafs" << '\t' << "time" << '\t' << "steps";
   cout << endl;
 
   for(auto p : ps) {
     test_suite<graph> suite(z, n, p);
 
     double degree = 0;
-    vector<double> quality(algo.size(), 0), time(algo.size(), 0);
+    vector<double>
+      steps(algo.size(), 0),
+      quality(algo.size(), 0),
+      time(algo.size(), 0);
 
     for(auto G : suite) {
       degree += average_degree(G);
@@ -76,7 +83,7 @@ void run(int z, int n, vector<float> ps, vector<string> name,
       for(unsigned i = 0; i < algo.size(); ++i) {
         timer.start();
         auto T = algo[i](G);
-        improve(G, T);
+        steps[i] += improve(G, T);
         time[i] += timer.stop();
         quality[i] += eval(T);
         //show("graph" + to_string(i) + ".dot", G, T);
@@ -90,6 +97,7 @@ void run(int z, int n, vector<float> ps, vector<string> name,
       cout
         << '\t' << quality[i] / count
         << '\t' << time[i] / count
+        << '\t' << steps[i] / count
         ;
 
     cout << endl;

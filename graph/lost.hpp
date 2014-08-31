@@ -110,14 +110,16 @@ private:
 class prieto {
 public:
   template<class Graph>
-  void operator()(Graph& G, Graph& T) {
+  int operator()(Graph& G, Graph& T) {
     //detail::graph M(num_vertices(G));
     //detail::copy_edges(G, M);
     leaf_info<Graph> info(T);
-    //int i = 0;
+    int i = -1;
     do {
+      ++i;
       //show("tree" + std::to_string(i++) + ".dot", M, T);
     } while(!info.is_path() && rule2(G, T, info));
+    return i;
   }
 };
 
@@ -218,7 +220,7 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
 class lost_light {
 public:
   template <class Graph>
-  Graph operator() (Graph& G, Graph& T) {
+  int operator() (Graph& G, Graph& T) {
     leaf_info<Graph> info(T);
     std::function<bool(Graph&,Graph&,leaf_info<Graph>&)> typedef rule;
     std::vector<rule> rules {
@@ -228,16 +230,18 @@ public:
       rule5<Graph,Graph,leaf_info<Graph>>,
       rule6<Graph,Graph,leaf_info<Graph>>,
     };
+    int i = 0;
     bool applied = true;
     while(applied && !info.is_path()) {
       applied = false;
       for(auto rule : rules) {
         if(rule(G, T, info)) {
+          ++i;
           applied = true;
           break;
         }
       }
     }
-    return T;
+    return i;
   }
 };
