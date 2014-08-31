@@ -6,6 +6,8 @@
 #include <vector>
 #include <queue>
 
+#include "range.hpp"
+
 template <class Graph>
 Graph bfs_tree(Graph const & G) {
   typedef std::pair<int, int> edge;

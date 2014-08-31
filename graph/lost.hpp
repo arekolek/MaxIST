@@ -97,7 +97,7 @@ public:
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
     auto it = adjacent_vertices(b, T).first;
-    return make_pair(b, a == *it ? *(++it) : *it);
+    return std::make_pair(b, a == *it ? *(++it) : *it);
   }
 private:
   Graph const& T;
