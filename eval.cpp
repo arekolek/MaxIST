@@ -89,7 +89,7 @@ void run(int z, int n, vector<float> ps, vector<string> name,
         quality[i] += internals;
         minimum = min(minimum, internals);
         maximum = max(maximum, internals);
-        show("graph" + to_string(i) + ".dot", G, T);
+        //show("graph" + to_string(i) + ".dot", G, T);
       }
     }
 
