@@ -61,12 +61,11 @@ edge_writer<Graph, Tree> make_edge_writer(Graph g, Tree t) {
 }
 
 template<class Graph, class Tree>
-void show(std::string file, Graph g, Tree t) {
+void show(std::string file, Graph const & g, Tree const & t) {
   std::ofstream f(file);
   write_graphviz(f, g,
     make_node_writer(t),
     make_edge_writer(g, t),
-    graph_writer(num_vertices(g) < 50));
+    graph_writer(num_vertices(g) < 30));
   f.close();
 }
-

@@ -4,6 +4,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "debug.hpp"
 #include "options.hpp"
 #include "test_suite.hpp"
 #include "range.hpp"
@@ -25,6 +26,8 @@ int main(int argc, char** argv) {
   cout << suite.size() << endl;
 
   for(auto const& G : suite) {
+
+    show("tego.dot", G, G);
 
     cout << num_vertices(G) << " " << num_edges(G) << endl;
     for(auto e : range(edges(G)))
