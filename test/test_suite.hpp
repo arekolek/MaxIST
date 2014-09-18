@@ -2,13 +2,10 @@
 
 #pragma once
 
-#include <algorithm>
 #include <chrono>
 #include <random>
 
-#include <boost/iterator/counting_iterator.hpp>
-
-auto range_iterator = boost::make_counting_iterator<int>;
+#include "graph.hpp"
 
 unsigned time_seed() {
   return std::chrono::system_clock::now().time_since_epoch().count();
@@ -79,20 +76,13 @@ Graph test_suite<Graph>::iterator::operator *() const {
   auto const& test = suite_.test(i_);
   unsigned n = test.size();
   std::default_random_engine generator(test.seed());
-  std::bernoulli_distribution trial(test.probability());
   Graph G(n);
 
   // add random path
-  std::vector<int> path(range_iterator(0), range_iterator(n));
-  std::shuffle(path.begin(), path.end(), generator);
-  for(unsigned i = 0; i < n-1; ++i)
-    add_edge(path[i], path[i+1], G);
+  add_spider(G, 1, generator);
 
   // add random edges
-  for(unsigned i = 0; i < n; ++i)
-    for(unsigned j = i + 1; j < n; ++j)
-      if(trial(generator))
-        add_edge(i, j, G);
+  add_edges_uniform(G, test.probability(), generator);
 
   return G;
 }
