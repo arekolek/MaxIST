@@ -28,11 +28,10 @@ boost::adjacency_list<
 
 template <class Graph>
 int eval(Graph const & T) {
-  int n = num_vertices(T);
   int internal = 0;
   for(auto v : range(vertices(T)))
     internal += degree(v, T) > 1;
-  return n-internal;
+  return internal;
 }
 
 template <class Graph>
@@ -62,10 +61,10 @@ void run(int z, int n, vector<float> ps, vector<string> name,
 
   cout << "\t\t";
   for(auto n : name)
-    cout << n << "\t\t\t";
+    cout << n << "\t\t\t\t\t";
   cout << "\np\tE[deg]";
   for(auto n : name)
-    cout << '\t' << "leafs" << '\t' << "time" << '\t' << "steps";
+    cout << "\tmin\tE[|I|]\tmax\ttime\tsteps";
   cout << endl;
 
   for(auto p : ps) {
@@ -76,6 +75,7 @@ void run(int z, int n, vector<float> ps, vector<string> name,
       steps(algo.size(), 0),
       quality(algo.size(), 0),
       time(algo.size(), 0);
+    int minimum = n, maximum = 0;
 
     for(auto G : suite) {
       degree += average_degree(G);
@@ -85,8 +85,11 @@ void run(int z, int n, vector<float> ps, vector<string> name,
         auto T = algo[i](G);
         steps[i] += improve(G, T);
         time[i] += timer.stop();
-        quality[i] += eval(T);
-        //show("graph" + to_string(i) + ".dot", G, T);
+        int internals = eval(T);
+        quality[i] += internals;
+        minimum = min(minimum, internals);
+        maximum = max(maximum, internals);
+        show("graph" + to_string(i) + ".dot", G, T);
       }
     }
 
@@ -95,7 +98,9 @@ void run(int z, int n, vector<float> ps, vector<string> name,
 
     for(unsigned i = 0; i < algo.size(); ++i)
       cout
+        << '\t' << minimum
         << '\t' << quality[i] / count
+        << '\t' << maximum
         << '\t' << time[i] / count
         << '\t' << steps[i] / count
         ;
