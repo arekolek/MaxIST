@@ -75,7 +75,9 @@ void run(int z, int n, vector<float> ps, vector<string> name,
       steps(algo.size(), 0),
       quality(algo.size(), 0),
       time(algo.size(), 0);
-    int minimum = n, maximum = 0;
+    vector<int>
+      minimum(algo.size(), n),
+      maximum(algo.size(), 0);
 
     for(auto G : suite) {
       degree += average_degree(G);
@@ -87,8 +89,8 @@ void run(int z, int n, vector<float> ps, vector<string> name,
         time[i] += timer.stop();
         int internals = eval(T);
         quality[i] += internals;
-        minimum = min(minimum, internals);
-        maximum = max(maximum, internals);
+        minimum[i] = min(minimum[i], internals);
+        maximum[i] = max(maximum[i], internals);
         //show("graph" + to_string(i) + ".dot", G, T);
       }
     }
@@ -98,9 +100,9 @@ void run(int z, int n, vector<float> ps, vector<string> name,
 
     for(unsigned i = 0; i < algo.size(); ++i)
       cout
-        << '\t' << minimum
+        << '\t' << minimum[i]
         << '\t' << quality[i] / count
-        << '\t' << maximum
+        << '\t' << maximum[i]
         << '\t' << time[i] / count
         << '\t' << steps[i] / count
         ;
