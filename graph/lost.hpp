@@ -103,11 +103,11 @@ private:
 
 class prieto {
 public:
-  template<class Graph>
-  int operator()(Graph& G, Graph& T) {
+  template<class Graph, class Tree>
+  int operator()(Graph& G, Tree& T) {
     //detail::graph M(num_vertices(G));
     //detail::copy_edges(G, M);
-    leaf_info<Graph> info(T);
+    leaf_info<Tree> info(T);
     int i = -1;
     do {
       ++i;
@@ -227,16 +227,16 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
 
 class lost_light {
 public:
-  template <class Graph>
-  int operator() (Graph& G, Graph& T) {
-    leaf_info<Graph> info(T);
-    std::function<bool(Graph&,Graph&,leaf_info<Graph>&)> typedef rule;
+  template <class Graph, class Tree>
+  int operator() (Graph& G, Tree& T) {
+    leaf_info<Tree> info(T);
+    std::function<bool(Graph&,Tree&,leaf_info<Tree>&)> typedef rule;
     std::vector<rule> rules {
-      rule2<Graph,Graph,leaf_info<Graph>>,
-      rule3<Graph,Graph,leaf_info<Graph>>,
-      rule4<Graph,Graph,leaf_info<Graph>>,
-      rule5<Graph,Graph,leaf_info<Graph>>,
-      rule6<Graph,Graph,leaf_info<Graph>>,
+      rule2<Graph,Tree,leaf_info<Tree>>,
+      rule3<Graph,Tree,leaf_info<Tree>>,
+      rule4<Graph,Tree,leaf_info<Tree>>,
+      rule5<Graph,Tree,leaf_info<Tree>>,
+      rule6<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
