@@ -157,22 +157,29 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule4(Graph& G, Tree& T, LeafInfo& info) {
+  int n = num_vertices(G);
+  std::vector<std::vector<std::pair<int,int>>> foo(n);
   for(auto l : info.leaves()) {
     auto treeNeighbor = *adjacent_vertices(l, T).first;
     for(auto x : range(adjacent_vertices(l, G)))
       if(x != treeNeighbor) {
         auto xl = info.parent(x, l);
-        if(degree(xl, T) == 2) {
-          for(auto l2 : info.leaves())
-            if(l2 != l && edge(l2, xl, G).second) {
-              add_edge(l, x, T);
-              remove_edge(x, xl, T);
-              info.update();
-              return true;
-            }
-        }
+        if(degree(xl, T) == 2)
+          foo[xl].emplace_back(l, x);
       }
   }
+
+  for(int l2 : info.leaves())
+    for(int xl = 0; xl < n; ++xl)
+      if(!foo[xl].empty() && edge(l2, xl, G).second) {
+        int l, x;
+        if(foo[xl].size() == 1 && foo[xl].begin()->first == l2) continue;
+        std::tie(l, x) = foo[xl].begin()->first == l2 ? *(foo[xl].begin()+1) : *foo[xl].begin();
+        add_edge(l, x, T);
+        remove_edge(x, xl, T);
+        info.update();
+        return true;
+      }
   return false;
 }
 
@@ -197,23 +204,30 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule6(Graph& G, Tree& T, LeafInfo& info) {
+  int n = num_vertices(G);
+  std::vector<std::vector<std::pair<int,int>>> foo(n);
   for(auto l : info.leaves()) {
     auto treeNeighbor = *adjacent_vertices(l, T).first;
     for(auto x : range(adjacent_vertices(l, G)))
       if(x != treeNeighbor && !info.on_branch(l, x)) {
-        auto bl = info.branching(l);
         auto blx = info.branching_neighbor(l, x);
         if(degree(blx, T) == 2) {
-          for(auto l2 : info.leaves())
-            if(l2 != l && edge(l2, blx, G).second) {
-              add_edge(l, x, T);
-              remove_edge(bl, blx, T);
-              info.update();
-              return true;
-            }
+          foo[blx].emplace_back(l, x);
         }
       }
   }
+
+  for(int l2 : info.leaves())
+    for(int blx = 0; blx < n; ++blx)
+      if(!foo[blx].empty() && edge(l2, blx, G).second) {
+        int l, x;
+        if(foo[blx].size() == 1 && foo[blx].begin()->first == l2) continue;
+        std::tie(l, x) = foo[blx].begin()->first == l2 ? *(foo[blx].begin()+1) : *foo[blx].begin();
+        add_edge(l, x, T);
+        remove_edge(info.branching(l), blx, T);
+        info.update();
+        return true;
+      }
   return false;
 }
 
