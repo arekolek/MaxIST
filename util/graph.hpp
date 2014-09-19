@@ -7,7 +7,15 @@
 
 #include <boost/iterator/counting_iterator.hpp>
 
+#include "range.hpp"
+
 auto range_iterator = boost::make_counting_iterator<int>;
+
+template <class Input, class Output>
+void copy_edges(const Input& in, Output& out) {
+  for(auto e : range(edges(in)))
+    add_edge(source(e, in), target(e, in), out);
+}
 
 template<class Graph, class Generator>
 void add_spider(Graph& G, unsigned legs, Generator generator) {

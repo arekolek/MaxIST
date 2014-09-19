@@ -11,12 +11,6 @@
 
 namespace detail {
   boost::adjacency_matrix<boost::undirectedS> typedef graph;
-
-  template <class Input, class Output>
-  void copy_edges(const Input& in, Output& out) {
-    for(auto e : range(edges(in)))
-      add_edge(source(e, in), target(e, in), out);
-  }
 }
 
 namespace std {
