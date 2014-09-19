@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
   float p = opt.get<float>("-p", 1);
 
   timing timer;
-  lost_light improve;
+  prieto improve;
 
   for(int n = 100; n <= N; n += 100) {
     test_suite<graph> suite(z, n, p);
