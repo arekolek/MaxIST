@@ -28,15 +28,16 @@ int main(int argc, char** argv) {
 
   for(int n = 100; n <= N; n += 100) {
     test_suite<graph> suite(z, n, p);
+    double total = 0;
     for(auto G : suite) {
       auto T = bfs_tree(G);
       timer.start();
       improve(G, T);
-      auto sec = timer.stop();
-      cout << "{" << n << "," << sec << "}";
-      if(n < N) cout << ",";
-      cout << endl;
+      total += timer.stop();
     }
+    cout << "{" << n << "," << total/suite.size() << "}";
+    if(n < N) cout << ",";
+    cout << endl;
   }
 
   return 0;
