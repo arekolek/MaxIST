@@ -14,8 +14,8 @@ using namespace std;
 
 typedef boost::adjacency_list<
   boost::hash_setS, boost::vecS, boost::undirectedS
-  > graph;
-//~ boost::adjacency_matrix<boost::undirectedS> typedef graph;
+  > list_graph;
+boost::adjacency_matrix<boost::undirectedS> typedef graph;
 
 int main(int argc, char** argv) {
   options opt(argc, argv);
@@ -31,8 +31,10 @@ int main(int argc, char** argv) {
     double total = 0;
     for(auto G : suite) {
       auto T = bfs_tree(G);
+      list_graph E;
+      copy_edges(T, E);
       timer.start();
-      improve(G, T);
+      improve(G, E);
       total += timer.stop();
     }
     cout << "{" << n << "," << total/suite.size() << "}";
