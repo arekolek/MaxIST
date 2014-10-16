@@ -21,7 +21,7 @@ namespace detail {
 
     rank[v] = next_rank++;
 
-    node w, x, y;
+    node w = -1, x, y;
     unsigned min_deg = UINT_MAX;
 
     for(auto u : range(adjacent_vertices(v, G))) {
