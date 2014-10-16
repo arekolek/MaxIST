@@ -27,11 +27,12 @@ boost::adjacency_list<
   boost::no_property, color>            typedef graph;
 
 template <class Graph>
-int eval(Graph const & T) {
+double eval(Graph const & T) {
+  int n = num_vertices(T) - 2;
   int internal = 0;
   for(auto v : range(vertices(T)))
     internal += degree(v, T) > 1;
-  return internal;
+  return 100 * internal / (double)n;
 }
 
 template <class Graph>
@@ -87,10 +88,10 @@ void run(int z, int n, vector<float> ps, vector<string> name,
         auto T = algo[i](G);
         steps[i] += improve(G, T);
         time[i] += timer.stop();
-        int internals = eval(T);
-        quality[i] += internals;
-        minimum[i] = min(minimum[i], internals);
-        maximum[i] = max(maximum[i], internals);
+        auto q = eval(T);
+        quality[i] += q;
+        minimum[i] = min(minimum[i], q);
+        maximum[i] = max(maximum[i], q);
         //show("graph" + to_string(i) + ".dot", G, T);
       }
     }
