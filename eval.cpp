@@ -131,8 +131,8 @@ int main(int argc, char** argv){
     ps.push_back(p);
   }
 
-  vector<string> name {"bfs", "dfs", "rdfs"};
-  vector<solution> algo {bfs_tree<graph>, dfs_tree<graph>, rdfs_tree<graph>};
+  vector<string> name {/*"bfs", */"dfs", "rdfs"};
+  vector<solution> algo {/*bfs_tree<graph>, */dfs_tree<graph>, rdfs_tree<graph>};
 
   run(z, n, ps, name, algo, dummy(), "no improvement");
 
