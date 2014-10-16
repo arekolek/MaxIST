@@ -4,3 +4,7 @@
 *.gch
 *.png
 *.dot
+*.pyc
+__pycache__
+build
+
