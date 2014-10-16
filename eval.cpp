@@ -76,7 +76,7 @@ void run(int z, int n, vector<float> ps, vector<string> name,
       steps(algo.size(), 0),
       quality(algo.size(), 0),
       time(algo.size(), 0);
-    vector<int>
+    vector<double>
       minimum(algo.size(), n),
       maximum(algo.size(), 0);
 
@@ -88,7 +88,7 @@ void run(int z, int n, vector<float> ps, vector<string> name,
         auto T = algo[i](G);
         steps[i] += improve(G, T);
         time[i] += timer.stop();
-        auto q = eval(T);
+        double q = eval(T);
         quality[i] += q;
         minimum[i] = min(minimum[i], q);
         maximum[i] = max(maximum[i], q);
