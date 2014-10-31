@@ -1,6 +1,6 @@
 
 # Files to build
-EXEC = eval.exe prototype/speed.exe prototype/complexity.exe
+EXEC = eval.exe gen.exe prototype/speed.exe prototype/complexity.exe
 SRCS = $(EXEC:.exe=.cpp)
 
 # Subdirectories with header files
