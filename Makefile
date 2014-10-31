@@ -3,8 +3,6 @@
 EXEC = eval.exe prototype/test.exe prototype/complexity.exe
 SRCS = $(EXEC:.exe=.cpp)
 
-# MaxIST library root
-MAXIST_HOME = .
 # Subdirectories with header files
 INCLUDES = graph util test
 
@@ -17,7 +15,7 @@ RM = rm -f
 
 # Automatic dependencies
 .PRECIOUS: %.d %.o
-CXXFLAGS = -Wall -O2 -std=c++0x -MP -MMD $(INCLUDES:%=-I$(MAXIST_HOME)/%)
+CXXFLAGS = -Wall -O2 -std=c++0x -MP -MMD $(INCLUDES:%=-I%)
 
 # Targets
 
@@ -42,8 +40,8 @@ rules:
 	@echo OBJS = $(OBJS)
 	@echo SRCS = $(SRCS)
 	@echo PWD = $(PWD)
-	@echo MAXIST_HOME = $(MAXIST_HOME)
 	@echo CC = $(CC)
 	@echo CXX = $(CXX)
 	@$(CXX) --version
 	@echo CXXFLAGS = $(CXXFLAGS)
+	@echo LDFLAGS = $(LDFLAGS)
