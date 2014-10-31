@@ -1,6 +1,8 @@
 *~
-*.e
+*.d
+*.exe
 *.o
+*.in
 *.gch
 *.png
 *.dot
