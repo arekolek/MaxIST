@@ -8,15 +8,15 @@
 
 #include "bfs.hpp"
 #include "dfs.hpp"
-#include "rdfs.hpp"
 #include "lost.hpp"
+#include "rdfs.hpp"
+
+#include "test_suite.hpp"
 
 #include "debug.hpp"
 #include "options.hpp"
-#include "timing.hpp"
 #include "range.hpp"
-
-#include "test_suite.hpp"
+#include "timing.hpp"
 
 using namespace std;
 

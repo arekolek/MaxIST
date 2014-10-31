@@ -4,11 +4,13 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "options.hpp"
-#include "test_suite.hpp"
-#include "timing.hpp"
 #include "bfs.hpp"
 #include "lost.hpp"
+
+#include "test_suite.hpp"
+
+#include "options.hpp"
+#include "timing.hpp"
 
 using namespace std;
 
