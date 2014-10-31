@@ -4,7 +4,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "rdfs.hpp"
+#include "dfs.hpp"
 #include "range.hpp"
 
 using namespace std;
@@ -31,7 +31,7 @@ int main() {
       cin >> s >> t;
       add_edge(s, t, g);
     }
-    auto T = rdfs_tree(g);
+    auto T = dfs_tree(g);
     for(auto v : range(vertices(T)))
       internal += degree(v, T) > 1;
   }

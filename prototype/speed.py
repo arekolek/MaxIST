@@ -21,11 +21,6 @@ def dfs_tree(g):
   gt.dfs_search(g, g.vertex(0), TreeVisitor(t))
   return gt.GraphView(g, efilt=t)
 
-
-def rdfs_tree(g):
-  return dfs_tree(g)
-
-
 z, = read()
 internal = 0
 for i in range(z):
@@ -33,6 +28,6 @@ for i in range(z):
   g = gt.Graph()
   g.add_vertex(n)
   g.add_edge_list([tuple(read()) for j in range(m)])
-  internal += (rdfs_tree(g).degree_property_map("total").a > 1).sum()
+  internal += (dfs_tree(g).degree_property_map("total").a > 1).sum()
 print(internal / z)
 
