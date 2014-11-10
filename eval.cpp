@@ -140,5 +140,7 @@ int main(int argc, char** argv){
 
   run(z, n, ps, name, algo, lost_light(), "lost-light");
 
+  run(z, n, ps, name, algo, lost(), "lost");
+
   return 0;
 }

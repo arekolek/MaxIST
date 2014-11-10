@@ -118,6 +118,27 @@ public:
 };
 
 template <class Graph, class Tree, class LeafInfo>
+bool rule1(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l1 : info.leaves())
+    for(auto l2 : info.leaves())
+      if(edge(l1, l2, G).second) {
+        auto x = l1;
+        auto y = *adjacent_vertices(l1, T).first;
+        while(y != l2) {
+          x = y;
+          y = info.parent(y, l2);
+          if(degree(x, T) > 2 && degree(y, T) > 2) {
+            add_edge(l1, l2, T);
+            remove_edge(x, y, T);
+            info.update();
+            return true;
+          }
+        }
+      }
+  return false;
+}
+
+template <class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l1 : info.leaves())
     for(auto l2 : info.leaves())
@@ -242,6 +263,36 @@ public:
     leaf_info<Tree> info(T);
     std::function<bool(Graph&,Tree&,leaf_info<Tree>&)> typedef rule;
     std::vector<rule> rules {
+      rule2<Graph,Tree,leaf_info<Tree>>,
+      rule3<Graph,Tree,leaf_info<Tree>>,
+      rule4<Graph,Tree,leaf_info<Tree>>,
+      rule5<Graph,Tree,leaf_info<Tree>>,
+      rule6<Graph,Tree,leaf_info<Tree>>,
+    };
+    int i = 0;
+    bool applied = true;
+    while(applied && !info.is_path()) {
+      applied = false;
+      for(auto rule : rules) {
+        if(rule(G, T, info)) {
+          ++i;
+          applied = true;
+          break;
+        }
+      }
+    }
+    return i;
+  }
+};
+
+class lost {
+public:
+  template <class Graph, class Tree>
+  int operator() (Graph& G, Tree& T) {
+    leaf_info<Tree> info(T);
+    std::function<bool(Graph&,Tree&,leaf_info<Tree>&)> typedef rule;
+    std::vector<rule> rules {
+      rule1<Graph,Tree,leaf_info<Tree>>,
       rule2<Graph,Tree,leaf_info<Tree>>,
       rule3<Graph,Tree,leaf_info<Tree>>,
       rule4<Graph,Tree,leaf_info<Tree>>,
