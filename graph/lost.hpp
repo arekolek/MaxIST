@@ -49,6 +49,9 @@ public:
   bool on_branch(unsigned l, unsigned x) const {
     return BN.count(uintpair(l, x)) == 0;
   }
+  bool is_short(unsigned l) {
+    return parent(branching(l), l) == l;
+  }
   void update() {
     L.clear();
     B.clear();
@@ -256,6 +259,27 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule7(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto e : range(edges(T))) {
+    auto x = source(e, T);
+    auto y = target(e, T);
+    for(auto l : info.leaves()) {
+      if(info.is_short(l)
+        && !edge(l, x, T).second && !edge(l, y, T).second
+        && edge(l, x, G).second && edge(l, y, G).second) {
+        add_edge(l, x, T);
+        add_edge(l, y, T);
+        remove_edge(x, y, T);
+        remove_edge(l, info.branching(l), T);
+        info.update();
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 class lost_light {
 public:
   template <class Graph, class Tree>
@@ -298,6 +322,7 @@ public:
       rule4<Graph,Tree,leaf_info<Tree>>,
       rule5<Graph,Tree,leaf_info<Tree>>,
       rule6<Graph,Tree,leaf_info<Tree>>,
+      rule7<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
