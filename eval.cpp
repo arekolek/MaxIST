@@ -134,9 +134,9 @@ int main(int argc, char** argv){
   vector<string> name {/*"bfs", */"dfs", "rdfs"};
   vector<solution> algo {/*bfs_tree<graph>, */dfs_tree<graph>, rdfs_tree<graph>};
 
-  run(z, n, ps, name, algo, dummy(), "no improvement");
+  //run(z, n, ps, name, algo, dummy(), "no improvement");
 
-  run(z, n, ps, name, algo, prieto(), "prieto");
+  //run(z, n, ps, name, algo, prieto(), "prieto");
 
   run(z, n, ps, name, algo, lost_light(), "lost-light");
 

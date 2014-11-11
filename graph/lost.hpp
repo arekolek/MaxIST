@@ -280,6 +280,24 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+
+template <class Graph, class Tree, class LeafInfo>
+bool rule8(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l1 : info.leaves()) if(!info.is_short(l1)) {
+    for(auto l2 : info.leaves()) if(/*!info.is_short(l2) && */l1 != l2) {
+      auto bl = info.branching(l1);
+      auto blp = info.parent(bl, l1);
+      if(edge(blp, l2, G).second) {
+        add_edge(blp, l2, T);
+        remove_edge(blp, bl, T);
+        info.update();
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 class lost_light {
 public:
   template <class Graph, class Tree>
@@ -323,6 +341,7 @@ public:
       rule5<Graph,Tree,leaf_info<Tree>>,
       rule6<Graph,Tree,leaf_info<Tree>>,
       rule7<Graph,Tree,leaf_info<Tree>>,
+      rule8<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
