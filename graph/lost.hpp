@@ -38,16 +38,23 @@ public:
     return L;
   }
   unsigned branching(unsigned l) const {
+    // b(l)
     return B.at(l);
   }
   unsigned parent(unsigned x, unsigned l) const {
+    // x->l
     return P.at(uintpair(l, x));
   }
+  unsigned branching_neighbor(unsigned l) const {
+    // b(l)->l
+    return parent(branching(l), l);
+  }
   unsigned branching_neighbor(unsigned l, unsigned x) const {
+    // b(l)->x
     return BN.at(uintpair(l, x));
   }
   bool on_branch(unsigned l, unsigned x) const {
-    return BN.count(uintpair(l, x)) == 0;
+    return l == x || branching(l) == x || BN.count(uintpair(l, x)) == 0;
   }
   bool is_short(unsigned l) {
     return parent(branching(l), l) == l;
@@ -279,7 +286,6 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
   }
   return false;
 }
-
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule8(Graph& G, Tree& T, LeafInfo& info) {
