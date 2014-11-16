@@ -13,7 +13,7 @@ unsigned time_seed() {
 
 template <class Iterator>
 void generate_seeds(Iterator begin, Iterator end) {
-  std::string seed = std::to_string(time_seed());
+  static std::string seed = std::to_string(time_seed());
   std::seed_seq seq(seed.begin(), seed.end());
   seq.generate(begin, end);
 }
