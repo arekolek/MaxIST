@@ -354,7 +354,6 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
       if(m[i*n + j]) {
         for(auto x : range(adjacent_vertices(l1, G)))
           if(!info.on_branch(l1, x) && (!info.on_branch(l2, x) || degree(x, T) > 2)) {
-            show("nine1.dot", G, T);
             unsigned bn1 = info.branching_neighbor(l1);
             unsigned bn2 = info.branching_neighbor(l2);
             add_edge(l1, x, T);
@@ -362,7 +361,69 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
             remove_edge(info.branching(l1), bn1, T);
             remove_edge(info.branching(l2), bn2, T);
             info.update();
-            show("nine2.dot", G, T);
+            return true;
+          }
+        assert(false);
+      }
+    }
+  }
+  return false;
+}
+
+template <class Graph, class Tree, class LeafInfo>
+bool rule10(Graph& G, Tree& T, LeafInfo& info) {
+  std::vector<unsigned> lg;
+  for(auto l : info.leaves())
+    if(!info.is_short(l))
+      lg.push_back(l);
+  unsigned n = lg.size();
+  std::vector<bool> m(n * n);
+  enumerate(lg, [&](unsigned i, unsigned l1) {
+    enumerate(lg, [&](unsigned j, unsigned l2) {
+      m[i*n + j] =
+        info.branching(l1) == info.branching(l2) &&
+        degree(info.branching(l1), T) >= 4 &&
+        edge(
+          info.branching_neighbor(l1),
+          info.branching_neighbor(l2),
+          G).second;
+    });
+  });
+  enumerate(lg, [&](unsigned i, unsigned l1) {
+    unsigned count = 0, l2 = 0;
+    bool ok = false;
+    for(auto x : range(adjacent_vertices(l1, G)))
+      if(!info.on_branch(l1, x)) {
+        if(info.on_trunk(x) || (degree(x, T) > 2 && x != info.branching(l1)))
+          ok = true;
+        else if(degree(x, T) == 2) {
+          ++count;
+          if(count == 1)
+            l2 = info.branch(x);
+          else if(l2 != info.branch(x))
+            ok = true;
+        }
+        if(ok) break;
+      }
+    if(!ok)
+      for(unsigned j = 0; j < lg.size(); ++j)
+        if(count == 0 || lg[j] == l2)
+          m[i*n + j] = false;
+  });
+  for(unsigned i = 0; i < lg.size(); ++i) {
+    unsigned l1 = lg[i];
+    for(unsigned j = 0; j < lg.size(); ++j) {
+      unsigned l2 = lg[j];
+      if(m[i*n + j]) {
+        for(auto x : range(adjacent_vertices(l1, G)))
+          if(!info.on_branch(l1, x) && !info.on_branch(l2, x)) {
+            unsigned bn1 = info.branching_neighbor(l1);
+            unsigned bn2 = info.branching_neighbor(l2);
+            add_edge(l1, x, T);
+            add_edge(bn1, bn2, T);
+            remove_edge(info.branching(l1), bn1, T);
+            remove_edge(info.branching(l2), bn2, T);
+            info.update();
             return true;
           }
         assert(false);
@@ -417,6 +478,7 @@ public:
       rule7<Graph,Tree,leaf_info<Tree>>,
       rule8<Graph,Tree,leaf_info<Tree>>,
       rule9<Graph,Tree,leaf_info<Tree>>,
+      rule10<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
