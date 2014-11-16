@@ -164,10 +164,9 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l : info.leaves()) {
-    auto treeNeighbor = *adjacent_vertices(l, T).first;
+  for(auto l : info.leaves())
     for(auto x : range(adjacent_vertices(l, G)))
-      if(x != treeNeighbor) {
+      if(!info.on_branch(l, x)) {
         auto xl = info.parent(x, l);
         if(degree(xl, T) > 2) {
           add_edge(l, x, T);
@@ -176,7 +175,6 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
           return true;
         }
       }
-  }
   return false;
 }
 
@@ -184,15 +182,13 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule4(Graph& G, Tree& T, LeafInfo& info) {
   int n = num_vertices(G);
   std::vector<std::vector<std::pair<int,int>>> extra(n);
-  for(auto l : info.leaves()) {
-    auto treeNeighbor = *adjacent_vertices(l, T).first;
+  for(auto l : info.leaves())
     for(auto x : range(adjacent_vertices(l, G)))
-      if(x != treeNeighbor) {
+      if(!info.on_branch(l, x)) {
         auto xl = info.parent(x, l);
         if(degree(xl, T) == 2)
           extra[xl].emplace_back(l, x);
       }
-  }
 
   for(int l2 : info.leaves())
     for(int xl = 0; xl < n; ++xl)
@@ -215,10 +211,9 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule5(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l : info.leaves()) {
-    auto treeNeighbor = *adjacent_vertices(l, T).first;
+  for(auto l : info.leaves())
     for(auto x : range(adjacent_vertices(l, G)))
-      if(x != treeNeighbor && !info.on_branch(l, x)) {
+      if(!info.on_branch(l, x)) {
         auto bl = info.branching(l);
         auto blx = info.branching_neighbor(l, x);
         if(degree(blx, T) > 2) {
@@ -228,7 +223,6 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
           return true;
         }
       }
-  }
   return false;
 }
 
@@ -236,16 +230,14 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   int n = num_vertices(G);
   std::vector<std::vector<std::pair<int,int>>> extra(n);
-  for(auto l : info.leaves()) {
-    auto treeNeighbor = *adjacent_vertices(l, T).first;
+  for(auto l : info.leaves())
     for(auto x : range(adjacent_vertices(l, G)))
-      if(x != treeNeighbor && !info.on_branch(l, x)) {
+      if(!info.on_branch(l, x)) {
         auto blx = info.branching_neighbor(l, x);
         if(degree(blx, T) == 2) {
           extra[blx].emplace_back(l, x);
         }
       }
-  }
 
   for(int l2 : info.leaves())
     for(int blx = 0; blx < n; ++blx)
