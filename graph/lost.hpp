@@ -53,10 +53,17 @@ public:
     // b(l)->x
     return BN.at(uintpair(l, x));
   }
-  bool on_branch(unsigned l, unsigned x) const {
-    return l == x || branching(l) == x || BN.count(uintpair(l, x)) == 0;
+  unsigned branch(unsigned x) const {
+    // l: x ∈ br(l)
+    return BR.find(x)->second;
   }
-  bool is_short(unsigned l) {
+  bool on_branch(unsigned l, unsigned x) const {
+    return l == x || branching(l) == x || (on_trunk(x) ? false : branch(x) == l);
+  }
+  bool on_trunk(unsigned x) const {
+    return BR.count(x) == 0;
+  }
+  bool is_short(unsigned l) const {
     return parent(branching(l), l) == l;
   }
   void update() {
@@ -64,6 +71,7 @@ public:
     B.clear();
     P.clear();
     BN.clear();
+    BR.clear();
     for(auto v : range(vertices(T)))
       if(degree(v, T) == 1) {
         L.push_back(v);
@@ -77,7 +85,9 @@ public:
     do {
       std::tie(a, b) = next(a, b, T);
       P[uintpair(l, b)] = a;
+      BR.emplace(a, l);
     } while(degree(b, T) == 2);
+    BR.emplace(b, l);
     if(degree(b, T) > 2) {
       B[l] = b;
       for(auto v : range(adjacent_vertices(b, T)))
@@ -107,6 +117,7 @@ private:
   Graph const& T;
   std::vector<unsigned> L;
   std::pair<unsigned, unsigned> typedef uintpair;
+  std::unordered_multimap<unsigned, unsigned> BR;
   std::unordered_map<unsigned, unsigned> B;
   std::unordered_map<uintpair, unsigned> P, BN;
 };
@@ -296,6 +307,71 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule9(Graph& G, Tree& T, LeafInfo& info) {
+  std::vector<unsigned> lg;
+  for(auto l : info.leaves())
+    if(!info.is_short(l))
+      lg.push_back(l);
+  unsigned n = lg.size();
+  std::vector<bool> m(n * n);
+  enumerate(lg, [&](unsigned i, unsigned l1) {
+    enumerate(lg, [&](unsigned j, unsigned l2) {
+      m[i*n + j] =
+        info.branching(l1) != info.branching(l2) &&
+        edge(
+          info.branching_neighbor(l1),
+          info.branching_neighbor(l2),
+          G).second;
+    });
+  });
+  enumerate(lg, [&](unsigned i, unsigned l1) {
+    unsigned count = 0, l2 = 0;
+    bool ok = false;
+    for(auto x : range(adjacent_vertices(l1, G)))
+      if(!info.on_branch(l1, x)) {
+        ++count;
+        if(info.on_trunk(x) || degree(x, T) > 2)
+          ok = true;
+        else if(count == 1)
+          l2 = info.branch(x);
+        else if(l2 != info.branch(x))
+          ok = true;
+        if(ok) break;
+      }
+    if(count == 0)
+      for(unsigned j = 0; j < lg.size(); ++j)
+        m[i*n + j] = false;
+    else if(!ok)
+      for(unsigned j = 0; j < lg.size(); ++j)
+        if(lg[j] == l2)
+          m[i*n + j] = false;
+  });
+  for(unsigned i = 0; i < lg.size(); ++i) {
+    unsigned l1 = lg[i];
+    for(unsigned j = 0; j < lg.size(); ++j) {
+      unsigned l2 = lg[j];
+      if(m[i*n + j]) {
+        for(auto x : range(adjacent_vertices(l1, G)))
+          if(!info.on_branch(l1, x) && (!info.on_branch(l2, x) || degree(x, T) > 2)) {
+            show("nine1.dot", G, T);
+            unsigned bn1 = info.branching_neighbor(l1);
+            unsigned bn2 = info.branching_neighbor(l2);
+            add_edge(l1, x, T);
+            add_edge(bn1, bn2, T);
+            remove_edge(info.branching(l1), bn1, T);
+            remove_edge(info.branching(l2), bn2, T);
+            info.update();
+            show("nine2.dot", G, T);
+            return true;
+          }
+        assert(false);
+      }
+    }
+  }
+  return false;
+}
+
 class lost_light {
 public:
   template <class Graph, class Tree>
@@ -340,6 +416,7 @@ public:
       rule6<Graph,Tree,leaf_info<Tree>>,
       rule7<Graph,Tree,leaf_info<Tree>>,
       rule8<Graph,Tree,leaf_info<Tree>>,
+      rule9<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
