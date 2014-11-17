@@ -165,8 +165,7 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
     for(auto l2 : info.leaves())
       if(edge(l1, l2, G).second) {
         add_edge(l1, l2, T);
-        auto b = info.branching(l1);
-        remove_edge(b, info.parent(b, l1), T);
+        remove_edge(info.branching(l1), info.branching_neighbor(l1), T);
         info.update();
         return true;
       }
