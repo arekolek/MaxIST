@@ -97,13 +97,15 @@ void run(int z, int n, vector<float> ps, vector<string> name,
     }
 
     int count = suite.size();
-    cout << p << '\t' << degree / count;
+    cout << std::setprecision(3) << p << '\t' << degree / count;
 
     for(unsigned i = 0; i < algo.size(); ++i)
       cout
+        << std::setprecision(5)
         << '\t' << minimum[i]
         << '\t' << quality[i] / count
         << '\t' << maximum[i]
+        << std::setprecision(3)
         << '\t' << time[i] / count
         << '\t' << steps[i] / count
         ;
