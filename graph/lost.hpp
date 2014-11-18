@@ -287,16 +287,19 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Tree, class LeafInfo>
+void rule8action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
+  add_edge(i.branching_neighbor(l1), l2, T);
+  remove_edge(i.branching_neighbor(l1), i.branching(l1), T);
+  i.update();
+}
+
 template <class Graph, class Tree, class LeafInfo>
 bool rule8(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l1 : info.leaves()) if(!info.is_short(l1)) {
     for(auto l2 : info.leaves()) if(/*!info.is_short(l2) && */l1 != l2) {
-      auto bl = info.branching(l1);
-      auto blp = info.parent(bl, l1);
-      if(edge(blp, l2, G).second) {
-        add_edge(blp, l2, T);
-        remove_edge(blp, bl, T);
-        info.update();
+      if(edge(info.branching_neighbor(l1), l2, G).second) {
+        rule8action(l1, l2, T, info);
         return true;
       }
     }
