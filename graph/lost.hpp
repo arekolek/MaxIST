@@ -159,14 +159,19 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Tree, class LeafInfo>
+void rule2action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
+  add_edge(l1, l2, T);
+  remove_edge(i.branching(l1), i.branching_neighbor(l1), T);
+  i.update();
+}
+
 template <class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l1 : info.leaves())
     for(auto l2 : info.leaves())
       if(edge(l1, l2, G).second) {
-        add_edge(l1, l2, T);
-        remove_edge(info.branching(l1), info.branching_neighbor(l1), T);
-        info.update();
+        rule2action(l1, l2, T, info);
         return true;
       }
   return false;
@@ -209,11 +214,7 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
         add_edge(l, x, T);
         remove_edge(x, xl, T);
         info.update();
-
-        add_edge(l2, xl, T);
-        auto b = info.branching(l2);
-        remove_edge(b, info.parent(b, l2), T);
-        info.update();
+        rule2action(l2, xl, T, info);
         return true;
       }
   return false;
@@ -259,10 +260,7 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
         remove_edge(info.branching(l), blx, T);
         info.update();
 
-        add_edge(l2, blx, T);
-        auto b = info.branching(l2);
-        remove_edge(b, info.parent(b, l2), T);
-        info.update();
+        rule2action(l2, blx, T, info);
         return true;
       }
   return false;
