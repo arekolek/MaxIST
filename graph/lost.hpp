@@ -58,7 +58,8 @@ public:
     return BR.find(x)->second;
   }
   bool on_branch(unsigned l, unsigned x) const {
-    return l == x || branching(l) == x || (on_trunk(x) ? false : branch(x) == l);
+    return l == x || branching(l) == x
+      || (degree(x, T) > 2 || on_trunk(x) ? false : branch(x) == l);
   }
   bool on_trunk(unsigned x) const {
     return BR.count(x) == 0;
