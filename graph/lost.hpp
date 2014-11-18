@@ -28,7 +28,10 @@ namespace std {
 template <class Graph>
 class leaf_info {
 public:
-  leaf_info(Graph const & T_) : T(T_) {
+  leaf_info(Graph const & T_) : G(NULL), T(T_) {
+    update();
+  }
+  leaf_info(Graph const & G_, Graph const & T_) : G(&G_), T(T_) {
     update();
   }
   bool is_path() const {
@@ -73,11 +76,20 @@ public:
     P.clear();
     BN.clear();
     BR.clear();
+    LSH.clear();
     for(auto v : range(vertices(T)))
       if(degree(v, T) == 1) {
         L.push_back(v);
         traverse(v, T);
       }
+    if(G != NULL && L.size() > 2) {
+      for(auto l : leaves())
+        if(!is_short(l) && edge(l, branching(l), *G).second)
+          LSH.push_back(branching_neighbor(l));
+      for(auto x : range(vertices(T)))
+        if(degree(x, T) == 2 && !on_trunk(x) && edge(branch(x), x, *G).second)
+          LSH.push_back(parent(x, branch(x)));
+    }
   }
   void traverse(unsigned l, Graph const & T) {
     traverse(l, l, l, T);
@@ -115,8 +127,9 @@ public:
     return std::make_pair(b, a == *it ? *(++it) : *it);
   }
 private:
+  Graph const* G;
   Graph const& T;
-  std::vector<unsigned> L;
+  std::vector<unsigned> L, LSH;
   std::pair<unsigned, unsigned> typedef uintpair;
   std::unordered_map<unsigned, unsigned> B, BR;
   std::unordered_map<uintpair, unsigned> P, BN;
@@ -466,7 +479,7 @@ class lost {
 public:
   template <class Graph, class Tree>
   int operator() (Graph& G, Tree& T) {
-    leaf_info<Tree> info(T);
+    leaf_info<Tree> info(G, T);
     std::function<bool(Graph&,Tree&,leaf_info<Tree>&)> typedef rule;
     std::vector<rule> rules {
       rule1<Graph,Tree,leaf_info<Tree>>,
