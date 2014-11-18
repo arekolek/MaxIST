@@ -13,15 +13,24 @@ DEPS = $(SRCS:.cpp=.d)
 
 RM = rm -f
 
+# Target-specific build mode
+MODE = -O2 -g
+release : MODE = -O2
+debug : MODE = -O0 -g -ggdb
+
+CXXFLAGS = -Wall $(MODE) -std=c++0x
+
 # Automatic dependencies
 .PRECIOUS: %.d %.o
-CXXFLAGS = -Wall -O2 -std=c++0x -MP -MMD $(INCLUDES:%=-I%)
+CXXFLAGS += -MP -MMD $(INCLUDES:%=-I%)
 
 # Targets
 
-.PHONY : all clean clean-intermediate rules
+.PHONY : all release debug clean clean-intermediate rules
 
 all : $(EXEC)
+release : $(EXEC)
+debug : $(EXEC)
 
 %.exe : %.o
 	$(CXX) $(LDFLAGS) -o $@ $<
