@@ -485,6 +485,19 @@ bool rule12(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule13(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l : info.leaves())
+    for(auto u : info.leafish())
+      if(edge(u, info.branching_neighbor(l), T).second
+          && info.branch(u) != l) {
+        ruleA(u, T, info);
+        rule8action(l, u, T, info);
+        return true;
+      }
+  return false;
+}
+
 class lost_light {
 public:
   template <class Graph, class Tree>
@@ -533,6 +546,7 @@ public:
       rule10<Graph,Tree,leaf_info<Tree>>,
       rule11<Graph,Tree,leaf_info<Tree>>,
       rule12<Graph,Tree,leaf_info<Tree>>,
+      rule13<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
