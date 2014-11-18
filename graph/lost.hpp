@@ -453,9 +453,10 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template <class Tree, class LeafInfo>
-void ruleA(unsigned l, unsigned x, Tree& T, LeafInfo& i) {
+void ruleA(unsigned u, Tree& T, LeafInfo& i) {
+  auto l = i.branch(u), x = i.base(u);
   add_edge(l, x, T);
-  remove_edge(x, i.parent(x, l), T);
+  remove_edge(x, u, T);
   i.update();
 }
 
@@ -464,7 +465,7 @@ bool rule11(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves())
     for(auto u : info.leafish())
       if(edge(u, l, T).second && info.branch(u) != l) {
-        ruleA(info.branch(u), info.base(u), T, info);
+        ruleA(u, T, info);
         rule2action(l, u, T, info);
         return true;
       }
@@ -476,8 +477,8 @@ bool rule12(Graph& G, Tree& T, LeafInfo& info) {
   for(auto u : info.leafish())
     for(auto v : info.leafish())
       if(edge(u, v, T).second && info.branch(u) != info.branch(v)) {
-        ruleA(info.branch(u), info.base(u), T, info);
-        ruleA(info.branch(v), info.base(v), T, info);
+        ruleA(u, T, info);
+        ruleA(v, T, info);
         rule2action(u, v, T, info);
         return true;
       }
