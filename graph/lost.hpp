@@ -118,8 +118,7 @@ private:
   Graph const& T;
   std::vector<unsigned> L;
   std::pair<unsigned, unsigned> typedef uintpair;
-  std::unordered_multimap<unsigned, unsigned> BR;
-  std::unordered_map<unsigned, unsigned> B;
+  std::unordered_map<unsigned, unsigned> B, BR;
   std::unordered_map<uintpair, unsigned> P, BN;
 };
 
