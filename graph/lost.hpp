@@ -40,6 +40,9 @@ public:
   std::vector<unsigned> const & leaves() const {
     return L;
   }
+  std::vector<unsigned> const & leafish() const {
+    return LSH;
+  }
   unsigned branching(unsigned l) const {
     // b(l)
     return B.at(l);
@@ -47,6 +50,9 @@ public:
   unsigned parent(unsigned x, unsigned l) const {
     // x->l
     return P.at(uintpair(l, x));
+  }
+  unsigned base(unsigned x) const {
+    return next(parent(x, branch(x)), x).second;
   }
   unsigned branching_neighbor(unsigned l) const {
     // b(l)->l
@@ -96,7 +102,7 @@ public:
   }
   void traverse(unsigned l, unsigned a, unsigned b, Graph const & T) {
     do {
-      std::tie(a, b) = next(a, b, T);
+      std::tie(a, b) = next(a, b);
       P[uintpair(l, b)] = a;
       BR.emplace(a, l);
     } while(degree(b, T) == 2);
@@ -112,7 +118,7 @@ public:
     P[uintpair(l, b)] = a;
     BN[uintpair(l, b)] = blx;
     while(degree(b, T) == 2) {
-      std::tie(a, b) = next(a, b, T);
+      std::tie(a, b) = next(a, b);
       P[uintpair(l, b)] = a;
       BN[uintpair(l, b)] = blx;
     }
@@ -122,7 +128,7 @@ public:
           traverse(l, blx, b, v, T);
     }
   }
-  std::pair<unsigned, unsigned> next(unsigned a, unsigned b, Graph const & T) {
+  std::pair<unsigned, unsigned> next(unsigned a, unsigned b) const {
     auto it = adjacent_vertices(b, T).first;
     return std::make_pair(b, a == *it ? *(++it) : *it);
   }
@@ -446,6 +452,25 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Tree, class LeafInfo>
+void ruleA(unsigned l, unsigned x, Tree& T, LeafInfo& i) {
+  add_edge(l, x, T);
+  remove_edge(x, i.parent(x, l), T);
+  i.update();
+}
+
+template <class Graph, class Tree, class LeafInfo>
+bool rule11(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l : info.leaves())
+    for(auto u : info.leafish())
+      if(edge(u, l, T).second && info.branch(u) != l) {
+        ruleA(info.branch(u), info.base(u), T, info);
+        rule2action(l, u, T, info);
+        return true;
+      }
+  return false;
+}
+
 class lost_light {
 public:
   template <class Graph, class Tree>
@@ -492,6 +517,7 @@ public:
       rule8<Graph,Tree,leaf_info<Tree>>,
       rule9<Graph,Tree,leaf_info<Tree>>,
       rule10<Graph,Tree,leaf_info<Tree>>,
+      rule11<Graph,Tree,leaf_info<Tree>>,
     };
     int i = 0;
     bool applied = true;
