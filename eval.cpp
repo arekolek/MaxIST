@@ -116,8 +116,8 @@ int main(int argc, char** argv){
   ios_base::sync_with_stdio(0);
 
   options opt(argc, argv);
-  int z = opt.get<int>("-z", 1);
-  int n = opt.get<int>("-n", 5);
+  int z = opt.get<int>("-z", 100);
+  int n = opt.get<int>("-n", 100);
   float p = opt.get<float>("-p", -1);
   string a = opt.get<string>("-a");
 
