@@ -33,7 +33,7 @@ release : $(EXEC)
 debug : $(EXEC)
 
 %.exe : %.o
-	$(CXX) $(LDFLAGS) -o $@ $<
+	$(CXX) -o $@ $< $(LDFLAGS)
 
 # Automatic dependencies
 -include $(DEPS)
