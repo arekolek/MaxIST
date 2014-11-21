@@ -3,6 +3,7 @@
 #pragma once
 
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 #include <boost/iterator/counting_iterator.hpp>
@@ -29,10 +30,11 @@ void add_spider(Graph& G, unsigned legs, Generator generator) {
 
 template<class Graph, class Generator>
 void add_edges_uniform(Graph& G, double p, Generator generator) {
-  std::bernoulli_distribution trial(p);
+  std::bernoulli_distribution distribution(p);
+  auto trial = std::bind(distribution, generator);
   unsigned n = num_vertices(G);
   for(unsigned i = 0; i < n; ++i)
     for(unsigned j = i + 1; j < n; ++j)
-      if(trial(generator))
+      if(trial())
         add_edge(i, j, G);
 }
