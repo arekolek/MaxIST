@@ -6,6 +6,10 @@ SRCS = $(EXEC:.exe=.cpp)
 # Subdirectories with header files
 INCLUDES = graph util test
 
+# Compiler and linker flags
+CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math
+LDFLAGS = -lCGAL -lgmp
+
 # Changes below this line shouldn't be needed
 
 OBJS = $(SRCS:.cpp=.o)
@@ -17,8 +21,6 @@ RM = rm -f
 MODE = -O2 -g
 release : MODE = -O2
 debug : MODE = -O0 -g -ggdb
-
-CXXFLAGS = -Wall $(MODE) -std=c++0x
 
 # Automatic dependencies
 .PRECIOUS: %.d %.o
