@@ -171,6 +171,7 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
             add_edge(l1, l2, T);
             remove_edge(x, y, T);
             info.update();
+            std::cerr << "rule 1\n";
             return true;
           }
         }
@@ -191,6 +192,7 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
     for(auto l2 : info.leaves())
       if(edge(l1, l2, G).second) {
         rule2action(l1, l2, T, info);
+        std::cerr << "rule 2\n";
         return true;
       }
   return false;
@@ -206,6 +208,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
           add_edge(l, x, T);
           remove_edge(x, xl, T);
           info.update();
+          std::cerr << "rule 3\n";
           return true;
         }
       }
@@ -234,6 +237,7 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
         remove_edge(x, xl, T);
         info.update();
         rule2action(l2, xl, T, info);
+        std::cerr << "rule 4\n";
         return true;
       }
   return false;
@@ -250,6 +254,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
           add_edge(l, x, T);
           remove_edge(bl, blx, T);
           info.update();
+          std::cerr << "rule 5\n";
           return true;
         }
       }
@@ -278,8 +283,8 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
         add_edge(l, x, T);
         remove_edge(info.branching(l), blx, T);
         info.update();
-
         rule2action(l2, blx, T, info);
+        std::cerr << "rule 6\n";
         return true;
       }
   return false;
@@ -299,6 +304,7 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
         remove_edge(x, y, T);
         remove_edge(l, info.branching(l), T);
         info.update();
+        std::cerr << "rule 7\n";
         return true;
       }
     }
@@ -319,6 +325,7 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
     for(auto l2 : info.leaves()) if(/*!info.is_short(l2) && */l1 != l2) {
       if(edge(info.branching_neighbor(l1), l2, G).second) {
         rule8action(l1, l2, T, info);
+        std::cerr << "rule 8\n";
         return true;
       }
     }
@@ -380,6 +387,7 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
             remove_edge(info.branching(l1), bn1, T);
             remove_edge(info.branching(l2), bn2, T);
             info.update();
+            std::cerr << "rule 9\n";
             return true;
           }
         assert(false);
@@ -443,6 +451,7 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
             remove_edge(info.branching(l1), bn1, T);
             remove_edge(info.branching(l2), bn2, T);
             info.update();
+            std::cerr << "rule 10\n";
             return true;
           }
         assert(false);
@@ -467,6 +476,7 @@ bool rule11(Graph& G, Tree& T, LeafInfo& info) {
       if(edge(u, l, T).second && info.branch(u) != l) {
         ruleA(u, T, info);
         rule2action(l, u, T, info);
+        std::cerr << "rule 11\n";
         return true;
       }
   return false;
@@ -480,6 +490,7 @@ bool rule12(Graph& G, Tree& T, LeafInfo& info) {
         ruleA(u, T, info);
         ruleA(v, T, info);
         rule2action(u, v, T, info);
+        std::cerr << "rule 12\n";
         return true;
       }
   return false;
@@ -493,6 +504,7 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
           && info.branch(u) != l) {
         ruleA(u, T, info);
         rule8action(l, u, T, info);
+        std::cerr << "rule 13\n";
         return true;
       }
   return false;

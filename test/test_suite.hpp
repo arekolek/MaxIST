@@ -79,10 +79,12 @@ Graph test_suite<Graph>::iterator::operator *() const {
   Graph G(n);
 
   // add random path
-  add_spider(G, 1, generator);
+  //add_spider(G, 1, generator);
 
   // add random edges
-  add_edges_uniform(G, test.probability(), generator);
+  //add_edges_uniform(G, test.probability(), generator);
+
+  add_random_geometric(G, 0.3, generator);
 
   return G;
 }
