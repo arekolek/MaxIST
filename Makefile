@@ -8,7 +8,7 @@ INCLUDES = graph util test
 
 # Compiler and linker flags
 CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math
-LDFLAGS = -lCGAL -lgmp
+LDFLAGS = -lCGAL -lgmp -lboost_thread
 
 # Changes below this line shouldn't be needed
 
