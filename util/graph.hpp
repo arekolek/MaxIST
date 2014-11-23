@@ -10,8 +10,6 @@
 
 #include "range.hpp"
 
-auto range_iterator = boost::make_counting_iterator<int>;
-
 template <class Input, class Output>
 void copy_edges(const Input& in, Output& out) {
   for(auto e : range(edges(in)))
@@ -22,6 +20,7 @@ template<class Graph, class Generator>
 void add_spider(Graph& G, unsigned legs, Generator generator) {
   unsigned n = num_vertices(G);
   unsigned cutoff = n / legs;
+  auto range_iterator = boost::make_counting_iterator<int>;
   std::vector<int> path(range_iterator(0), range_iterator(n));
   std::shuffle(path.begin(), path.end(), generator);
   for(unsigned i = 0; i < n-1; ++i)
