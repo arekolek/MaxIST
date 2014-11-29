@@ -6,7 +6,7 @@
 
 class timing {
 public:
-  float stop() {
+  double stop() {
     c_end = clock();
     return 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
   }
