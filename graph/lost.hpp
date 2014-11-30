@@ -141,22 +141,6 @@ private:
   std::unordered_map<uintpair, unsigned> P, BN;
 };
 
-class prieto {
-public:
-  template<class Graph, class Tree>
-  int operator()(Graph& G, Tree& T) {
-    //detail::graph M(num_vertices(G));
-    //detail::copy_edges(G, M);
-    leaf_info<Tree> info(T);
-    int i = -1;
-    do {
-      ++i;
-      //show("tree" + std::to_string(i++) + ".dot", M, T);
-    } while(!info.is_path() && rule2(G, T, info));
-    return i;
-  }
-};
-
 template <class Graph, class Tree, class LeafInfo>
 bool rule1(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l1 : info.leaves())
@@ -278,7 +262,6 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
         add_edge(l, x, T);
         remove_edge(info.branching(l), blx, T);
         info.update();
-
         rule2action(l2, blx, T, info);
         return true;
       }
@@ -497,69 +480,3 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
       }
   return false;
 }
-
-class lost_light {
-public:
-  template <class Graph, class Tree>
-  int operator() (Graph& G, Tree& T) {
-    leaf_info<Tree> info(T);
-    std::function<bool(Graph&,Tree&,leaf_info<Tree>&)> typedef rule;
-    std::vector<rule> rules {
-      rule2<Graph,Tree,leaf_info<Tree>>,
-      rule3<Graph,Tree,leaf_info<Tree>>,
-      rule4<Graph,Tree,leaf_info<Tree>>,
-      rule5<Graph,Tree,leaf_info<Tree>>,
-      rule6<Graph,Tree,leaf_info<Tree>>,
-    };
-    int i = 0;
-    bool applied = true;
-    while(applied && !info.is_path()) {
-      applied = false;
-      for(auto rule : rules) {
-        if(rule(G, T, info)) {
-          ++i;
-          applied = true;
-          break;
-        }
-      }
-    }
-    return i;
-  }
-};
-
-class lost {
-public:
-  template <class Graph, class Tree>
-  int operator() (Graph& G, Tree& T) {
-    leaf_info<Tree> info(G, T);
-    std::function<bool(Graph&,Tree&,leaf_info<Tree>&)> typedef rule;
-    std::vector<rule> rules {
-      rule1<Graph,Tree,leaf_info<Tree>>,
-      rule2<Graph,Tree,leaf_info<Tree>>,
-      rule3<Graph,Tree,leaf_info<Tree>>,
-      rule4<Graph,Tree,leaf_info<Tree>>,
-      rule5<Graph,Tree,leaf_info<Tree>>,
-      rule6<Graph,Tree,leaf_info<Tree>>,
-      rule7<Graph,Tree,leaf_info<Tree>>,
-      rule8<Graph,Tree,leaf_info<Tree>>,
-      rule9<Graph,Tree,leaf_info<Tree>>,
-      rule10<Graph,Tree,leaf_info<Tree>>,
-      rule11<Graph,Tree,leaf_info<Tree>>,
-      rule12<Graph,Tree,leaf_info<Tree>>,
-      rule13<Graph,Tree,leaf_info<Tree>>,
-    };
-    int i = 0;
-    bool applied = true;
-    while(applied && !info.is_path()) {
-      applied = false;
-      for(auto rule : rules) {
-        if(rule(G, T, info)) {
-          ++i;
-          applied = true;
-          break;
-        }
-      }
-    }
-    return i;
-  }
-};

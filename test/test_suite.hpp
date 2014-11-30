@@ -24,65 +24,46 @@ public:
   class iterator {
     friend class test_suite;
   public:
-    Graph operator *() const;
-    const iterator &operator ++() { ++i_; return *this; }
-    iterator operator ++(int) { iterator copy(*this); ++i_; return copy; }
+    Graph operator *() const {
+      Graph G(suite.num_vertices());
+      std::default_random_engine generator(suite.seed(i));
+      add_spider(G, 1, generator);
+      if(suite.type() == "rgg")
+        add_random_geometric(G, suite.parameter(), generator);
+      else
+        add_edges_uniform(G, suite.parameter(), generator);
+      return G;
+    }
+    const iterator &operator ++() { ++i; return *this; }
+    iterator operator ++(int) { iterator copy(*this); ++i; return copy; }
 
-    bool operator ==(const iterator &other) const { return i_ == other.i_; }
-    bool operator !=(const iterator &other) const { return i_ != other.i_; }
+    bool operator ==(const iterator &other) const { return i == other.i; }
+    bool operator !=(const iterator &other) const { return i != other.i; }
 
   protected:
-    iterator(test_suite const& s, unsigned i) : suite_(s), i_(i) { }
+    iterator(test_suite const& s, unsigned i) : suite(s), i(i) { }
 
   private:
-    test_suite const& suite_;
-    unsigned long i_;
-  };
-
-  class test_case {
-  public:
-    unsigned seed() const {
-      return s;
-    }
-    unsigned size() const {
-      return n;
-    }
-    float probability() const {
-      return p;
-    }
-    test_case(unsigned s_, unsigned n_, float p_) : s(s_), n(n_), p(p_) { }
-  private:
-    unsigned s, n;
-    float p;
+    test_suite const& suite;
+    unsigned long i;
   };
 
   iterator begin() const { return iterator(*this, 0); }
-  iterator end() const { return iterator(*this, seeds_.size()); }
-  test_case test(unsigned i) const { return test_case(seeds_[i], n_, p_); }
-  unsigned size() const { return seeds_.size(); }
+  iterator end() const { return iterator(*this, size()); }
+  unsigned size() const { return seeds.size(); }
 
-  test_suite(unsigned z, unsigned n, float p) : n_(n), p_(p) {
-    seeds_.resize(z);
-    generate_seeds(seeds_.begin(), seeds_.end());
+  unsigned seed(unsigned i) const { return seeds[i]; }
+  unsigned num_vertices() const { return n; }
+  float parameter() const { return p; }
+  std::string type() const { return t; }
+
+  test_suite(std::string t, unsigned z, unsigned n, float p) : t(t), n(n), p(p) {
+    seeds.resize(z);
+    generate_seeds(seeds.begin(), seeds.end());
   }
 private:
-  unsigned n_;
-  float p_;
-  std::vector<unsigned> seeds_;
+  std::string t;
+  unsigned n;
+  float p;
+  std::vector<unsigned> seeds;
 };
-
-template <class Graph>
-Graph test_suite<Graph>::iterator::operator *() const {
-  auto const& test = suite_.test(i_);
-  unsigned n = test.size();
-  std::default_random_engine generator(test.seed());
-  Graph G(n);
-
-  // add random path
-  add_spider(G, 1, generator);
-
-  // add random edges
-  add_edges_uniform(G, test.probability(), generator);
-
-  return G;
-}
