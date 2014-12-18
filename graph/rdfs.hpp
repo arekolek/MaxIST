@@ -16,8 +16,8 @@ namespace detail {
 
   template <class Graph>
   void visit(Graph& G, Graph& T, node v,
-    node& next_rank, std::vector<node>& rank,
-    std::vector<node>& deg, std::stack<edge>& edges) {
+    node& next_rank, std::vector<unsigned>& rank,
+    std::vector<unsigned>& deg, std::stack<edge>& edges) {
 
     rank[v] = next_rank++;
 
@@ -57,7 +57,7 @@ Graph rdfs_tree(Graph& G) {
   unsigned n = num_vertices(G);
   Graph T(n);
   unsigned next_rank = 1;
-  std::vector<detail::node> rank(n, 0), deg(n);
+  std::vector<unsigned> rank(n, 0), deg(n, 0);
   std::stack<detail::edge> edges;
 
   for(auto v : range(vertices(G)))
