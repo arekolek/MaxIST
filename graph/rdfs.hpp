@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <stack>
 #include <vector>
 
@@ -65,5 +66,35 @@ Graph rdfs_tree(Graph& G) {
 
   detail::visit(G, T, 0, next_rank, rank, deg, edges);
 
+  return T;
+}
+
+template <class Graph>
+Graph test_tree(Graph const & G) {
+  typedef std::pair<int, int> edge;
+  std::vector<unsigned> deg(num_vertices(G));
+  std::vector<bool> V(num_vertices(G));
+  std::stack<edge> Q;
+  Graph T(num_vertices(G));
+  int parent, v = 0;
+  Q.emplace(-1, v);
+  for(auto v : range(vertices(G))) deg[v] = degree(v, G);
+  while(!Q.empty()) {
+    std::tie(parent, v) = Q.top();
+    Q.pop();
+    if(!V[v]) {
+      V[v] = true;
+      if(parent >= 0) add_edge(parent, v, T);
+      std::vector<unsigned> neighbors;
+      for(auto w : range(adjacent_vertices(v, G))) if(!V[w]) {
+        --deg[w];
+        neighbors.push_back(w);
+      }
+      std::sort(neighbors.begin(), neighbors.end(), [&deg](unsigned a, unsigned b) {
+        return deg[a] > deg[b];
+      });
+      for(auto w : neighbors) Q.emplace(v, w);
+    }
+  }
   return T;
 }
