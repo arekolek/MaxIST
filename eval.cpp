@@ -115,17 +115,16 @@ void run(std::string t, unsigned z, unsigned n, float p, std::string cname, std:
       elapsed = timer.stop();
       // type parameter vertices edges upper construction improvement internal time steps
       std::cout
-        << suite.type() << '\t'
-        << suite.parameter() << '\t'
-        << num_vertices(G) << '\t'
-        << num_edges(G) << '\t'
-        << upper_bound(G) << '\t'
-        << cname << '\t'
-        << iname << '\t'
-        << num_internal(T) << '\t'
-        << elapsed << '\t'
-        << steps << '\t'
-        << std::endl;
+        << suite.type() << ','
+        << suite.parameter() << ','
+        << num_vertices(G) << ','
+        << num_edges(G) << ','
+        << upper_bound(G) << ','
+        << cname << ','
+        << iname << ','
+        << num_internal(T) << ','
+        << elapsed << ','
+        << steps << std::endl;
         ;
       //show("graph" + to_string(i) + ".dot", G, T);
   }
@@ -150,6 +149,7 @@ int main(int argc, char** argv){
 
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
+  std::cout << "type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
     for(auto p : parameters)
       for(auto c : constructions)
