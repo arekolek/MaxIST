@@ -47,6 +47,10 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
       return rdfs_tree<Graph>;
   if(name == "fifo")
       return fifo_dfs_tree<Graph>;
+  if(name == "test")
+      return test_tree<Graph>;
+  if(name == "test2")
+      return test2_tree<Graph>;
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 

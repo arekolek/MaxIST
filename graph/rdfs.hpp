@@ -98,3 +98,42 @@ Graph test_tree(Graph const & G) {
   }
   return T;
 }
+
+template <class Graph>
+Graph test2_tree(Graph const & G) {
+  const int NONE = -1, ADDED = -2;
+  std::vector<int> status(num_vertices(G), NONE);
+  std::vector<int> degree(num_vertices(G), 0);
+  for(auto v : range(vertices(G))) degree[v] = boost::degree(v, G);
+  Graph T(num_vertices(G));
+  int v = 0;
+  status[v] = ADDED;
+  for(int i = 1; i < num_vertices(G); ++i) {
+    int min_degree = INT_MAX, min_vertex = -1;
+    for(auto w : range(adjacent_vertices(v, G))) if(status[w] != ADDED) {
+      // neighbors have one option less
+      --degree[w];
+      // choose latest branching as parent
+      status[w] = v;
+      // select neighbor minimizing degree
+      if(degree[w] < min_degree) {
+        min_degree = degree[w];
+        min_vertex = w;
+      }
+    }
+    if(min_vertex == -1) {
+      // dead-end, backtrack to a vertex with minimum degree
+      for(unsigned i = 0; i < status.size(); ++i)
+        if(status[i] != NONE && status[i] != ADDED && degree[i] < min_degree) {
+          min_degree = degree[i];
+          min_vertex = i;
+        }
+      assert(min_vertex != -1);
+    }
+    v = min_vertex;
+    add_edge(status[v], v, T);
+    status[v] = ADDED;
+  }
+  //show("tree-test.dot", G, T);
+  return T;
+}
