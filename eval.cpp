@@ -72,7 +72,7 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   else if (name == "lost")
     rules = Rules(rules.begin() + 1, rules.end());
   else
-    rules = Rules();
+    return [](Graph& G, Tree& T) { return 0; };
   return [rules](Graph& G, Tree& T) {
     leaf_info<Tree> info(G, T);
     int i = 0;
