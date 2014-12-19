@@ -138,7 +138,7 @@ int main(int argc, char** argv){
 
   options opt(argc, argv);
   auto z = opt.get<int>("-z", 100);
-  auto n = opt.get<int>("-n", 100);
+  auto sizes = opt.getList<int>("-n", {100});
   auto tests = opt.getList<string>("-t", {"gnp", "rgg"});
   auto parameters = opt.getList<float>("-p", {
       0.0001, 0.0005, 0.001, 0.003, 0.005, 0.008, 0.01, 0.03, 0.05, 0.08, 0.1, 0.2, 0.25, 0.3, 0.35,
@@ -150,11 +150,12 @@ int main(int argc, char** argv){
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
   std::cout << "type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
-  for(auto t : tests)
-    for(auto p : parameters)
-      for(auto c : constructions)
-        for(auto i : improvements)
-          run<graph>(t, z, n, p, c, i);
+  for(auto n : sizes)
+    for(auto t : tests)
+      for(auto p : parameters)
+        for(auto c : constructions)
+          for(auto i : improvements)
+            run<graph>(t, z, n, p, c, i);
 
   return 0;
 }
