@@ -1,12 +1,16 @@
 
-def select(value, rowheaders, columnheaders, table):
+def select(value, rowheaders, columnheaders, table, where = ''):
   import sqlite3
+  from collections import defaultdict
   
   conn = sqlite3.connect('test.db')
   
+  if where:
+    where = 'where ' + where
+  
   c = conn.execute(
-    '''select {2}, {1}, {0} from {3} group by {2}, {1}'''
-      .format(value, rowheaders, columnheaders, table))
+    '''select {2}, {1}, {0} from {3} {4} group by {2}, {1}'''
+      .format(value, rowheaders, columnheaders, table, where))
   
   s = set()
   d = defaultdict(dict)
