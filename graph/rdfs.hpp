@@ -70,7 +70,7 @@ Graph rdfs_tree(Graph& G) {
 }
 
 template <class Graph>
-Graph test_tree(Graph const & G) {
+Graph rdfs_sort_tree(Graph const & G) {
   typedef std::pair<int, int> edge;
   std::vector<unsigned> deg(num_vertices(G));
   std::vector<bool> V(num_vertices(G));
@@ -99,8 +99,18 @@ Graph test_tree(Graph const & G) {
   return T;
 }
 
+template <class IntType = int, class Generator = std::default_random_engine>
+class Random {
+public:
+  IntType operator()(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
+    return std::uniform_int_distribution<IntType>{a, b}(generator);
+  }
+private:
+  Generator generator;
+};
+
 template <class Graph>
-Graph test2_tree(Graph const & G) {
+Graph rdfs_rand_tree(Graph const & G) {
   const int NONE = -1, ADDED = -2;
   std::vector<int> status(num_vertices(G), NONE);
   std::vector<int> degree(num_vertices(G), 0);
@@ -108,13 +118,15 @@ Graph test2_tree(Graph const & G) {
   Graph T(num_vertices(G));
   int v = 0;
   status[v] = ADDED;
+  Random<unsigned> random;
   for(int i = 1; i < num_vertices(G); ++i) {
     int min_degree = INT_MAX, min_vertex = -1;
     for(auto w : range(adjacent_vertices(v, G))) if(status[w] != ADDED) {
+      // choose random branching as parent
+      if(random(degree[w], boost::degree(w, G)) == boost::degree(w, G)) status[w] = v;
+      assert(status[w] != NONE || status[w] == v);
       // neighbors have one option less
       --degree[w];
-      // choose latest branching as parent
-      status[w] = v;
       // select neighbor minimizing degree
       if(degree[w] < min_degree) {
         min_degree = degree[w];
@@ -129,6 +141,8 @@ Graph test2_tree(Graph const & G) {
           min_vertex = i;
         }
       assert(min_vertex != -1);
+    } else {
+      status[min_vertex] = v;
     }
     v = min_vertex;
     add_edge(status[v], v, T);

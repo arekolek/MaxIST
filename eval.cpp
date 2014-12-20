@@ -47,10 +47,10 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
       return rdfs_tree<Graph>;
   if(name == "fifo")
       return fifo_dfs_tree<Graph>;
-  if(name == "test")
-      return test_tree<Graph>;
-  if(name == "test2")
-      return test2_tree<Graph>;
+  if(name == "rdfs-sort")
+      return rdfs_sort_tree<Graph>;
+  if(name == "rdfs-rand")
+      return rdfs_rand_tree<Graph>;
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
@@ -146,13 +146,13 @@ int main(int argc, char** argv){
   options opt(argc, argv);
   auto z = opt.get<int>("-z", 100);
   auto sizes = opt.getList<int>("-n", {100});
-  auto tests = opt.getList<string>("-t", {"gnp", "rgg"});
+  auto tests = opt.getList<string>("-t", {"gnp"/*, "rgg"*/});
   auto parameters = opt.getList<float>("-p", {
       0.0001, 0.0005, 0.001, 0.003, 0.005, 0.008, 0.01, 0.03, 0.05, 0.08, 0.1, 0.2, 0.25, 0.3, 0.35,
       //0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99
   });
-  auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo"});
-  auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost"});
+  auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs-sort", "rdfs-rand"});
+  auto improvements = opt.getList<string>("-i", {"none"/*, "prieto", "lost-light", "lost"*/});
 
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
