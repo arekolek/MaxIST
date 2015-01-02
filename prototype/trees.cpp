@@ -5,15 +5,19 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "dfs.hpp"
+#include "fifodfs.hpp"
+#include "rdfs.hpp"
+
 #include "debug.hpp"
 #include "test_suite.hpp"
 #include "range.hpp"
 
 using namespace std;
 
-typedef boost::adjacency_list<
-  boost::hash_setS, boost::vecS, boost::undirectedS
-  > graph;
+boost::property<boost::edge_color_t, boost::default_color_type> typedef color;
+boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS,
+    boost::no_property, color> typedef graph;
 
 typedef pair<int, int> edge;
 
@@ -159,7 +163,7 @@ bool operator==(graph const & A, graph const & B) {
   if(num_vertices(A) != num_vertices(B))
     return false;
   for(auto e : range(edges(A)))
-    if(!boost::edge(source(e, A), target(e, A), B).second)
+    if(!boost::edge(boost::source(e, A), boost::target(e, A), B).second)
       return false;
   return true;
 }
@@ -173,19 +177,19 @@ int main() {
 
   ios_base::sync_with_stdio(0);
 
-  test_suite<graph> suite(1, 20, 0.2);
+  test_suite<graph> suite("rgg", 1, 20, 0.2);
 
-  for(auto const& G : suite) {
-    auto dfst = dfs(G, 0);
-    auto dfst2 = dfs(G, 0);
-    auto fdfst = dfs_fifo(G, 0);
-    auto fdfst2 = dfs_fifo2(G, 0);
-    auto bfst = bfs(G, 0);
-    cout << (dfst == dfst2 ? "tak" : "nie") << endl;
-    if(dfst != dfst2) {
-      show("rozny1.dot", G, dfst);
-      show("rozny2.dot", G, dfst2);
-    }
+  for(auto G : suite) {
+    auto dfst = dfs_tree<graph>(G);
+    auto fifot = fifo_dfs_tree<graph>(G);
+    auto rdfst = rdfs_tree<graph>(G);
+    auto sortt = rdfs_sort_tree<graph>(G);
+    auto randt = rdfs_rand_tree<graph>(G);
+    show("TTdfs.dot", G, dfst);
+    show("TTfifo.dot", G, fifot);
+    show("TTrdfs.dot", G, rdfst);
+    show("TTsort.dot", G, sortt);
+    show("TTrand.dot", G, randt);
   }
 
   return 0;
