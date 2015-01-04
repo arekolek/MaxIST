@@ -54,54 +54,6 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
-template<class Graph, class Tree>
-std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
-  std::vector<std::function<bool(Graph&,Tree&,leaf_info<Tree>&)>> typedef Rules;
-  Rules rules = {
-          rule1<Graph,Tree,leaf_info<Tree>>,
-          rule2<Graph,Tree,leaf_info<Tree>>,
-          rule3<Graph,Tree,leaf_info<Tree>>,
-          rule4<Graph,Tree,leaf_info<Tree>>,
-          rule5<Graph,Tree,leaf_info<Tree>>,
-          rule6<Graph,Tree,leaf_info<Tree>>,
-          rule7<Graph,Tree,leaf_info<Tree>>,
-          rule8<Graph,Tree,leaf_info<Tree>>,
-          rule9<Graph,Tree,leaf_info<Tree>>,
-          rule10<Graph,Tree,leaf_info<Tree>>,
-          rule11<Graph,Tree,leaf_info<Tree>>,
-          rule12<Graph,Tree,leaf_info<Tree>>,
-          rule13<Graph,Tree,leaf_info<Tree>>,
-        };
-  if (name == "prieto")
-    rules = Rules(rules.begin() + 1, rules.begin() + 2);
-  else if (name == "lost-light")
-    rules = Rules(rules.begin() + 1, rules.begin() + 6);
-  else if (name == "lost")
-    rules = Rules(rules.begin() + 1, rules.end());
-  else
-    return [](Graph& G, Tree& T) { return 0; };
-  return [rules](Graph& G, Tree& T) {
-    leaf_info<Tree> info(G, T);
-    int i = 0;
-    bool applied = true;
-    while(applied && !info.is_path()) {
-      applied = false;
-      int k = 1;
-      for(auto rule : rules) {
-        ++k;
-        if(rule(G, T, info)) {
-          ++i;
-          applied = true;
-          //std::cerr << ("rule " + std::to_string(k) + "\n");
-          //show("step" + std::to_string(i) + ".dot", G, T);
-          break;
-        }
-      }
-    }
-    return i;
-  };
-}
-
 template <class Graph>
 void run(std::string t, unsigned z, unsigned n, float p, std::string cname, std::string iname) {
   test_suite<Graph> suite(t, z, n, p);
