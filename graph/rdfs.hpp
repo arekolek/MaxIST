@@ -16,11 +16,10 @@ namespace detail {
   std::pair<node, node> typedef edge;
 
   template <class Graph>
-  void visit(Graph& G, Graph& T, node v,
-    node& next_rank, std::vector<unsigned>& rank,
+  void visit(Graph& G, Graph& T, node v, std::vector<bool>& visited,
     std::vector<unsigned>& deg, std::stack<edge>& edges) {
 
-    rank[v] = next_rank++;
+    visited[v] = true;
 
     node w = -1, x, y;
     unsigned min_deg = UINT_MAX;
@@ -28,14 +27,14 @@ namespace detail {
     for(auto u : range(adjacent_vertices(v, G))) {
       --deg[u];
 
-      if(rank[u] == 0 && deg[u] < min_deg) {
+      if(!visited[u] && deg[u] < min_deg) {
         w = u;
         min_deg = deg[u];
       }
     }
 
     if(min_deg == UINT_MAX) {
-      while(!edges.empty() && rank[edges.top().second] != 0)
+      while(!edges.empty() && !visited[edges.top().second])
         edges.pop();
       if(edges.empty())
         return;
@@ -45,10 +44,10 @@ namespace detail {
     add_edge(x, y, T);
 
     for(auto u : range(adjacent_vertices(x, G)))
-      if(u != y && rank[u] == 0)
+      if(u != y && !visited[u])
         edges.emplace(x, u);
 
-    visit(G, T, y, next_rank, rank, deg, edges);
+    visit(G, T, y, visited, deg, edges);
   }
 
 }
@@ -57,14 +56,14 @@ template <class Graph>
 Graph rdfs_tree(Graph& G) {
   unsigned n = num_vertices(G);
   Graph T(n);
-  unsigned next_rank = 1;
-  std::vector<unsigned> rank(n, 0), deg(n, 0);
+  std::vector<bool> visited(n, 0);
+  std::vector<unsigned> deg(n, 0);
   std::stack<detail::edge> edges;
 
   for(auto v : range(vertices(G)))
     deg[v] = degree(v, G);
 
-  detail::visit(G, T, 0, next_rank, rank, deg, edges);
+  detail::visit(G, T, 0, visited, deg, edges);
 
   return T;
 }
