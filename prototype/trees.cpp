@@ -159,17 +159,16 @@ Graph bfs(Graph const & G, int v) {
   return T;
 }
 
-bool operator==(graph const & A, graph const & B) {
-  if(num_vertices(A) != num_vertices(B))
+template<class Graph>
+bool isomorphic(Graph const & A, Graph const & B) {
+  if(boost::num_vertices(A) != boost::num_vertices(B))
     return false;
-  for(auto e : range(edges(A)))
+  if(boost::num_edges(A) != boost::num_edges(B))
+      return false;
+  for(auto e : range(boost::edges(A)))
     if(!boost::edge(boost::source(e, A), boost::target(e, A), B).second)
       return false;
   return true;
-}
-
-bool operator!=(graph const & A, graph const & B) {
-  return !(A == B);
 }
 
 int main() {
