@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
   int n = opt.get<int>("-n", 5);
   float p = opt.get<float>("-p", 1);
 
-  test_suite<graph> suite(z, n, p);
+  test_suite<graph> suite("gnp", z, n, p);
 
   cout << suite.size() << endl;
 

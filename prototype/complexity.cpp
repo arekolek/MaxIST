@@ -26,17 +26,17 @@ int main(int argc, char** argv) {
   float p = opt.get<float>("-p", 1);
 
   timing timer;
-  prieto improve;
+  auto improve = make_improvement<graph, graph>("prieto");
 
   for(int n = 100; n <= N; n += 100) {
-    test_suite<graph> suite(z, n, p);
+    test_suite<graph> suite("gnp", z, n, p);
     double total = 0;
     for(auto G : suite) {
       auto T = bfs_tree(G);
-      list_graph E;
-      copy_edges(T, E);
+      //list_graph E;
+      //copy_edges(T, E);
       timer.start();
-      improve(G, E);
+      improve(G, T);
       total += timer.stop();
     }
     cout << "{" << n << "," << total/suite.size() << "}";
