@@ -9,6 +9,7 @@
 #include "fifodfs.hpp"
 #include "rdfs.hpp"
 
+#include "options.hpp"
 #include "debug.hpp"
 #include "test_suite.hpp"
 #include "range.hpp"
@@ -171,12 +172,17 @@ bool isomorphic(Graph const & A, Graph const & B) {
   return true;
 }
 
-int main() {
+int main(int argc, char** argv) {
+  options opt(argc, argv);
+  int z = opt.get<int>("-z", 1);
+  int n = opt.get<int>("-n", 20);
+  float p = opt.get<float>("-p", 0.2);
+
   std::srand ( unsigned ( std::time(0) ) );
 
   ios_base::sync_with_stdio(0);
 
-  test_suite<graph> suite("rgg", 1, 20, 0.2);
+  test_suite<graph> suite("gnp", z, n, p);
 
   for(auto G : suite) {
     auto dfst = dfs_tree<graph>(G);
