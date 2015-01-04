@@ -100,7 +100,7 @@ int main(int argc, char** argv){
   auto sizes = opt.getList<int>("-n", {100});
   auto tests = opt.getList<string>("-t", {"gnp"/*, "rgg"*/});
   auto parameters = opt.getList<float>("-p", {
-      0.0001, 0.0005, 0.001, 0.003, 0.005, 0.008, 0.01, 0.03, 0.05, 0.08, 0.1, 0.2, 0.25, 0.3, 0.35,
+      0.0001f, 0.0005f, 0.001f, 0.003f, 0.005f, 0.008f, 0.01f, 0.03f, 0.05f, 0.08f, 0.1f, 0.2f, 0.25f, 0.3f, 0.35f,
       //0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99
   });
   auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs-sort", "rdfs-rand"});

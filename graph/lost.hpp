@@ -68,7 +68,7 @@ public:
   }
   bool on_branch(unsigned l, unsigned x) const {
     return l == x || branching(l) == x
-      || (degree(x, T) > 2 || on_trunk(x) ? false : branch(x) == l);
+      || (out_degree(x, T) > 2 || on_trunk(x) ? false : branch(x) == l);
   }
   bool on_trunk(unsigned x) const {
     return BR.count(x) == 0;
@@ -84,7 +84,7 @@ public:
     BR.clear();
     LSH.clear();
     for(auto v : range(vertices(T)))
-      if(degree(v, T) == 1) {
+      if(out_degree(v, T) == 1) {
         L.push_back(v);
         traverse(v, T);
       }
@@ -93,7 +93,7 @@ public:
         if(!is_short(l) && edge(l, branching(l), *G).second)
           LSH.push_back(branching_neighbor(l));
       for(auto x : range(vertices(T)))
-        if(degree(x, T) == 2 && !on_trunk(x) && edge(branch(x), x, *G).second)
+        if(out_degree(x, T) == 2 && !on_trunk(x) && edge(branch(x), x, *G).second)
           LSH.push_back(parent(x, branch(x)));
     }
   }
@@ -105,9 +105,9 @@ public:
       std::tie(a, b) = next(a, b);
       P[uintpair(l, b)] = a;
       BR.emplace(a, l);
-    } while(degree(b, T) == 2);
+    } while(out_degree(b, T) == 2);
     BR.emplace(b, l);
-    if(degree(b, T) > 2) {
+    if(out_degree(b, T) > 2) {
       B[l] = b;
       for(auto v : range(adjacent_vertices(b, T)))
         if(v != a)
@@ -117,12 +117,12 @@ public:
   void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Graph const & T) {
     P[uintpair(l, b)] = a;
     BN[uintpair(l, b)] = blx;
-    while(degree(b, T) == 2) {
+    while(out_degree(b, T) == 2) {
       std::tie(a, b) = next(a, b);
       P[uintpair(l, b)] = a;
       BN[uintpair(l, b)] = blx;
     }
-    if(degree(b, T) > 2) {
+    if(out_degree(b, T) > 2) {
       for(auto v : range(adjacent_vertices(b, T)))
         if(v != a)
           traverse(l, blx, b, v, T);
@@ -151,7 +151,7 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
         while(y != l2) {
           x = y;
           y = info.parent(y, l2);
-          if(degree(x, T) > 2 && degree(y, T) > 2) {
+          if(out_degree(x, T) > 2 && out_degree(y, T) > 2) {
             add_edge(l1, l2, T);
             remove_edge(x, y, T);
             info.update();
@@ -186,7 +186,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
     for(auto x : range(adjacent_vertices(l, G)))
       if(!info.on_branch(l, x)) {
         auto xl = info.parent(x, l);
-        if(degree(xl, T) > 2) {
+        if(out_degree(xl, T) > 2) {
           add_edge(l, x, T);
           remove_edge(x, xl, T);
           info.update();
@@ -204,7 +204,7 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
     for(auto x : range(adjacent_vertices(l, G)))
       if(!info.on_branch(l, x)) {
         auto xl = info.parent(x, l);
-        if(degree(xl, T) == 2)
+        if(out_degree(xl, T) == 2)
           extra[xl].emplace_back(l, x);
       }
 
@@ -230,7 +230,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
       if(!info.on_branch(l, x)) {
         auto bl = info.branching(l);
         auto blx = info.branching_neighbor(l, x);
-        if(degree(blx, T) > 2) {
+        if(out_degree(blx, T) > 2) {
           add_edge(l, x, T);
           remove_edge(bl, blx, T);
           info.update();
@@ -248,7 +248,7 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
     for(auto x : range(adjacent_vertices(l, G)))
       if(!info.on_branch(l, x)) {
         auto blx = info.branching_neighbor(l, x);
-        if(degree(blx, T) == 2) {
+        if(out_degree(blx, T) == 2) {
           extra[blx].emplace_back(l, x);
         }
       }
@@ -333,7 +333,7 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
     for(auto x : range(adjacent_vertices(l1, G)))
       if(!info.on_branch(l1, x)) {
         ++count;
-        if(info.on_trunk(x) || degree(x, T) > 2)
+        if(info.on_trunk(x) || out_degree(x, T) > 2)
           ok = true;
         else if(count == 1)
           l2 = info.branch(x);
@@ -355,7 +355,7 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
       unsigned l2 = lg[j];
       if(m[i*n + j]) {
         for(auto x : range(adjacent_vertices(l1, G)))
-          if(!info.on_branch(l1, x) && (!info.on_branch(l2, x) || degree(x, T) > 2)) {
+          if(!info.on_branch(l1, x) && (!info.on_branch(l2, x) || out_degree(x, T) > 2)) {
             unsigned bn1 = info.branching_neighbor(l1);
             unsigned bn2 = info.branching_neighbor(l2);
             add_edge(l1, x, T);
@@ -384,7 +384,7 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
     enumerate(lg, [&](unsigned j, unsigned l2) {
       m[i*n + j] =
         info.branching(l1) == info.branching(l2) &&
-        degree(info.branching(l1), T) >= 4 &&
+        out_degree(info.branching(l1), T) >= 4 &&
         edge(
           info.branching_neighbor(l1),
           info.branching_neighbor(l2),
@@ -396,9 +396,9 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
     bool ok = false;
     for(auto x : range(adjacent_vertices(l1, G)))
       if(!info.on_branch(l1, x)) {
-        if(info.on_trunk(x) || (degree(x, T) > 2 && x != info.branching(l1)))
+        if(info.on_trunk(x) || (out_degree(x, T) > 2 && x != info.branching(l1)))
           ok = true;
-        else if(degree(x, T) == 2) {
+        else if(out_degree(x, T) == 2) {
           ++count;
           if(count == 1)
             l2 = info.branch(x);
