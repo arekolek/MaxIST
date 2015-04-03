@@ -5,7 +5,7 @@
 
 boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef graph;
 
-BOOST_AUTO_TEST_CASE( lost_test )
+BOOST_AUTO_TEST_CASE( info_branch_test )
 {
   // 0-1-2-3-4-5-6
   //     |   |
