@@ -68,8 +68,7 @@ public:
   }
   bool on_branch(unsigned l, unsigned x) const {
     return l == x || branching(l) == x
-      || (out_degree(x, T) > 2 || on_trunk(x) ? false : branch(x) == l);
-      // FIXME niezły BUG tutaj jest przez kolejność || i ?:
+      || (out_degree(x, T) == 2 && !on_trunk(x) && branch(x) == l);
   }
   bool on_trunk(unsigned x) const {
     return BR.count(x) == 0;
