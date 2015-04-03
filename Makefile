@@ -1,6 +1,6 @@
 
 # Files to build
-EXEC = eval.exe gen.exe prototype/speed.exe prototype/complexity.exe prototype/trees.exe
+EXEC = eval.exe gen.exe prototype/speed.exe prototype/complexity.exe prototype/trees.exe test/lost_test.exe
 SRCS = $(EXEC:.exe=.cpp)
 
 # Subdirectories with header files
@@ -8,7 +8,7 @@ INCLUDES = graph util test
 
 # Compiler and linker flags
 CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math
-LDFLAGS = -lCGAL -lgmp -lboost_thread
+LDFLAGS = -lCGAL -lgmp -lboost_thread -lboost_unit_test_framework
 
 # Changes below this line shouldn't be needed
 
