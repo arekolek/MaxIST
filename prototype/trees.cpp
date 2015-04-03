@@ -185,16 +185,13 @@ int main(int argc, char** argv) {
   test_suite<graph> suite("gnp", z, n, p);
 
   for(auto G : suite) {
-    auto dfst = dfs_tree<graph>(G);
-    auto fifot = fifo_dfs_tree<graph>(G);
-    auto rdfst = rdfs_tree<graph>(G);
-    auto sortt = rdfs_sort_tree<graph>(G);
-    auto randt = rdfs_rand_tree<graph>(G);
-    show("TTdfs.dot", G, dfst);
-    show("TTfifo.dot", G, fifot);
-    show("TTrdfs.dot", G, rdfst);
-    show("TTsort.dot", G, sortt);
-    show("TTrand.dot", G, randt);
+    auto tree1 = rdfs_tree(G);
+    auto tree2 = rdfs_tree2(G);
+    if(!isomorphic(tree1, tree2)) {
+      show("iso-12-1.dot", G, tree1);
+      show("iso-12-2.dot", G, tree2);
+      return 1;
+    }
   }
 
   return 0;
