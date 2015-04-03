@@ -506,8 +506,10 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
     rules = Rules(rules.begin() + 1, rules.begin() + 6);
   else if (name == "lost")
     rules = Rules(rules.begin() + 1, rules.end());
-  else
+  else if (name == "none")
     return [](Graph& G, Tree& T) { return 0; };
+  else
+    throw std::invalid_argument("Unknown construction method: " + name);
   return [rules](Graph& G, Tree& T) {
     leaf_info<Tree> info(G, T);
     int i = 0;
