@@ -67,3 +67,54 @@ private:
   float p;
   std::vector<unsigned> seeds;
 };
+
+template <class Graph>
+class file_suite {
+public:
+  class iterator {
+    friend class file_suite;
+  public:
+    Graph operator *() const {
+      int n, m, s, t;
+      suite.file >> n >> m;
+      Graph G(n);
+      for(int i = 0; i < m; ++i) {
+        suite.file >> s >> t;
+        add_edge(s, t, G);
+      }
+      return G;
+    }
+    const iterator &operator ++() { ++i; return *this; }
+    iterator operator ++(int) { iterator copy(*this); ++i; return copy; }
+
+    bool operator ==(const iterator &other) const { return i == other.i; }
+    bool operator !=(const iterator &other) const { return i != other.i; }
+
+  protected:
+    iterator(file_suite const& s, unsigned i) : suite(s), i(i) {}
+
+  private:
+    file_suite const& suite;
+    unsigned long i;
+  };
+
+  iterator begin() const { return iterator(*this, 0); }
+  iterator end() const { return iterator(*this, size); }
+
+  file_suite(std::string f) : t(f.substr(0, f.find('.'))), file(f), size(0) {
+    if(!file.good()) {
+      throw std::invalid_argument("File does not exist: " + f);
+    }
+    file >> size;
+  }
+  std::string type() const {
+    return t;
+  }
+  int parameter() const {
+    return 0;
+  }
+private:
+  std::string t;
+  mutable std::ifstream file;
+  unsigned size;
+};

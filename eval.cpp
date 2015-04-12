@@ -54,9 +54,8 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
-template <class Graph>
-void run(std::string t, unsigned z, unsigned n, float p, std::string cname, std::string iname) {
-  test_suite<Graph> suite(t, z, n, p);
+template <class Graph, class Suite>
+void run(Suite& suite, std::string cname, std::string iname) {
   auto construct = make_construction<Graph>(cname);
   auto improve = make_improvement<Graph,Graph>(iname);
   timing timer;
@@ -89,6 +88,22 @@ void run(std::string t, unsigned z, unsigned n, float p, std::string cname, std:
   }
 }
 
+template <class Graph, class Sizes, class Params>
+void run(std::string t, unsigned z, Sizes sizes, Params params, std::string cname, std::string iname) {
+  if(t.find('.') != std::string::npos) {
+    file_suite<Graph> suite(t);
+    run<Graph>(suite, cname, iname);
+  }
+  else {
+    for(auto n : sizes) {
+      for(auto p : params) {
+        test_suite<Graph> suite(t, z, n, p);
+        run<Graph>(suite, cname, iname);
+      }
+    }
+  }
+}
+
 int main(int argc, char** argv){
   using std::string;
   using std::vector;
@@ -109,12 +124,10 @@ int main(int argc, char** argv){
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
   std::cout << "type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
-  for(auto n : sizes)
-    for(auto t : tests)
-      for(auto p : parameters)
-        for(auto c : constructions)
-          for(auto i : improvements)
-            run<graph>(t, z, n, p, c, i);
+  for(auto t : tests)
+    for(auto c : constructions)
+      for(auto i : improvements)
+        run<graph>(t, z, sizes, parameters, c, i);
 
   return 0;
 }
