@@ -10,6 +10,7 @@
 #include "bfs.hpp"
 #include "dfs.hpp"
 #include "fifodfs.hpp"
+#include "fivethree.hpp"
 #include "lost.hpp"
 #include "rdfs.hpp"
 
@@ -39,18 +40,20 @@ unsigned upper_bound(Graph const & G) {
 
 template<class Graph>
 std::function<Graph(Graph&)> make_construction(std::string name) {
-  if(name == "bfs")
-    return bfs_tree<Graph>;
-  if(name == "dfs")
-      return dfs_tree<Graph>;
-  if(name == "rdfs")
-      return rdfs_tree<Graph>;
-  if(name == "fifo")
-      return fifo_dfs_tree<Graph>;
-  if(name == "rdfs-sort")
-      return rdfs_sort_tree<Graph>;
-  if(name == "rdfs-rand")
-      return rdfs_rand_tree<Graph>;
+  if (name == "bfs")
+    return bfs_tree<Graph> ;
+  if (name == "dfs")
+    return dfs_tree<Graph> ;
+  if (name == "rdfs")
+    return rdfs_tree<Graph> ;
+  if (name == "fifo")
+    return fifo_dfs_tree<Graph> ;
+  if (name == "rdfs-sort")
+    return rdfs_sort_tree<Graph> ;
+  if (name == "rdfs-rand")
+    return rdfs_rand_tree<Graph> ;
+  if (name == "5/3")
+    return five_three_tree<Graph> ;
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
