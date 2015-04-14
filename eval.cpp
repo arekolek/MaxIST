@@ -64,6 +64,7 @@ void run(Suite& suite, std::string cname, std::string iname) {
   timing timer;
   unsigned steps;
   double elapsed;
+  unsigned run = 0;
   for(auto G : suite) {
       timer.start();
       auto T = construct(G);
@@ -74,8 +75,9 @@ void run(Suite& suite, std::string cname, std::string iname) {
       assert(num_edges(T) == num_vertices(T)-1);
       steps = improve(G, T);
       elapsed = timer.stop();
-      // type parameter vertices edges upper construction improvement internal time steps
+      // run type parameter vertices edges upper construction improvement internal time steps
       std::cout
+        << ++run << ','
         << suite.type() << ','
         << suite.parameter() << ','
         << num_vertices(G) << ','
@@ -126,7 +128,7 @@ int main(int argc, char** argv){
 
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
-  std::cout << "type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
+  std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
     for(auto c : constructions)
       for(auto i : improvements)
