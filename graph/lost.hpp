@@ -43,6 +43,9 @@ public:
   std::vector<unsigned> const & leafish() const {
     return LSH;
   }
+  std::vector<unsigned> const & leafish_free() const {
+    return LP;
+  }
   unsigned branching(unsigned l) const {
     // b(l)
     return B.at(l);
@@ -83,18 +86,29 @@ public:
     BN.clear();
     BR.clear();
     LSH.clear();
+    LP.clear();
     for(auto v : range(vertices(T)))
       if(out_degree(v, T) == 1) {
         L.push_back(v);
         traverse(v, T);
       }
     if(G != NULL && L.size() > 2) {
+      std::vector<bool> lp(num_vertices(T), false);
       for(auto l : leaves())
-        if(!is_short(l) && edge(l, branching(l), *G).second)
+        lp[l] = true;
+      for(auto l : leaves())
+        if(!is_short(l) && edge(l, branching(l), *G).second) {
           LSH.push_back(branching_neighbor(l));
+          lp[l] = false;
+        }
       for(auto x : range(vertices(T)))
-        if(out_degree(x, T) == 2 && !on_trunk(x) && edge(branch(x), x, *G).second)
+        if(out_degree(x, T) == 2 && !on_trunk(x) && edge(branch(x), x, *G).second && x != branch(x)) {
           LSH.push_back(parent(x, branch(x)));
+          lp[branch(x)] = false;
+        }
+      for(unsigned l = 0; l < lp.size(); ++l)
+        if(lp[l])
+          LP.push_back(l);
     }
   }
   void traverse(unsigned l, Graph const & T) {
@@ -135,7 +149,7 @@ public:
 private:
   Graph const* G;
   Graph const& T;
-  std::vector<unsigned> L, LSH;
+  std::vector<unsigned> L, LSH, LP;
   std::pair<unsigned, unsigned> typedef uintpair;
   std::unordered_map<unsigned, unsigned> B, BR;
   std::unordered_map<uintpair, unsigned> P, BN;
@@ -481,6 +495,35 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule14(Graph& G, Tree& T, LeafInfo& info) {
+  auto const & lp = info.leafish_free();
+  std::unordered_map<unsigned, unsigned> lookup;
+  for(unsigned i = 0; i < lp.size(); ++i)
+    lookup[lp[i]] = i;
+  unsigned n = lp.size();
+  std::vector<int> m(n * n, -1);
+  for(unsigned i = 0; i < lp.size(); ++i)
+    for(auto x : range(adjacent_vertices(lp[i], G)))
+      if(!info.on_trunk(x) && info.branch(x) != lp[i])
+        try {
+          m[i*n + lookup.at(info.branch(x))] = x;
+        } catch (std::out_of_range& e) {
+        }
+  for (unsigned i = 0; i < lp.size(); ++i) {
+    for (unsigned j = 0; j < lp.size(); ++j) {
+      if (m[i * n + j] >= 0 && m[j * n + i] >= 0) {
+        auto l1 = lp[i];
+        auto x = m[i * n + j];
+        add_edge(l1, x, T);
+        remove_edge(x, info.parent(x, l1), T);
+        info.update();
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 template<class Graph, class Tree>
 std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
@@ -499,6 +542,7 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
           rule11<Graph,Tree,leaf_info<Tree>>,
           rule12<Graph,Tree,leaf_info<Tree>>,
           rule13<Graph,Tree,leaf_info<Tree>>,
+          rule14<Graph,Tree,leaf_info<Tree>>,
         };
   if (name == "prieto")
     rules = Rules(rules.begin() + 1, rules.begin() + 2);
