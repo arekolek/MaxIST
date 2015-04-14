@@ -525,6 +525,22 @@ bool rule14(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule15(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto l1 : info.leafish_free())
+    for(auto l2 : info.leafish_free())
+      if(l1 != l2
+          && info.branching(l1) == info.branching(l2)
+          && degree(info.branching(l1), T) == 3
+          && edge(info.branching_neighbor(l1), info.branching_neighbor(l2), G).second) {
+        add_edge(info.branching_neighbor(l1), info.branching_neighbor(l2), T);
+        remove_edge(info.branching(l2), info.branching_neighbor(l2), T);
+        info.update();
+        return true;
+      }
+  return false;
+}
+
 template<class Graph, class Tree>
 std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&,Tree&,leaf_info<Tree>&)>> typedef Rules;
@@ -543,6 +559,7 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
           rule12<Graph,Tree,leaf_info<Tree>>,
           rule13<Graph,Tree,leaf_info<Tree>>,
           rule14<Graph,Tree,leaf_info<Tree>>,
+          rule15<Graph,Tree,leaf_info<Tree>>,
         };
   if (name == "prieto")
     rules = Rules(rules.begin() + 1, rules.begin() + 2);
