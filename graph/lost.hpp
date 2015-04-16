@@ -531,7 +531,7 @@ bool rule15(Graph& G, Tree& T, LeafInfo& info) {
     for(auto l2 : info.leafish_free())
       if(l1 != l2
           && info.branching(l1) == info.branching(l2)
-          && degree(info.branching(l1), T) == 3
+          && out_degree(info.branching(l1), T) == 3
           && edge(info.branching_neighbor(l1), info.branching_neighbor(l2), G).second) {
         add_edge(info.branching_neighbor(l1), info.branching_neighbor(l2), T);
         remove_edge(info.branching(l2), info.branching_neighbor(l2), T);
