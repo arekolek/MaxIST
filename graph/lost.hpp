@@ -303,6 +303,32 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template <class Graph, class Tree, class LeafInfo>
+bool rule7extended(Graph& G, Tree& T, LeafInfo& info) {
+  for(auto e : range(edges(T))) {
+    auto x = source(e, T);
+    auto y = target(e, T);
+    auto check = [&](uint a, uint b) {
+      return !edge(a, x, T).second && !edge(b, y, T).second
+      && edge(a, x, G).second && edge(b, y, G).second;
+    };
+    for(auto l : info.leaves()) {
+      auto a = l;
+      auto b = info.branching_neighbor(l);
+      if(check(a, b) || check(b, a)) {
+        if(check(b, a)) std::swap(a, b);
+        add_edge(a, x, T);
+        add_edge(b, y, T);
+        remove_edge(x, y, T);
+        remove_edge(info.branching(l), info.branching_neighbor(l), T);
+        info.update();
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 template <class Tree, class LeafInfo>
 void rule8action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   add_edge(i.branching_neighbor(l1), l2, T);
@@ -544,7 +570,7 @@ bool rule15(Graph& G, Tree& T, LeafInfo& info) {
 template<class Graph, class Tree>
 std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&,Tree&,leaf_info<Tree>&)>> typedef Rules;
-  Rules rules = {
+  Rules allrules = {
           rule1<Graph,Tree,leaf_info<Tree>>,
           rule2<Graph,Tree,leaf_info<Tree>>,
           rule3<Graph,Tree,leaf_info<Tree>>,
@@ -561,12 +587,21 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
           rule14<Graph,Tree,leaf_info<Tree>>,
           rule15<Graph,Tree,leaf_info<Tree>>,
         };
+  Rules rules;
+  auto addrules = [&](uint first, uint last){
+      rules.insert(rules.end(), allrules.begin() + first - 1, allrules.begin() + last);
+  };
   if (name == "prieto")
-    rules = Rules(rules.begin() + 1, rules.begin() + 2);
+    addrules(2, 2);
   else if (name == "lost-light")
-    rules = Rules(rules.begin() + 1, rules.begin() + 6);
+    addrules(2, 6);
   else if (name == "lost")
-    rules = Rules(rules.begin() + 1, rules.end());
+    addrules(2, 15);
+  else if (name == "lost-ex") {
+    addrules(2, 6);
+    rules.push_back(rule7extended<Graph,Tree,leaf_info<Tree>>);
+    addrules(8, 15);
+  }
   else if (name == "none")
     return [](Graph& G, Tree& T) { return 0; };
   else
