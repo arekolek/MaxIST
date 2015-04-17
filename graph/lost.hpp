@@ -194,6 +194,51 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template<class Graph, class Tree, class LeafInfo>
+bool ruleCycleElimination(Graph& G, Tree& T, LeafInfo& info) {
+  int n = num_vertices(G);
+  std::vector<std::vector<uint>> supported(n);
+  for (auto l : info.leaves())
+    for (auto x : range(adjacent_vertices(l, G)))
+      if (!info.on_branch(l, x))
+        supported[x].push_back(l);
+
+  auto supports_other = [supported](uint x, uint l){
+    return supported[x].size() > 1 || (supported[x].size() == 1 && *supported[x].begin() != l);
+  };
+
+  auto supported_other = [supported](uint x, uint l){
+    auto it = supported[x].begin();
+    return *it == l ? *(it+1) : *it;
+  };
+
+  for (auto l : info.leaves())
+    for (auto x : range(adjacent_vertices(l, G)))
+      if (!info.on_branch(l, x)) {
+        auto a = x;
+        auto b = info.parent(x, l);
+        auto bln = info.branching_neighbor(l);
+        while (b != bln) {
+          if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
+            add_edge(l, x, T);
+            remove_edge(a, b, T);
+            info.update();
+            return true;
+          }
+          if (out_degree(a, T) > 2 && supports_other(b, l)) {
+            add_edge(l, x, T);
+            remove_edge(a, b, T);
+            info.update();
+            rule2action(b, supported_other(b, l), T, info);
+            return true;
+          }
+          a = b;
+          b = info.parent(b, l);
+        }
+      }
+  return false;
+}
+
 template <class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves())
@@ -599,6 +644,7 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
     addrules(2, 15);
   else if (name == "lost-ex") {
     addrules(2, 6);
+    rules.push_back(ruleCycleElimination<Graph,Tree,leaf_info<Tree>>);
     rules.push_back(rule7extended<Graph,Tree,leaf_info<Tree>>);
     addrules(8, 15);
   }
@@ -610,6 +656,7 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
     leaf_info<Tree> info(G, T);
     int i = 0;
     bool applied = true;
+    //show("step" + std::to_string(i) + ".dot", G, T);
     while(applied && !info.is_path()) {
       applied = false;
       int k = 1;
