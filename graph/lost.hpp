@@ -232,6 +232,13 @@ bool ruleCycleElimination(Graph& G, Tree& T, LeafInfo& info) {
             rule2action(b, supported_other(b, l), T, info);
             return true;
           }
+          if (supports_other(a, l) && out_degree(b, T) > 2) {
+            add_edge(l, x, T);
+            remove_edge(a, b, T);
+            info.update();
+            if(a != x) rule2action(a, supported_other(a, l), T, info);
+            return true;
+          }
           a = b;
           b = info.parent(b, l);
         }
