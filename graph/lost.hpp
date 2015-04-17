@@ -358,6 +358,8 @@ bool rule7extended(Graph& G, Tree& T, LeafInfo& info) {
       && edge(a, x, G).second && edge(b, y, G).second;
     };
     for(auto l : info.leaves()) {
+      if(info.on_branch(l, x) && x != info.branching(l)) continue;
+      if(info.on_branch(l, y) && y != info.branching(l)) continue;
       auto a = l;
       auto b = info.branching_neighbor(l);
       if(check(a, b) || check(b, a)) {
