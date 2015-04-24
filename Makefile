@@ -1,58 +1,65 @@
 
-# Files to build
-EXEC = eval.exe gen.exe prototype/speed.exe prototype/complexity.exe prototype/trees.exe test/lost_test.exe
-SRCS = $(EXEC:.exe=.cpp)
+# Command-line parameter to switch gdb on/off
+# Use with -B to force a rebuild
+GDB = 
 
 # Subdirectories with header files
 INCLUDES = graph util test
 
-# Compiler and linker flags
+# Default compiler and linker flags
 CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math
 LDFLAGS = -lCGAL -lgmp -lboost_thread -lboost_unit_test_framework
 
-# Changes below this line shouldn't be needed
-
+# Automatically find all sources and use implicit make rules
+SRCS = $(shell find * -name \*.cpp)
 OBJS = $(SRCS:.cpp=.o)
-DEPS = $(SRCS:.cpp=.d)
+DEPS = $(OBJS:.o=.d)
+EXEC = $(OBJS:.o=.exe)
 
 RM = rm -f
 
-# Target-specific build mode
-MODE = -O2 -g
-release : MODE = -O2
-debug : MODE = -O0 -g -ggdb
+# Using target-specific variables would be nicer,
+#   but they force you to build the whole source tree
+ifeq ($(GDB), off)
+	MODE = -O2
+else
+	ifeq ($(GDB), on)
+		MODE = -O0 -g -ggdb
+	else
+		MODE = -O2 -g
+	endif
+endif
 
-# Automatic dependencies
-.PRECIOUS: %.d %.o
-CXXFLAGS += -MP -MMD $(INCLUDES:%=-I%)
+.PHONY: all clean cleanall cleanobjs rules
 
-# Targets
+all: $(EXEC)
 
-.PHONY : all release debug clean clean-intermediate rules
-
-all : $(EXEC)
-release : $(EXEC)
-debug : $(EXEC)
-
+# Use .exe suffix for easier integration with Git
 %.exe : %.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
-# Automatic dependencies
--include $(DEPS)
+cleanall: clean
+	$(RM) **/*~ *.dot
 
-clean: clean-intermediate
+clean: cleanobjs
 	$(RM) $(EXEC)
 
-clean-intermediate:
+cleanobjs:
 	$(RM) $(OBJS) $(DEPS)
 
+# Files, flags and rules for auto dependencies
+.PRECIOUS: %.d %.o
+CXXFLAGS += -MP -MMD $(INCLUDES:%=-I%)
+-include $(DEPS)
+
+# Show variables for Makefile debugging
 rules:
+	@echo SRCS = $(SRCS)
 	@echo EXEC = $(EXEC)
 	@echo OBJS = $(OBJS)
-	@echo SRCS = $(SRCS)
+	@echo DEPS = $(DEPS)
 	@echo PWD = $(PWD)
-	@echo CC = $(CC)
-	@echo CXX = $(CXX)
-	@$(CXX) --version
+	@echo CC = `$(CC) --version | head -n 1`
+	@echo CXX = `$(CXX) --version | head -n 1`
 	@echo CXXFLAGS = $(CXXFLAGS)
 	@echo LDFLAGS = $(LDFLAGS)
