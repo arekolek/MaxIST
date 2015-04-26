@@ -57,6 +57,10 @@ public:
   float parameter() const { return p; }
   std::string type() const { return t; }
 
+  Graph get(uint i) const {
+    return *iterator(*this, i);
+  }
+
   test_suite(std::string t, unsigned z, unsigned n, float p) : t(t), n(n), p(p) {
     seeds.resize(z);
     generate_seeds(seeds.begin(), seeds.end());
@@ -99,13 +103,18 @@ public:
   };
 
   iterator begin() const { return iterator(*this, 0); }
-  iterator end() const { return iterator(*this, size); }
+  iterator end() const { return iterator(*this, size_); }
+  unsigned size() const { return size_; }
 
-  file_suite(std::string f) : t(f.substr(0, f.find('.'))), file(f), size(0) {
+  Graph get(uint i) const {
+    return *iterator(*this, i);
+  }
+
+  file_suite(std::string f) : t(f.substr(0, f.find('.'))), file(f), size_(0) {
     if(!file.good()) {
       throw std::invalid_argument("File does not exist: " + f);
     }
-    file >> size;
+    file >> size_;
   }
   std::string type() const {
     return t;
@@ -116,5 +125,5 @@ public:
 private:
   std::string t;
   mutable std::ifstream file;
-  unsigned size;
+  unsigned size_;
 };

@@ -7,8 +7,8 @@ GDB =
 INCLUDES = graph util test
 
 # Default compiler and linker flags
-CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math
-LDFLAGS = -lCGAL -lgmp -lboost_thread -lboost_unit_test_framework
+CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math -fopenmp
+LDFLAGS = -lCGAL -lgmp -lboost_thread -lboost_unit_test_framework -fopenmp
 
 # Automatically find all sources and use implicit make rules
 SRCS = $(shell find * -name \*.cpp)

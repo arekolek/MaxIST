@@ -7,6 +7,8 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include <omp.h>
+
 #include "bfs.hpp"
 #include "dfs.hpp"
 #include "fifodfs.hpp"
@@ -64,32 +66,39 @@ void run(Suite& suite, std::string cname, std::string iname) {
   timing timer;
   unsigned steps;
   double elapsed;
-  unsigned run = 0;
-  for(auto G : suite) {
-      timer.start();
-      auto T = construct(G);
-      if(num_vertices(T) != num_vertices(G))
-        // G is unconnected
-        continue;
-      // assert T is a spanning tree
-      assert(num_edges(T) == num_vertices(T)-1);
-      steps = improve(G, T);
-      elapsed = timer.stop();
-      // run type parameter vertices edges upper construction improvement internal time steps
-      std::cout
-        << ++run << ','
-        << suite.type() << ','
-        << suite.parameter() << ','
-        << num_vertices(G) << ','
-        << num_edges(G) << ','
-        << upper_bound(G) << ','
-        << cname << ','
-        << iname << ','
-        << num_internal(T) << ','
-        << elapsed << ','
-        << steps << std::endl;
-        ;
-      //show("graph" + to_string(i) + ".dot", G, T);
+  std::stringstream buf;
+  #pragma omp parallel private(buf)
+  {
+    #pragma omp for nowait
+    for(uint i = 0; i < suite.size(); ++i) {
+        auto G = suite.get(i);
+        timer.start();
+        auto T = construct(G);
+        if(num_vertices(T) != num_vertices(G))
+          // G is unconnected
+          continue;
+        // assert T is a spanning tree
+        assert(num_edges(T) == num_vertices(T)-1);
+        steps = improve(G, T);
+        elapsed = timer.stop();
+        // run type parameter vertices edges upper construction improvement internal time steps
+        buf
+          << i << ','
+          << suite.type() << ','
+          << suite.parameter() << ','
+          << num_vertices(G) << ','
+          << num_edges(G) << ','
+          << upper_bound(G) << ','
+          << cname << ','
+          << iname << ','
+          << num_internal(T) << ','
+          << elapsed << ','
+          << steps << std::endl;
+          ;
+        //show("graph" + to_string(i) + ".dot", G, T);
+    }
+    #pragma omp critical
+    std::cout << buf.rdbuf();
   }
 }
 
