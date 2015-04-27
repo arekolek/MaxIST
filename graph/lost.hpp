@@ -31,7 +31,7 @@ public:
   leaf_info(Graph const & T_) : G(NULL), T(T_) {
     update();
   }
-  leaf_info(Graph const & G_, Graph const & T_) : G(&G_), T(T_) {
+  leaf_info(Graph const * G_, Graph const & T_) : G(G_), T(T_) {
     update();
   }
   bool is_path() const {
@@ -651,13 +651,17 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   auto addrules = [&](uint first, uint last){
       rules.insert(rules.end(), allrules.begin() + first - 1, allrules.begin() + last);
   };
+  bool extended = false;
   if (name == "prieto")
     addrules(2, 2);
   else if (name == "lost-light")
     addrules(2, 6);
-  else if (name == "lost")
+  else if (name == "lost") {
+    extended = true;
     addrules(2, 15);
+  }
   else if (name == "lost-ex") {
+    extended = true;
     addrules(2, 6);
     rules.push_back(ruleCycleElimination<Graph,Tree,leaf_info<Tree>>);
     rules.push_back(rule7extended<Graph,Tree,leaf_info<Tree>>);
@@ -667,8 +671,8 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
     return [](Graph& G, Tree& T) { return 0; };
   else
     throw std::invalid_argument("Unknown construction method: " + name);
-  return [rules](Graph& G, Tree& T) {
-    leaf_info<Tree> info(G, T);
+  return [rules, extended](Graph& G, Tree& T) {
+    leaf_info<Tree> info(extended ? &G : NULL, T);
     int i = 0;
     bool applied = true;
     //show("step" + std::to_string(i) + ".dot", G, T);
