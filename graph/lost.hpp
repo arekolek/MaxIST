@@ -411,17 +411,20 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
       lg.push_back(l);
   unsigned n = lg.size();
   std::vector<bool> m(n * n);
-  enumerate(lg, [&](unsigned i, unsigned l1) {
-    enumerate(lg, [&](unsigned j, unsigned l2) {
+  for (unsigned i = 0; i < n; ++i) {
+    unsigned l1 = lg[i];
+    for (unsigned j = 0; j < n; ++j) {
+      unsigned l2 = lg[j];
       m[i*n + j] =
         info.branching(l1) != info.branching(l2) &&
         edge(
           info.branching_neighbor(l1),
           info.branching_neighbor(l2),
           G).second;
-    });
-  });
-  enumerate(lg, [&](unsigned i, unsigned l1) {
+    }
+  }
+  for (unsigned i = 0; i < n; ++i) {
+    unsigned l1 = lg[i];
     unsigned count = 0, l2 = 0;
     bool ok = false;
     for(auto x : range(adjacent_vertices(l1, G)))
@@ -436,16 +439,16 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
         if(ok) break;
       }
     if(count == 0)
-      for(unsigned j = 0; j < lg.size(); ++j)
+      for(unsigned j = 0; j < n; ++j)
         m[i*n + j] = false;
     else if(!ok)
-      for(unsigned j = 0; j < lg.size(); ++j)
+      for(unsigned j = 0; j < n; ++j)
         if(lg[j] == l2)
           m[i*n + j] = false;
-  });
-  for(unsigned i = 0; i < lg.size(); ++i) {
+  }
+  for(unsigned i = 0; i < n; ++i) {
     unsigned l1 = lg[i];
-    for(unsigned j = 0; j < lg.size(); ++j) {
+    for(unsigned j = 0; j < n; ++j) {
       unsigned l2 = lg[j];
       if(m[i*n + j]) {
         for(auto x : range(adjacent_vertices(l1, G)))
@@ -474,8 +477,10 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
       lg.push_back(l);
   unsigned n = lg.size();
   std::vector<bool> m(n * n);
-  enumerate(lg, [&](unsigned i, unsigned l1) {
-    enumerate(lg, [&](unsigned j, unsigned l2) {
+  for (unsigned i = 0; i < n; ++i) {
+    unsigned l1 = lg[i];
+    for (unsigned j = 0; j < n; ++j) {
+      unsigned l2 = lg[j];
       m[i*n + j] =
         info.branching(l1) == info.branching(l2) &&
         out_degree(info.branching(l1), T) >= 4 &&
@@ -483,9 +488,10 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
           info.branching_neighbor(l1),
           info.branching_neighbor(l2),
           G).second;
-    });
-  });
-  enumerate(lg, [&](unsigned i, unsigned l1) {
+    }
+  }
+  for (unsigned i = 0; i < n; ++i) {
+    unsigned l1 = lg[i];
     unsigned count = 0, l2 = 0;
     bool ok = false;
     for(auto x : range(adjacent_vertices(l1, G)))
@@ -505,7 +511,7 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
       for(unsigned j = 0; j < lg.size(); ++j)
         if(count == 0 || lg[j] == l2)
           m[i*n + j] = false;
-  });
+  }
   for(unsigned i = 0; i < lg.size(); ++i) {
     unsigned l1 = lg[i];
     for(unsigned j = 0; j < lg.size(); ++j) {
@@ -583,15 +589,15 @@ bool rule14(Graph& G, Tree& T, LeafInfo& info) {
     lookup[lp[i]] = i;
   unsigned n = lp.size();
   std::vector<int> m(n * n, -1);
-  for(unsigned i = 0; i < lp.size(); ++i)
+  for(unsigned i = 0; i < n; ++i)
     for(auto x : range(adjacent_vertices(lp[i], G)))
       if(!info.on_trunk(x) && info.branch(x) != lp[i])
         try {
           m[i*n + lookup.at(info.branch(x))] = x;
         } catch (std::out_of_range& e) {
         }
-  for (unsigned i = 0; i < lp.size(); ++i) {
-    for (unsigned j = 0; j < lp.size(); ++j) {
+  for (unsigned i = 0; i < n; ++i) {
+    for (unsigned j = 0; j < n; ++j) {
       if (m[i * n + j] >= 0 && m[j * n + i] >= 0) {
         auto l1 = lp[i];
         auto x = m[i * n + j];

@@ -32,10 +32,3 @@ auto shuffled(std::pair<Iterator, Iterator> p) -> std::vector<decltype(*p.first)
   std::random_shuffle(R.begin(), R.end());
   return R;
 }
-
-template<typename Sequence, typename Predicate>
-void enumerate(Sequence seq, Predicate pred) {
-  unsigned count = 0;
-  for(auto val : seq)
-    pred(count++, val);
-}
