@@ -8,7 +8,7 @@ INCLUDES = graph util test
 
 # Default compiler and linker flags
 CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math -fopenmp
-LDFLAGS = -lCGAL -lgmp -lboost_thread -lboost_unit_test_framework -fopenmp
+LDFLAGS = -lCGAL -lgmp -lboost_thread -lboost_unit_test_framework -fopenmp -lrt
 
 # Automatically find all sources and use implicit make rules
 SRCS = $(shell find * -name \*.cpp)

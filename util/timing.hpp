@@ -7,12 +7,15 @@
 class timing {
 public:
   double stop() {
-    c_end = clock();
-    return 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &c_end);
+    double elapsed = c_end.tv_sec - c_start.tv_sec;
+    elapsed += (c_end.tv_nsec - c_start.tv_nsec) / 1000000000.0;
+    elapsed *= 1000; // to ms
+    return elapsed;
   }
   void start() {
-    c_start = clock();
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &c_start);
   }
 private:
-  clock_t c_start, c_end;
+  timespec c_start, c_end;
 };

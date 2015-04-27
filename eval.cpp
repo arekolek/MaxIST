@@ -67,7 +67,7 @@ void run(Suite& suite, std::string cname, std::string iname) {
   unsigned steps;
   double elapsed;
   std::stringstream buf;
-  #pragma omp parallel private(buf)
+  #pragma omp parallel private(timer, steps, elapsed, buf)
   {
     #pragma omp for nowait
     for(uint i = 0; i < suite.size(); ++i) {
