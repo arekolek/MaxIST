@@ -86,18 +86,18 @@ void run(Suite& suite, std::string cname, std::string iname) {
         elapsed_i = timer.stop();
         // run type parameter vertices edges upper construction improvement internal time steps
         buffer
-          << i << ','
-          << id << ','
-          << suite.type() << ','
-          << suite.parameter() << ','
-          << num_vertices(G) << ','
-          << num_edges(G) << ','
-          << upper_bound(G) << ','
-          << cname << ','
-          << iname << ','
-          << num_internal(T) << ','
-          << elapsed_c << ','
-          << elapsed_i << ','
+          << i << '\t'
+          << id << '\t'
+          << suite.type() << '\t'
+          << suite.parameter() << '\t'
+          << num_vertices(G) << '\t'
+          << num_edges(G) << '\t'
+          << upper_bound(G) << '\t'
+          << cname << '\t'
+          << iname << '\t'
+          << num_internal(T) << '\t'
+          << elapsed_c << '\t'
+          << elapsed_i << '\t'
           << steps << std::endl;
           ;
         //show("graph" + to_string(i) + ".dot", G, T);
