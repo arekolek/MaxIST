@@ -63,27 +63,31 @@ template <class Graph, class Suite>
 void run(Suite& suite, std::string cname, std::string iname) {
   auto construct = make_construction<Graph>(cname);
   auto improve = make_improvement<Graph,Graph>(iname);
-  timing timer;
-  unsigned steps;
-  double elapsed;
-  std::stringstream buf;
-  #pragma omp parallel private(timer, steps, elapsed, buf)
+  #pragma omp parallel
   {
-    #pragma omp for nowait
+    auto id = omp_get_thread_num();
+    std::stringstream buffer;
+    unsigned steps;
+    double elapsed_c, elapsed_i;
+    timing timer;
+    #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
         auto G = suite.get(i);
         timer.start();
         auto T = construct(G);
+        elapsed_c = timer.stop();
         if(num_vertices(T) != num_vertices(G))
           // G is unconnected
           continue;
         // assert T is a spanning tree
         assert(num_edges(T) == num_vertices(T)-1);
+        timer.start();
         steps = improve(G, T);
-        elapsed = timer.stop();
+        elapsed_i = timer.stop();
         // run type parameter vertices edges upper construction improvement internal time steps
-        buf
+        buffer
           << i << ','
+          << id << ','
           << suite.type() << ','
           << suite.parameter() << ','
           << num_vertices(G) << ','
@@ -92,13 +96,14 @@ void run(Suite& suite, std::string cname, std::string iname) {
           << cname << ','
           << iname << ','
           << num_internal(T) << ','
-          << elapsed << ','
+          << elapsed_c << ','
+          << elapsed_i << ','
           << steps << std::endl;
           ;
         //show("graph" + to_string(i) + ".dot", G, T);
     }
     #pragma omp critical
-    std::cout << buf.rdbuf();
+    std::cout << buffer.str();
   }
 }
 
@@ -137,7 +142,7 @@ int main(int argc, char** argv){
 
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
-  std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
+  //std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
     for(auto c : constructions)
       for(auto i : improvements)
