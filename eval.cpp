@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
 
 #include <omp.h>
 
@@ -59,6 +60,12 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
+template<class Graph>
+bool is_connected(Graph const & G) {
+  std::vector<int> component(num_vertices(G));
+  return connected_components(G, &component[0]) == 1;
+}
+
 template <class Graph, class Suite>
 void run(Suite& suite, std::string cname, std::string iname) {
   auto construct = make_construction<Graph>(cname);
@@ -73,13 +80,13 @@ void run(Suite& suite, std::string cname, std::string iname) {
     #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
         auto G = suite.get(i);
+        if(!is_connected(G)) {
+          continue;
+        }
         timer.start();
         auto T = construct(G);
         elapsed_c = timer.stop();
-        if(num_vertices(T) != num_vertices(G) || num_edges(T) != num_vertices(T)-1) {
-          // G is unconnected or T is not a spanning tree
-          continue;
-        }
+        assert(num_edges(T) == num_vertices(T)-1);
         timer.start();
         steps = improve(G, T);
         elapsed_i = timer.stop();
