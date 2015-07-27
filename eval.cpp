@@ -76,11 +76,10 @@ void run(Suite& suite, std::string cname, std::string iname) {
         timer.start();
         auto T = construct(G);
         elapsed_c = timer.stop();
-        if(num_vertices(T) != num_vertices(G))
-          // G is unconnected
+        if(num_vertices(T) != num_vertices(G) || num_edges(T) != num_vertices(T)-1) {
+          // G is unconnected or T is not a spanning tree
           continue;
-        // assert T is a spanning tree
-        assert(num_edges(T) == num_vertices(T)-1);
+        }
         timer.start();
         steps = improve(G, T);
         elapsed_i = timer.stop();

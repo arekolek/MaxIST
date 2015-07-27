@@ -172,6 +172,7 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
             return true;
           }
         }
+        assert(false);
       }
   return false;
 }
