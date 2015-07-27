@@ -98,7 +98,8 @@ void run(Suite& suite, std::string cname, std::string iname) {
           << num_internal(T) << '\t'
           << elapsed_c << '\t'
           << elapsed_i << '\t'
-          << steps << std::endl;
+          << steps << '\t'
+          << std::endl;
           ;
         //show("graph" + to_string(i) + ".dot", G, T);
     }
