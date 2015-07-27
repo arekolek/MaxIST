@@ -27,10 +27,11 @@ public:
     Graph operator *() const {
       Graph G(suite.num_vertices());
       std::default_random_engine generator(suite.seed(i));
-      add_spider(G, 1, generator);
-      if(suite.type() == "rgg")
+      if(suite.type().find("path") != std::string::npos)
+        add_spider(G, 1, generator);
+      if(suite.type().find("rgg") != std::string::npos)
         add_random_geometric(G, suite.parameter(), generator);
-      else
+      if(suite.type().find("gnp") != std::string::npos)
         add_edges_uniform(G, suite.parameter(), generator);
       return G;
     }
