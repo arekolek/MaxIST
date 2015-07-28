@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/function_input_iterator.hpp>
 #include <boost/function_output_iterator.hpp>
@@ -17,6 +18,12 @@
 #include <CGAL/Point_set_2.h>
 
 #include "range.hpp"
+
+template<class Graph>
+bool is_connected(Graph const & G) {
+  std::vector<int> component(num_vertices(G));
+  return connected_components(G, &component[0]) == 1;
+}
 
 template <class Input, class Output>
 void copy_edges(const Input& in, Output& out) {

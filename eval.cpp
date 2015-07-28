@@ -6,7 +6,6 @@
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/connected_components.hpp>
 
 #include <omp.h>
 
@@ -20,6 +19,7 @@
 #include "test_suite.hpp"
 
 #include "debug.hpp"
+#include "graph.hpp"
 #include "options.hpp"
 #include "range.hpp"
 #include "timing.hpp"
@@ -58,12 +58,6 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
   if (name == "5/3")
     return five_three_tree<Graph> ;
   throw std::invalid_argument("Unknown construction method: " + name);
-}
-
-template<class Graph>
-bool is_connected(Graph const & G) {
-  std::vector<int> component(num_vertices(G));
-  return connected_components(G, &component[0]) == 1;
 }
 
 template <class Graph, class Suite>
