@@ -15,6 +15,7 @@
 #include "fivethree.hpp"
 #include "lost.hpp"
 #include "rdfs.hpp"
+#include "random.hpp"
 
 #include "test_suite.hpp"
 
@@ -55,6 +56,8 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
     return rdfs_sort_tree<Graph> ;
   if (name == "rdfs-rand")
     return rdfs_rand_tree<Graph> ;
+  if (name == "random")
+      return random_tree<Graph> ;
   if (name == "5/3")
     return five_three_tree<Graph> ;
   throw std::invalid_argument("Unknown construction method: " + name);
