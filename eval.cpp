@@ -30,19 +30,6 @@ boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS,
     boost::no_property, color> typedef graph;
 
 template<class Graph>
-unsigned num_internal(Graph const & G) {
-  unsigned internal = 0;
-  for (auto v : range(vertices(G)))
-    internal += degree(v, G) > 1;
-  return internal;
-}
-
-template<class Graph>
-unsigned upper_bound(Graph const & G) {
-  return std::min(num_internal(G), (unsigned)num_vertices(G) - 2);
-}
-
-template<class Graph>
 std::function<Graph(Graph&)> make_construction(std::string name) {
   if (name == "bfs")
     return bfs_tree<Graph> ;
