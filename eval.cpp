@@ -16,6 +16,7 @@
 #include "lost.hpp"
 #include "rdfs.hpp"
 #include "random.hpp"
+#include "ilst.hpp"
 
 #include "test_suite.hpp"
 
@@ -43,6 +44,8 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
     return fifo_dfs_tree<Graph> ;
   if (name == "random")
       return random_tree<Graph> ;
+  if (name == "ilst")
+    return ilst<Graph> ;
   if (name == "5/3")
     return five_three_tree<Graph> ;
   throw std::invalid_argument("Unknown construction method: " + name);
