@@ -2,41 +2,29 @@
 
 #pragma once
 
+#include <vector>
+
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/undirected_dfs.hpp>
 
-using boost::edge_color;
-using boost::on_tree_edge;
-
-template <class NewGraph, class Tag>
-struct graph_copier
-  : public boost::base_visitor<graph_copier<NewGraph, Tag> >
-{
-  typedef Tag event_filter;
-
-  graph_copier(NewGraph& graph) : new_g(graph) { }
-
-  template <class Edge, class Graph>
-  void operator()(Edge e, Graph& g) {
-    add_edge(source(e, g), target(e, g), new_g);
-  }
-private:
-  NewGraph& new_g;
-};
-
-template <class NewGraph, class Tag>
-inline graph_copier<NewGraph, Tag>
-copy_visitor(NewGraph& g, Tag) {
-  return graph_copier<NewGraph, Tag>(g);
-}
 
 template <class Graph>
-Graph dfs_tree(Graph& G) {
-  Graph T;
-
-  undirected_dfs(G,
-    visitor(make_dfs_visitor(copy_visitor(T, on_tree_edge())))
-      .edge_color_map(get(edge_color, G)));
-
-  return T;
+void visit(Graph const & G, unsigned v, std::vector<bool>& discovered, Graph& T) {
+  discovered[v] = true;
+  for(auto w : range(adjacent_vertices(v, G))) {
+    if(!discovered[w]) {
+      add_edge(v, w, T);
+      visit(G, w, discovered, T);
+    }
+  }
 }
+
+
+template <class Graph>
+Graph dfs_tree(Graph const & G) {
+  std::vector<bool> visited(num_vertices(G));
+  Graph tree(num_vertices(G));
+  visit(G, 0, visited, tree);
+  return tree;
+}
+
+
