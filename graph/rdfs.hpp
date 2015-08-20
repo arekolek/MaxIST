@@ -8,48 +8,30 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "graph.hpp"
 #include "range.hpp"
 
-namespace detail {
-
-  unsigned typedef node;
-  std::pair<node, node> typedef edge;
-
-  template <class Graph>
-  void visit(Graph& G, Graph& T, node v, std::vector<bool>& visited,
-    std::vector<unsigned>& deg, std::stack<edge>& edges) {
-
-    visited[v] = true;
-
-    node w = -1, x, y;
-    unsigned min_deg = UINT_MAX;
-
-    for(auto u : range(adjacent_vertices(v, G))) {
-      --deg[u];
-
-      if(!visited[u] && deg[u] < min_deg) {
-        w = u;
-        min_deg = deg[u];
+template <class Graph>
+void visit(unsigned v, Graph& G,
+    std::vector<bool>& visited, std::vector<unsigned>& degree,
+    Graph& T) {
+  auto rdfs_rule = [&]() {
+    unsigned best = 0, min = UINT_MAX;
+    for(auto u : range(adjacent_vertices(v, G)))
+      if(!visited[u] && degree[u] < min) {
+        best = u;
+        min = degree[u];
       }
-    }
+    return best;
+  };
 
-    if(min_deg == UINT_MAX) {
-      while(!edges.empty() && visited[edges.top().second])
-        edges.pop();
-      if(edges.empty())
-        return;
-      std::tie(x, y) = edges.top();
-    } else std::tie(x, y) = edge(v, w);
-
-    add_edge(x, y, T);
-
-    for(auto u : range(adjacent_vertices(x, G)))
-      if(u != y && !visited[u])
-        edges.emplace(x, u);
-
-    visit(G, T, y, visited, deg, edges);
+  visited[v] = true;
+  for(auto u : range(adjacent_vertices(v, G))) --degree[u];
+  while(degree[v] > 0) {
+    auto w = rdfs_rule();
+    boost::add_edge(v, w, T);
+    visit(w, G, visited, degree, T);
   }
-
 }
 
 template <class Graph>
@@ -58,132 +40,87 @@ Graph rdfs_tree(Graph& G) {
   Graph T(n);
   std::vector<bool> visited(n, false);
   std::vector<unsigned> deg(n, 0);
-  std::stack<detail::edge> edges;
 
-  for(auto v : range(vertices(G)))
-    deg[v] = degree(v, G);
+  for(auto v : range(vertices(G))) deg[v] = degree(v, G);
 
-  detail::visit(G, T, 0, visited, deg, edges);
+  auto s = std::distance(deg.begin(), std::min_element(deg.begin(), deg.end()));
+  visit(s, G, visited, deg, T);
 
   return T;
+}
+
+template<typename Iter>
+Iter select_randomly(Iter start, Iter end) {
+    static std::default_random_engine g;
+    std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
+    std::advance(start, dis(g));
+    return start;
+}
+
+template<typename Iter>
+std::vector<unsigned> minima(Iter start, Iter end) {
+  std::vector<unsigned> mins;
+  auto min = *std::min_element(start, end);
+  for(auto it = start; it != end; ++it)
+    if(*it == min) mins.push_back(std::distance(start, it));
+  return mins;
 }
 
 template <class Graph>
 void visit_node(unsigned v, Graph& G,
     std::vector<bool>& visited, std::vector<int>& degree,
     Graph& T) {
-  visited[v] = true;
-  for(auto u : range(adjacent_vertices(v, G)))
-    --degree[u];
-  while(degree[v]) {
-    int w = -1, min_deg = INT_MAX;
+  auto rdfs_rule = [&]() {
+    std::vector<unsigned> neighbors;
+    int min = INT_MAX;
     for(auto u : range(adjacent_vertices(v, G)))
-      if(!visited[u] && degree[u] < min_deg) {
-        w = u;
-        min_deg = degree[u];
+      if(!visited[u] && degree[u] <= min) {
+        if(degree[u] < min) neighbors.clear();
+        neighbors.push_back(u);
+        min = degree[u];
       }
-    if(w != -1) {
-      boost::add_edge(v, w, T);
-      visit_node(w, G, visited, degree, T);
-    }
+    return *select_randomly(neighbors.begin(), neighbors.end());
+  };
+
+  visited[v] = true;
+  for(auto u : range(adjacent_vertices(v, G))) --degree[u];
+  while(degree[v] > 0) {
+    auto w = rdfs_rule();
+    boost::add_edge(v, w, T);
+    visit_node(w, G, visited, degree, T);
   }
 }
 
 template <class Graph>
-Graph rdfs_tree2(Graph& G) {
+Graph rdfs_rand_tree(Graph& G) {
   unsigned n = num_vertices(G);
   Graph T(n);
   std::vector<bool> visited(n, false);
   std::vector<int> deg(n, 0);
-  std::stack<detail::edge> edges;
 
-  for(auto v : range(vertices(G)))
-    deg[v] = degree(v, G);
-
-  visit_node(0, G, visited, deg, T);
-
-  return T;
-}
-
-template <class Graph>
-Graph rdfs_sort_tree(Graph const & G) {
-  typedef std::pair<int, int> edge;
-  std::vector<unsigned> deg(num_vertices(G));
-  std::vector<bool> V(num_vertices(G));
-  std::stack<edge> Q;
-  Graph T(num_vertices(G));
-  int parent, v = 0;
-  Q.emplace(-1, v);
   for(auto v : range(vertices(G))) deg[v] = degree(v, G);
-  while(!Q.empty()) {
-    std::tie(parent, v) = Q.top();
-    Q.pop();
-    if(!V[v]) {
-      V[v] = true;
-      if(parent >= 0) add_edge(parent, v, T);
-      std::vector<unsigned> neighbors;
-      for(auto w : range(adjacent_vertices(v, G))) if(!V[w]) {
-        --deg[w];
-        neighbors.push_back(w);
-      }
-      std::sort(neighbors.begin(), neighbors.end(), [&deg](unsigned a, unsigned b) {
-        return deg[a] > deg[b];
-      });
-      for(auto w : neighbors) Q.emplace(v, w);
-    }
-  }
+
+  auto mins = minima(deg.begin(), deg.end());
+  auto s = *select_randomly(mins.begin(), mins.end());
+
+  visit_node(s, G, visited, deg, T);
+
   return T;
 }
 
-template <class IntType = int, class Generator = std::default_random_engine>
-class Random {
-public:
-  IntType operator()(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
-    return std::uniform_int_distribution<IntType>{a, b}(generator);
-  }
-private:
-  Generator generator;
-};
-
 template <class Graph>
-Graph rdfs_rand_tree(Graph const & G) {
-  const int NONE = -1, ADDED = -2;
-  std::vector<int> status(num_vertices(G), NONE);
-  std::vector<int> degree(num_vertices(G), 0);
-  for(auto v : range(vertices(G))) degree[v] = boost::degree(v, G);
-  Graph T(num_vertices(G));
-  int v = 0;
-  status[v] = ADDED;
-  Random<unsigned> random;
-  for(int i = 1; i < num_vertices(G); ++i) {
-    int min_degree = INT_MAX, min_vertex = -1;
-    for(auto w : range(adjacent_vertices(v, G))) if(status[w] != ADDED) {
-      // choose random branching as parent
-      if(random(degree[w], boost::degree(w, G)) == boost::degree(w, G)) status[w] = v;
-      assert(status[w] != NONE || status[w] == v);
-      // neighbors have one option less
-      --degree[w];
-      // select neighbor minimizing degree
-      if(degree[w] < min_degree) {
-        min_degree = degree[w];
-        min_vertex = w;
-      }
+Graph rdfs_best_tree(Graph& G) {
+  auto upper = upper_bound(G);
+  auto best_T = rdfs_rand_tree(G);
+  auto best_n = num_internal(best_T);
+  for(int i = 0; i < 500; ++i) {
+    if(best_n == upper) break;
+    auto T = rdfs_rand_tree(G);
+    auto n = num_internal(T);
+    if(n > best_n) {
+      best_T = T;
+      best_n = n;
     }
-    if(min_vertex == -1) {
-      // dead-end, backtrack to a vertex with minimum degree
-      for(unsigned i = 0; i < status.size(); ++i)
-        if(status[i] != NONE && status[i] != ADDED && degree[i] < min_degree) {
-          min_degree = degree[i];
-          min_vertex = i;
-        }
-      assert(min_vertex != -1);
-    } else {
-      status[min_vertex] = v;
-    }
-    v = min_vertex;
-    add_edge(status[v], v, T);
-    status[v] = ADDED;
   }
-  //show("tree-test.dot", G, T);
-  return T;
+  return best_T;
 }

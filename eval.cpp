@@ -37,12 +37,10 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
     return dfs_tree<Graph> ;
   if (name == "rdfs")
     return rdfs_tree<Graph> ;
+  if (name == "rdfs500")
+    return rdfs_best_tree<Graph> ;
   if (name == "fifo")
     return fifo_dfs_tree<Graph> ;
-  if (name == "rdfs-sort")
-    return rdfs_sort_tree<Graph> ;
-  if (name == "rdfs-rand")
-    return rdfs_rand_tree<Graph> ;
   if (name == "random")
       return random_tree<Graph> ;
   if (name == "5/3")
