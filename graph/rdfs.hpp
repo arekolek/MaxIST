@@ -113,7 +113,7 @@ Graph rdfs_best_tree(Graph& G) {
   auto upper = upper_bound(G);
   auto best_T = rdfs_rand_tree(G);
   auto best_n = num_internal(best_T);
-  for(int i = 0; i < 500; ++i) {
+  for(int i = 0; i < 50; ++i) {
     if(best_n == upper) break;
     auto T = rdfs_rand_tree(G);
     auto n = num_internal(T);

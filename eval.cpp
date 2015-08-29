@@ -38,7 +38,7 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
     return dfs_tree<Graph> ;
   if (name == "rdfs")
     return rdfs_tree<Graph> ;
-  if (name == "rdfs500")
+  if (name == "rdfs50")
     return rdfs_best_tree<Graph> ;
   if (name == "fifo")
     return fifo_dfs_tree<Graph> ;
@@ -65,9 +65,7 @@ void run(Suite& suite, std::string cname, std::string iname) {
     #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
         auto G = suite.get(i);
-        if(!is_connected(G)) {
-          continue;
-        }
+        if(!is_connected(G)) continue;
         timer.start();
         auto T = construct(G);
         elapsed_c = timer.stop();
