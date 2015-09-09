@@ -51,10 +51,8 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
-template <class Graph, class Suite>
-void run(Suite& suite, std::string cname, std::string iname) {
-  auto construct = make_construction<Graph>(cname);
-  auto improve = make_improvement<Graph,Graph>(iname);
+template <class Graph, class Suite, class Strings>
+void run(Suite& suite, Strings const & constructions, Strings const & improvements) {
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
@@ -64,50 +62,63 @@ void run(Suite& suite, std::string cname, std::string iname) {
     timing timer;
     #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
-        auto G = suite.get(i);
-        if(!is_connected(G)) continue;
+      auto G = suite.get(i);
+      if(!is_connected(G)) continue;
+
+      for(auto cname : constructions) {
+        auto construct = make_construction<Graph>(cname);
         timer.start();
         auto T = construct(G);
         elapsed_c = timer.stop();
+
         assert(num_edges(T) == num_vertices(T)-1);
-        timer.start();
-        steps = improve(G, T);
-        elapsed_i = timer.stop();
-        // run type parameter vertices edges upper construction improvement internal time steps
-        buffer
-          << i << '\t'
-          << id << '\t'
-          << suite.type() << '\t'
-          << suite.parameter() << '\t'
-          << num_vertices(G) << '\t'
-          << num_edges(G) << '\t'
-          << upper_bound(G) << '\t'
-          << cname << '\t'
-          << iname << '\t'
-          << num_internal(T) << '\t'
-          << elapsed_c << '\t'
-          << elapsed_i << '\t'
-          << steps << '\t'
-          << std::endl;
-          ;
-        //show("graph" + to_string(i) + ".dot", G, T);
+
+        for(auto iname : improvements) {
+          auto improve = make_improvement<Graph,Graph>(iname);
+          timer.start();
+          steps = improve(G, T);
+          elapsed_i = timer.stop();
+
+          // run type parameter vertices edges upper construction improvement internal time steps
+          buffer
+            << i << '\t'
+            << id << '\t'
+            << suite.type() << '\t'
+            << suite.parameter() << '\t'
+            << num_vertices(G) << '\t'
+            << num_edges(G) << '\t'
+            << upper_bound(G) << '\t'
+            << cname << '\t'
+            << iname << '\t'
+            << num_internal(T) << '\t'
+            << elapsed_c << '\t'
+            << elapsed_i << '\t'
+            << steps << '\t'
+            << std::endl;
+            ;
+          //show("graph" + to_string(i) + ".dot", G, T);
+
+          elapsed_c += elapsed_i;
+        }
+      }
     }
     #pragma omp critical
     std::cout << buffer.str();
   }
 }
 
-template <class Graph, class Sizes, class Params>
-void run(std::string t, unsigned z, Sizes sizes, Params params, std::string cname, std::string iname) {
+template <class Graph, class Sizes, class Params, class Strings>
+void run(std::string t, unsigned z, Sizes sizes, Params params,
+         Strings const & constructions, Strings const & improvements) {
   if(t.find('.') != std::string::npos) {
     file_suite<Graph> suite(t);
-    run<Graph>(suite, cname, iname);
+    run<Graph>(suite, constructions, improvements);
   }
   else {
     for(auto n : sizes) {
       for(auto p : params) {
         test_suite<Graph> suite(t, z, n, p);
-        run<Graph>(suite, cname, iname);
+        run<Graph>(suite, constructions, improvements);
       }
     }
   }
@@ -134,9 +145,7 @@ int main(int argc, char** argv){
 
   //std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
-    for(auto c : constructions)
-      for(auto i : improvements)
-        run<graph>(t, z, sizes, parameters, c, i);
+    run<graph>(t, z, sizes, parameters, constructions, improvements);
 
   return 0;
 }
