@@ -23,7 +23,7 @@ template<class Graph>
 unsigned num_internal(Graph const & G) {
   unsigned internal = 0;
   for (auto v : range(vertices(G)))
-    internal += degree(v, G) > 1;
+    internal += out_degree(v, G) > 1;
   return internal;
 }
 

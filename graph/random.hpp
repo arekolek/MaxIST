@@ -17,7 +17,7 @@ IntType random(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
 
 template <class Vertex, class Graph>
 Vertex random_neighbor(Vertex const & v, Graph const & G) {
-  unsigned target = random<unsigned>(0, degree(v, G)-1);
+  unsigned target = random<unsigned>(0, out_degree(v, G)-1);
   for(auto w : range(adjacent_vertices(v, G)))
     if(target-- == 0) return w;
   throw "Ouch.";

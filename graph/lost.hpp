@@ -25,13 +25,13 @@ namespace std {
   };
 }
 
-template <class Graph>
+template <class Graph, class Tree>
 class leaf_info {
 public:
-  leaf_info(Graph const & T_) : G(NULL), T(T_) {
+  leaf_info(Tree const & T_) : G(NULL), T(T_) {
     update();
   }
-  leaf_info(Graph const * G_, Graph const & T_) : G(G_), T(T_) {
+  leaf_info(Graph const * G_, Tree const & T_) : G(G_), T(T_) {
     update();
   }
   bool is_path() const {
@@ -111,10 +111,10 @@ public:
           LP.push_back(l);
     }
   }
-  void traverse(unsigned l, Graph const & T) {
+  void traverse(unsigned l, Tree const & T) {
     traverse(l, l, l, T);
   }
-  void traverse(unsigned l, unsigned a, unsigned b, Graph const & T) {
+  void traverse(unsigned l, unsigned a, unsigned b, Tree const & T) {
     do {
       std::tie(a, b) = next(a, b);
       P[uintpair(l, b)] = a;
@@ -128,7 +128,7 @@ public:
           traverse(l, v, b, v, T);
     }
   }
-  void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Graph const & T) {
+  void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Tree const & T) {
     P[uintpair(l, b)] = a;
     BN[uintpair(l, b)] = blx;
     while(out_degree(b, T) == 2) {
@@ -148,7 +148,7 @@ public:
   }
 private:
   Graph const* G;
-  Graph const& T;
+  Tree const& T;
   std::vector<unsigned> L, LSH, LP;
   std::pair<unsigned, unsigned> typedef uintpair;
   std::unordered_map<unsigned, unsigned> B, BR;
@@ -630,23 +630,23 @@ bool rule15(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree>
 std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
-  std::vector<std::function<bool(Graph&,Tree&,leaf_info<Tree>&)>> typedef Rules;
+  std::vector<std::function<bool(Graph&,Tree&,leaf_info<Graph,Tree>&)>> typedef Rules;
   Rules allrules = {
-          rule1<Graph,Tree,leaf_info<Tree>>,
-          rule2<Graph,Tree,leaf_info<Tree>>,
-          rule3<Graph,Tree,leaf_info<Tree>>,
-          rule4<Graph,Tree,leaf_info<Tree>>,
-          rule5<Graph,Tree,leaf_info<Tree>>,
-          rule6<Graph,Tree,leaf_info<Tree>>,
-          rule7<Graph,Tree,leaf_info<Tree>>,
-          rule8<Graph,Tree,leaf_info<Tree>>,
-          rule9<Graph,Tree,leaf_info<Tree>>,
-          rule10<Graph,Tree,leaf_info<Tree>>,
-          rule11<Graph,Tree,leaf_info<Tree>>,
-          rule12<Graph,Tree,leaf_info<Tree>>,
-          rule13<Graph,Tree,leaf_info<Tree>>,
-          rule14<Graph,Tree,leaf_info<Tree>>,
-          rule15<Graph,Tree,leaf_info<Tree>>,
+          rule1<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule2<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule3<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule4<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule5<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule6<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule7<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule8<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule9<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule10<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule11<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule12<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule13<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule14<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule15<Graph,Tree,leaf_info<Graph,Tree>>,
         };
   Rules rules;
   auto addrules = [&](uint first, uint last){
@@ -664,8 +664,8 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   else if (name == "lost-ex") {
     extended = true;
     addrules(2, 6);
-    rules.push_back(ruleCycleElimination<Graph,Tree,leaf_info<Tree>>);
-    rules.push_back(rule7extended<Graph,Tree,leaf_info<Tree>>);
+    rules.push_back(ruleCycleElimination<Graph,Tree,leaf_info<Graph,Tree>>);
+    rules.push_back(rule7extended<Graph,Tree,leaf_info<Graph,Tree>>);
     addrules(8, 15);
   }
   else if (name == "none")
@@ -673,7 +673,7 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   else
     throw std::invalid_argument("Unknown construction method: " + name);
   return [rules, extended](Graph& G, Tree& T) {
-    leaf_info<Tree> info(extended ? &G : NULL, T);
+    leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
     int i = 0;
     bool applied = true;
     //show("step" + std::to_string(i) + ".dot", G, T);

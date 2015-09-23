@@ -9,32 +9,31 @@
 template <class Graph>
 class Ilst {
   std::vector<bool> discovered;
-  Graph tree;
   unsigned conflicted, leaves;
 
-  void visit(Graph const & G, unsigned v) {
+  void visit(Graph const & G, Graph & tree, unsigned v) {
     discovered[v] = true;
     for(auto w : range(adjacent_vertices(v, G))) {
       if(!discovered[w]) {
         add_edge(v, w, tree);
-        visit(G, w);
+        visit(G, tree, w);
       }
     }
-    if(degree(v, tree) == 1) {
+    if(out_degree(v, tree) == 1) {
       ++leaves;
       if(edge(0, v, G).second) {
         conflicted = v;
       }
     }
   }
-  std::pair<unsigned, unsigned> branch_edge(unsigned l) const {
+  std::pair<unsigned, unsigned> branch_edge(unsigned l, Graph const & tree) const {
     unsigned a = l, b = l, tmp;
     do {
       auto it = adjacent_vertices(b, tree).first;
       tmp = a;
       a = b;
       b = tmp == *it ? *(++it) : *it;
-    } while(degree(b, tree) == 2);
+    } while(out_degree(b, tree) == 2);
     return std::make_pair(a, b);
   }
 public:
@@ -42,10 +41,10 @@ public:
 
   Graph traverse(Graph const & G) {
     discovered.resize(num_vertices(G));
-    tree = Graph(num_vertices(G));
-    visit(G, 0);
-    if(leaves > 2 && degree(0, tree) == 1 && conflicted != 0) {
-      auto e = branch_edge(conflicted);
+    Graph tree(num_vertices(G));
+    visit(G, tree, 0);
+    if(leaves > 2 && out_degree(0, tree) == 1 && conflicted != 0) {
+      auto e = branch_edge(conflicted, tree);
       add_edge(0, conflicted, tree);
       remove_edge(e.first, e.second, tree);
     }

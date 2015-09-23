@@ -41,7 +41,7 @@ Graph rdfs_tree(Graph& G) {
   std::vector<bool> visited(n, false);
   std::vector<unsigned> deg(n, 0);
 
-  for(auto v : range(vertices(G))) deg[v] = degree(v, G);
+  for(auto v : range(vertices(G))) deg[v] = out_degree(v, G);
 
   auto s = std::distance(deg.begin(), std::min_element(deg.begin(), deg.end()));
   visit(s, G, visited, deg, T);
@@ -98,7 +98,7 @@ Graph rdfs_rand_tree(Graph& G) {
   std::vector<bool> visited(n, false);
   std::vector<int> deg(n, 0);
 
-  for(auto v : range(vertices(G))) deg[v] = degree(v, G);
+  for(auto v : range(vertices(G))) deg[v] = out_degree(v, G);
 
   auto mins = minima(deg.begin(), deg.end());
   auto s = *select_randomly(mins.begin(), mins.end());

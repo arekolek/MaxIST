@@ -27,9 +27,9 @@ public:
   node_writer(Graph const& t) : T(t) {}
   template <class V>
   void operator()(std::ostream& out, const V& v) const {
-    if(degree(v, T) == 1)
+    if(out_degree(v, T) == 1)
       out << "[shape=square color=forestgreen]";
-    if(degree(v, T) > 2)
+    if(out_degree(v, T) > 2)
       out << "[color=brown1]";
   }
 private:
