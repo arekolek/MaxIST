@@ -28,37 +28,33 @@
 #include "range.hpp"
 #include "timing.hpp"
 
-boost::property<boost::edge_color_t, boost::default_color_type> typedef color;
-boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS, boost::no_property, color> typedef graph;
+boost::adjacency_matrix<boost::undirectedS> typedef amatrix;
+boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef alist;
 
-//boost::adjacency_matrix<boost::undirectedS, boost::no_property, color> typedef matrix;
-boost::adjacency_matrix<boost::undirectedS> typedef matrix;
-boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef adjlist;
-
-template<class Graph>
-std::function<Graph(Graph&)> make_construction(std::string name) {
+template<class Graph, class Tree>
+std::function<Tree(Graph&)> make_construction(std::string name) {
   if (name == "bfs")
-    return bfs_tree<Graph> ;
+    return bfs_tree<Graph, Tree> ;
   if (name == "dfs")
-    return dfs_tree<Graph> ;
+    return dfs_tree<Graph, Tree> ;
   if (name == "rdfs")
-    return rdfs_tree<Graph> ;
+    return rdfs_tree<Graph, Tree> ;
   if (name == "rdfs50")
-    return rdfs_best_tree<Graph> ;
+    return rdfs_best_tree<Graph, Tree> ;
   if (name == "fifo")
-    return fifo_dfs_tree<Graph> ;
+    return fifo_dfs_tree<Graph, Tree> ;
   if (name == "random")
-    return random_tree<Graph> ;
+    return random_tree<Graph, Tree> ;
   if (name == "greedy")
-    return greedy_tree<Graph> ;
+    return greedy_tree<Graph, Tree> ;
   if (name == "ilst")
-    return ilst<Graph> ;
+    return ilst<Graph, Tree> ;
   if (name == "5/3")
-    return five_three_tree<Graph> ;
+    return five_three_tree<Graph, Tree> ;
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
-template <class Graph, class Suite, class Strings>
+template <class Graph, class Tree, class Suite, class Strings>
 void run(Suite& suite, Strings const & constructions, Strings const & improvements) {
   #pragma omp parallel
   {
@@ -73,20 +69,15 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       if(!is_connected(G)) continue;
 
       for(auto cname : constructions) {
-        auto construct = make_construction<Graph>(cname);
+        auto construct = make_construction<Graph, Tree>(cname);
         timer.start();
-        auto tree = construct(G);
+        auto T = construct(G);
         elapsed_c = timer.stop();
 
-        assert(num_edges(tree) == num_vertices(tree)-1);
-
-        adjlist T;
-        copy_edges(tree, T);
+        assert(num_edges(T) == num_vertices(T)-1);
 
         for(auto iname : improvements) {
-          auto improve = make_improvement<Graph, adjlist>(iname);
-          //matrix M(num_vertices(G));
-          //copy_edges(G, M);
+          auto improve = make_improvement<Graph, Tree>(iname);
           timer.start();
           steps = improve(G, T);
           elapsed_i = timer.stop();
@@ -119,18 +110,18 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
   }
 }
 
-template <class Graph, class Sizes, class Params, class Strings>
+template <class Graph, class Tree, class Sizes, class Params, class Strings>
 void run(std::string t, unsigned z, Sizes sizes, Params params,
          Strings const & constructions, Strings const & improvements) {
   if(t.find('.') != std::string::npos) {
     file_suite<Graph> suite(t);
-    run<Graph>(suite, constructions, improvements);
+    run<Graph, Tree>(suite, constructions, improvements);
   }
   else {
     for(auto n : sizes) {
       for(auto p : params) {
         test_suite<Graph> suite(t, z, n, p);
-        run<Graph>(suite, constructions, improvements);
+        run<Graph, Tree>(suite, constructions, improvements);
       }
     }
   }
@@ -157,7 +148,7 @@ int main(int argc, char** argv){
 
   //std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
-    run<graph>(t, z, sizes, parameters, constructions, improvements);
+    run<alist, alist>(t, z, sizes, parameters, constructions, improvements);
 
   return 0;
 }

@@ -7,11 +7,11 @@
 
 #include "range.hpp"
 
-template <class Graph>
-Graph fifo_dfs_tree(Graph const & G) {
+template <class Graph, class Tree>
+Tree fifo_dfs_tree(Graph const & G) {
   typedef std::pair<int, int> edge;
   std::vector<bool> V(num_vertices(G));
-  Graph T(num_vertices(G));
+  Tree T(num_vertices(G));
   std::deque<edge> Q;
   int parent, v = 0;
   Q.emplace_front(-1, v);

@@ -6,12 +6,12 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-template <class Graph>
+template <class Graph, class Tree>
 class Ilst {
   std::vector<bool> discovered;
   unsigned conflicted, leaves;
 
-  void visit(Graph const & G, Graph & tree, unsigned v) {
+  void visit(Graph const & G, Tree & tree, unsigned v) {
     discovered[v] = true;
     for(auto w : range(adjacent_vertices(v, G))) {
       if(!discovered[w]) {
@@ -26,7 +26,7 @@ class Ilst {
       }
     }
   }
-  std::pair<unsigned, unsigned> branch_edge(unsigned l, Graph const & tree) const {
+  std::pair<unsigned, unsigned> branch_edge(unsigned l, Tree const & tree) const {
     unsigned a = l, b = l, tmp;
     do {
       auto it = adjacent_vertices(b, tree).first;
@@ -39,9 +39,9 @@ class Ilst {
 public:
   Ilst() : conflicted(0), leaves(0) {}
 
-  Graph traverse(Graph const & G) {
+  Tree traverse(Graph const & G) {
     discovered.resize(num_vertices(G));
-    Graph tree(num_vertices(G));
+    Tree tree(num_vertices(G));
     visit(G, tree, 0);
     if(leaves > 2 && out_degree(0, tree) == 1 && conflicted != 0) {
       auto e = branch_edge(conflicted, tree);
@@ -52,7 +52,7 @@ public:
   }
 };
 
-template <class Graph>
-Graph ilst(Graph const & G) {
-  return Ilst<Graph>().traverse(G);
+template <class Graph, class Tree>
+Tree ilst(Graph const & G) {
+  return Ilst<Graph, Tree>().traverse(G);
 }

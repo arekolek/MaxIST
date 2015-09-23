@@ -2,14 +2,14 @@
 
 #pragma once
 
-template <class Graph>
-Graph five_three_tree(Graph const & G) {
+template <class Graph, class Tree>
+Tree five_three_tree(Graph const & G) {
   const int n = num_vertices(G);
   const int k = (n - 3) / 6;
   const int a = n - 3;
   const int b = n - 2;
   const int c = n - 1;
-  Graph T(n);
+  Tree T(n);
   add_edge(a, b, T);
   add_edge(b, c, T);
   add_edge(c, 4, T);

@@ -9,12 +9,12 @@
 
 #include "range.hpp"
 
-template <class Graph>
-Graph greedy_tree(Graph const & G) {
+template <class Graph, class Tree>
+Tree greedy_tree(Graph const & G) {
   typedef std::pair<int, int> edge;
 
   unsigned n = num_vertices(G);
-  Graph T(n);
+  Tree T(n);
 
   std::vector<bool> visited(n, false);
   std::deque<edge> edges;

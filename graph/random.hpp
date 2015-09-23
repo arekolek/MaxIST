@@ -17,11 +17,11 @@ Vertex random_neighbor(Vertex const & v, Graph const & G) {
   throw "Ouch.";
 }
 
-template <class Graph>
-Graph random_tree(Graph& G) {
+template <class Graph, class Tree>
+Tree random_tree(Graph& G) {
   unsigned n = num_vertices(G);
   std::vector<bool> visited(n, false);
-  Graph T(n);
+  Tree T(n);
   unsigned v = random<unsigned>(0, n-1);
   while(num_edges(T) < n-1) {
     visited[v] = true;

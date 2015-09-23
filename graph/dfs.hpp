@@ -7,8 +7,8 @@
 #include <boost/graph/adjacency_list.hpp>
 
 
-template <class Graph>
-void visit(Graph const & G, unsigned v, std::vector<bool>& discovered, Graph& T) {
+template <class Graph, class Tree>
+void visit(Graph const & G, unsigned v, std::vector<bool>& discovered, Tree& T) {
   discovered[v] = true;
   for(auto w : range(adjacent_vertices(v, G))) {
     if(!discovered[w]) {
@@ -19,10 +19,10 @@ void visit(Graph const & G, unsigned v, std::vector<bool>& discovered, Graph& T)
 }
 
 
-template <class Graph>
-Graph dfs_tree(Graph const & G) {
+template <class Graph, class Tree>
+Tree dfs_tree(Graph const & G) {
   std::vector<bool> visited(num_vertices(G));
-  Graph tree(num_vertices(G));
+  Tree tree(num_vertices(G));
   visit(G, 0, visited, tree);
   return tree;
 }

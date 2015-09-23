@@ -11,10 +11,10 @@
 #include "graph.hpp"
 #include "range.hpp"
 
-template <class Graph>
+template <class Graph, class Tree>
 void visit(unsigned v, Graph& G,
     std::vector<bool>& visited, std::vector<unsigned>& degree,
-    Graph& T) {
+    Tree& T) {
   auto rdfs_rule = [&]() {
     unsigned best = 0, min = UINT_MAX;
     for(auto u : range(adjacent_vertices(v, G)))
@@ -34,10 +34,10 @@ void visit(unsigned v, Graph& G,
   }
 }
 
-template <class Graph>
-Graph rdfs_tree(Graph& G) {
+template <class Graph, class Tree>
+Tree rdfs_tree(Graph& G) {
   unsigned n = num_vertices(G);
-  Graph T(n);
+  Tree T(n);
   std::vector<bool> visited(n, false);
   std::vector<unsigned> deg(n, 0);
 
@@ -66,10 +66,10 @@ std::vector<unsigned> minima(Iter start, Iter end) {
   return mins;
 }
 
-template <class Graph>
+template <class Graph, class Tree>
 void visit_node(unsigned v, Graph& G,
     std::vector<bool>& visited, std::vector<int>& degree,
-    Graph& T) {
+    Tree& T) {
   auto rdfs_rule = [&]() {
     std::vector<unsigned> neighbors;
     int min = INT_MAX;
@@ -91,10 +91,10 @@ void visit_node(unsigned v, Graph& G,
   }
 }
 
-template <class Graph>
-Graph rdfs_rand_tree(Graph& G) {
+template <class Tree, class Graph>
+Tree rdfs_rand_tree(Graph& G) {
   unsigned n = num_vertices(G);
-  Graph T(n);
+  Tree T(n);
   std::vector<bool> visited(n, false);
   std::vector<int> deg(n, 0);
 
@@ -108,14 +108,14 @@ Graph rdfs_rand_tree(Graph& G) {
   return T;
 }
 
-template <class Graph>
-Graph rdfs_best_tree(Graph& G) {
+template <class Graph, class Tree>
+Tree rdfs_best_tree(Graph& G) {
   auto upper = upper_bound(G);
-  auto best_T = rdfs_rand_tree(G);
+  auto best_T = rdfs_rand_tree<Tree>(G);
   auto best_n = num_internal(best_T);
   for(int i = 0; i < 50; ++i) {
     if(best_n == upper) break;
-    auto T = rdfs_rand_tree(G);
+    auto T = rdfs_rand_tree<Tree>(G);
     auto n = num_internal(T);
     if(n > best_n) {
       best_T = T;

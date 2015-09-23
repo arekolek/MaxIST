@@ -4,14 +4,9 @@
 #include <unordered_map>
 
 #include <boost/functional/hash.hpp>
-#include <boost/graph/adjacency_matrix.hpp>
 
 #include "debug.hpp"
 #include "range.hpp"
-
-namespace detail {
-  boost::adjacency_matrix<boost::undirectedS> typedef graph;
-}
 
 namespace std {
   template<typename S, typename T>

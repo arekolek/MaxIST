@@ -8,10 +8,10 @@
 
 #include "range.hpp"
 
-template <class Graph>
-Graph bfs_tree(Graph const & G) {
+template <class Graph, class Tree>
+Tree bfs_tree(Graph const & G) {
   typedef std::pair<int, int> edge;
-  Graph T(num_vertices(G));
+  Tree T(num_vertices(G));
   int parent, v = 0;
   std::queue<edge> Q;
   std::vector<bool> V(num_vertices(G));
