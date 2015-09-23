@@ -1,7 +1,7 @@
 
 # Command-line parameter to switch gdb on/off
 # Use with -B to force a rebuild
-GDB = 
+GDB =
 
 # Subdirectories with header files
 INCLUDES = graph util test
@@ -21,7 +21,7 @@ RM = rm -f
 # Using target-specific variables would be nicer,
 #   but they force you to build the whole source tree
 ifeq ($(GDB), off)
-	MODE = -O2
+	MODE = -O4
 else
 	ifeq ($(GDB), on)
 		MODE = -O0 -g -ggdb
