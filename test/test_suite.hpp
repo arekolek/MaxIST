@@ -29,10 +29,16 @@ public:
       std::default_random_engine generator(suite.seed(i));
       if(suite.type().find("path") != std::string::npos)
         add_spider(G, 1, generator);
-      if(suite.type().find("rgg") != std::string::npos)
-        add_random_geometric(G, suite.parameter(), generator);
-      if(suite.type().find("gnp") != std::string::npos)
-        add_edges_uniform(G, suite.parameter(), generator);
+      if(suite.type().find("rgg") != std::string::npos) {
+        Geometric points(suite.num_vertices(), generator);
+        points.add_random_geometric(G, suite.parameter());
+        if(suite.type().find("mst") != std::string::npos)
+          points.add_mst(G);
+      }
+      if(suite.type().find("gnp") != std::string::npos) {
+        bool mst = suite.type().find("mst") != std::string::npos;
+        add_edges_uniform(G, suite.parameter(), generator, mst);
+      }
       return G;
     }
     const iterator &operator ++() { ++i; return *this; }
