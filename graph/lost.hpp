@@ -172,7 +172,6 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
             return true;
           }
         }
-        assert(false);
       }
   return false;
 }
@@ -660,6 +659,10 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
   else if (name == "lost") {
     extended = true;
     addrules(2, 15);
+  }
+  else if (name == "lost15") {
+    extended = true;
+    addrules(1, 15);
   }
   else if (name == "lost-ex") {
     extended = true;
