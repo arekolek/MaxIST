@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_matrix.hpp>
 
 #include <omp.h>
 
@@ -28,8 +29,11 @@
 #include "timing.hpp"
 
 boost::property<boost::edge_color_t, boost::default_color_type> typedef color;
-boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS,
-    boost::no_property, color> typedef graph;
+boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS, boost::no_property, color> typedef graph;
+
+//boost::adjacency_matrix<boost::undirectedS, boost::no_property, color> typedef matrix;
+boost::adjacency_matrix<boost::undirectedS> typedef matrix;
+boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef adjlist;
 
 template<class Graph>
 std::function<Graph(Graph&)> make_construction(std::string name) {
@@ -71,13 +75,18 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       for(auto cname : constructions) {
         auto construct = make_construction<Graph>(cname);
         timer.start();
-        auto T = construct(G);
+        auto tree = construct(G);
         elapsed_c = timer.stop();
 
-        assert(num_edges(T) == num_vertices(T)-1);
+        assert(num_edges(tree) == num_vertices(tree)-1);
+
+        adjlist T;
+        copy_edges(tree, T);
 
         for(auto iname : improvements) {
-          auto improve = make_improvement<Graph,Graph>(iname);
+          auto improve = make_improvement<Graph, adjlist>(iname);
+          //matrix M(num_vertices(G));
+          //copy_edges(G, M);
           timer.start();
           steps = improve(G, T);
           elapsed_i = timer.stop();
