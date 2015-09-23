@@ -9,12 +9,6 @@
 
 #include "range.hpp"
 
-template <class IntType = int, class Generator = std::default_random_engine>
-IntType random(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
-  static Generator generator;
-  return std::uniform_int_distribution<IntType>{a, b}(generator);
-}
-
 template <class Vertex, class Graph>
 Vertex random_neighbor(Vertex const & v, Graph const & G) {
   unsigned target = random<unsigned>(0, out_degree(v, G)-1);

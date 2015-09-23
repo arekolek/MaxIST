@@ -17,6 +17,7 @@
 #include "rdfs.hpp"
 #include "random.hpp"
 #include "ilst.hpp"
+#include "greedy.hpp"
 
 #include "test_suite.hpp"
 
@@ -43,7 +44,9 @@ std::function<Graph(Graph&)> make_construction(std::string name) {
   if (name == "fifo")
     return fifo_dfs_tree<Graph> ;
   if (name == "random")
-      return random_tree<Graph> ;
+    return random_tree<Graph> ;
+  if (name == "greedy")
+    return greedy_tree<Graph> ;
   if (name == "ilst")
     return ilst<Graph> ;
   if (name == "5/3")

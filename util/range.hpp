@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 #include <utility>
+#include <random>
 
 template <class Iterator>
 class iterator_pair {
@@ -31,4 +32,10 @@ auto shuffled(std::pair<Iterator, Iterator> p) -> std::vector<decltype(*p.first)
   std::vector<decltype(*p.first)> R(p.first, p.second);
   std::random_shuffle(R.begin(), R.end());
   return R;
+}
+
+template <class IntType = int, class Generator = std::default_random_engine>
+IntType random(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
+  static Generator generator;
+  return std::uniform_int_distribution<IntType>{a, b}(generator);
 }
