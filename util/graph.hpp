@@ -69,7 +69,7 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
   for(unsigned i = 0; i < n; ++i) {
     for(unsigned j = i + 1; j < n; ++j) {
       auto w = trial();
-      add_edge(i, j, w, g);
+      if(mst) add_edge(i, j, w, g);
       if(w < p) add_edge(i, j, G);
     }
   }
