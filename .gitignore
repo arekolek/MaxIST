@@ -6,6 +6,7 @@
 *.gch
 *.png
 *.dot
+*.gml
 *.pyc
 .project
 .cproject
