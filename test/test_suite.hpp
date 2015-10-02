@@ -5,6 +5,8 @@
 #include <chrono>
 #include <random>
 
+#include <boost/graph/graphml.hpp>
+
 #include "graph.hpp"
 
 unsigned time_seed() {
@@ -133,4 +135,39 @@ private:
   std::string t;
   mutable std::ifstream file;
   unsigned size_;
+};
+
+template <class Graph>
+class real_suite {
+public:
+  unsigned size() const { return seeds.size(); }
+
+  Graph get(uint i) const {
+    std::default_random_engine generator(seeds[i]);
+    auto p = shuffled(boost::vertices(G), generator);
+    Graph g(boost::num_vertices(G));
+    for(auto e : range(boost::edges(G)))
+      boost::add_edge(p[boost::source(e, G)], p[boost::target(e, G)], g);
+    return g;
+  }
+
+  real_suite(std::string f, unsigned size) : t(f.substr(0, f.find('.'))), seeds(size) {
+    std::ifstream file(f);
+    if(!file.good()) {
+      throw std::invalid_argument("File does not exist: " + f);
+    }
+    boost::dynamic_properties dp;
+    boost::read_graphml(file, G, dp);
+    generate_seeds(seeds.begin(), seeds.end());
+  }
+  std::string type() const {
+    return t;
+  }
+  int parameter() const {
+    return 0;
+  }
+private:
+  std::string t;
+  std::vector<unsigned> seeds;
+  Graph G;
 };

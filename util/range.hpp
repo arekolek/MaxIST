@@ -27,10 +27,10 @@ iterator_pair<Iterator> range(Iterator begin, Iterator end) {
   return iterator_pair<Iterator>(std::make_pair(begin, end));
 }
 
-template <class Iterator>
-auto shuffled(std::pair<Iterator, Iterator> p) -> std::vector<decltype(*p.first)> {
+template <class Iterator, class Generator = std::default_random_engine>
+auto shuffled(std::pair<Iterator, Iterator> p, Generator generator = Generator()) -> std::vector<decltype(*p.first)> {
   std::vector<decltype(*p.first)> R(p.first, p.second);
-  std::random_shuffle(R.begin(), R.end());
+  std::shuffle(R.begin(), R.end(), generator);
   return R;
 }
 

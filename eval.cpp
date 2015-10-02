@@ -113,13 +113,15 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
 template <class Graph, class Tree, class Sizes, class Params, class Strings>
 void run(std::string t, unsigned z, Sizes sizes, Params params,
          Strings const & constructions, Strings const & improvements) {
-  if(t.find('.') != std::string::npos) {
+  if (t.find(".xml") != std::string::npos) {
+    real_suite<Graph> suite(t, z);
+    run<Graph, Tree>(suite, constructions, improvements);
+  } else if (t.find('.') != std::string::npos) {
     file_suite<Graph> suite(t);
     run<Graph, Tree>(suite, constructions, improvements);
-  }
-  else {
-    for(auto n : sizes) {
-      for(auto p : params) {
+  } else {
+    for (auto n : sizes) {
+      for (auto p : params) {
         test_suite<Graph> suite(t, z, n, p);
         run<Graph, Tree>(suite, constructions, improvements);
       }
