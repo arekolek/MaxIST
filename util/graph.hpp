@@ -65,15 +65,17 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
   std::uniform_real_distribution<> distribution(0, 1);
   auto trial = std::bind(distribution, generator);
   unsigned n = num_vertices(G);
+  double connectedness = 20.0 / n;
   WeightedGraph g;
   for(unsigned i = 0; i < n; ++i) {
     for(unsigned j = i + 1; j < n; ++j) {
       auto w = trial();
-      if(mst) add_edge(i, j, w, g);
+      if(mst && w < connectedness) add_edge(i, j, w, g);
       if(w < p) add_edge(i, j, G);
     }
   }
   if(mst) {
+    assert(is_connected(g));
     std::vector<WeightedEdge> t;
     boost::kruskal_minimum_spanning_tree(g, std::back_inserter(t));
     for(auto e : t) boost::add_edge(source(e, g), target(e, g), G);
