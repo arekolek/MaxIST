@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <boost/algorithm/string/join.hpp>
+#include <boost/range/adaptor/transformed.hpp>
+
 #include <algorithm>
 #include <vector>
 #include <utility>
@@ -39,3 +42,12 @@ IntType random(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
   static Generator generator;
   return std::uniform_int_distribution<IntType>{a, b}(generator);
 }
+
+template<class Container>
+std::string join(Container const & container, std::string const & delimeter) {
+  using boost::algorithm::join;
+  using boost::adaptors::transformed;
+  using value_type = typename Container::value_type;
+  auto tostr = static_cast<std::string(*)(value_type)>(std::to_string);
+  return join(container | transformed(tostr), delimeter);
+};

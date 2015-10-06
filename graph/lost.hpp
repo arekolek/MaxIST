@@ -623,16 +623,18 @@ bool rule15(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree>
-std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
+std::function<std::string(Graph&,Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&,Tree&,leaf_info<Graph,Tree>&)>> typedef Rules;
-  Rules allrules = {
+  Rules rules = {
           rule1<Graph,Tree,leaf_info<Graph,Tree>>,
           rule2<Graph,Tree,leaf_info<Graph,Tree>>,
           rule3<Graph,Tree,leaf_info<Graph,Tree>>,
           rule4<Graph,Tree,leaf_info<Graph,Tree>>,
           rule5<Graph,Tree,leaf_info<Graph,Tree>>,
           rule6<Graph,Tree,leaf_info<Graph,Tree>>,
+          ruleCycleElimination<Graph,Tree,leaf_info<Graph,Tree>>,
           rule7<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule7extended<Graph,Tree,leaf_info<Graph,Tree>>,
           rule8<Graph,Tree,leaf_info<Graph,Tree>>,
           rule9<Graph,Tree,leaf_info<Graph,Tree>>,
           rule10<Graph,Tree,leaf_info<Graph,Tree>>,
@@ -642,54 +644,46 @@ std::function<int(Graph&,Tree&)> make_improvement(std::string name) {
           rule14<Graph,Tree,leaf_info<Graph,Tree>>,
           rule15<Graph,Tree,leaf_info<Graph,Tree>>,
         };
-  Rules rules;
-  auto addrules = [&](uint first, uint last){
-      rules.insert(rules.end(), allrules.begin() + first - 1, allrules.begin() + last);
-  };
+  std::array<bool, 17> active;
   bool extended = false;
   if (name == "prieto")
-    addrules(2, 2);
+    active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost-light")
-    addrules(2, 6);
+    active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost") {
     extended = true;
-    addrules(2, 15);
+    active = {0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost15") {
     extended = true;
-    addrules(1, 15);
+    active = {1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-ex") {
     extended = true;
-    addrules(2, 6);
-    rules.push_back(ruleCycleElimination<Graph,Tree,leaf_info<Graph,Tree>>);
-    rules.push_back(rule7extended<Graph,Tree,leaf_info<Graph,Tree>>);
-    addrules(8, 15);
+    active = {0,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1};
   }
   else if (name == "none")
-    return [](Graph& G, Tree& T) { return 0; };
+    return [](Graph& G, Tree& T) { return ""; };
   else
     throw std::invalid_argument("Unknown construction method: " + name);
-  return [rules, extended](Graph& G, Tree& T) {
+  return [rules, active, extended](Graph& G, Tree& T) {
     leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
-    int i = 0;
     bool applied = true;
+    std::array<unsigned, 17> counter = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //show("step" + std::to_string(i) + ".dot", G, T);
     while(applied && !info.is_path()) {
       applied = false;
-      int k = 1;
-      for(auto rule : rules) {
-        ++k;
-        if(rule(G, T, info)) {
-          ++i;
+      for(unsigned i = 0; i < rules.size(); ++i) {
+        if(active[i] && rules[i](G, T, info)) {
           applied = true;
+          ++counter[i];
           //std::cerr << ("rule " + std::to_string(k) + "\n");
           //show("step" + std::to_string(i) + ".dot", G, T);
           break;
         }
       }
     }
-    return i;
+    return join(counter, "-");
   };
 }
 

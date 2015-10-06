@@ -60,7 +60,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
   {
     auto id = omp_get_thread_num();
     std::stringstream buffer;
-    unsigned steps;
+    std::string steps;
     double elapsed_c, elapsed_i;
     timing timer;
     #pragma omp for schedule(dynamic) nowait
