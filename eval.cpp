@@ -45,6 +45,8 @@ std::function<Tree(Graph&)> make_construction(std::string name) {
     return fifo_dfs_tree<Graph, Tree> ;
   if (name == "random")
     return random_tree<Graph, Tree> ;
+  if (name == "wilson")
+    return wilson_tree<Graph, Tree> ;
   if (name == "greedy")
     return greedy_tree<Graph, Tree> ;
   if (name == "ilst")
