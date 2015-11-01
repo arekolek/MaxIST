@@ -47,7 +47,7 @@ public:
   edge_writer(Graph const& g, Tree const& t) : G(g), T(t) {}
   template <class E>
   void operator()(std::ostream& out, const E& e) const {
-    if(boost::edge(source(e, G), target(e, G), T).second)
+    if(edge(source(e, G), target(e, G), T).second)
       out << "[style=solid]";
   }
 private:

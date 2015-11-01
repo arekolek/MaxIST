@@ -29,7 +29,7 @@ void visit(unsigned v, Graph& G,
   for(auto u : range(adjacent_vertices(v, G))) --degree[u];
   while(degree[v] > 0) {
     auto w = rdfs_rule();
-    boost::add_edge(v, w, T);
+    add_edge(v, w, T);
     visit(w, G, visited, degree, T);
   }
 }
@@ -86,7 +86,7 @@ void visit_node(unsigned v, Graph& G,
   for(auto u : range(adjacent_vertices(v, G))) --degree[u];
   while(degree[v] > 0) {
     auto w = rdfs_rule();
-    boost::add_edge(v, w, T);
+    add_edge(v, w, T);
     visit_node(w, G, visited, degree, T);
   }
 }

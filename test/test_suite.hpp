@@ -144,10 +144,10 @@ public:
 
   Graph get(uint i) const {
     std::default_random_engine generator(seeds[i]);
-    auto p = shuffled(boost::vertices(G), generator);
-    Graph g(boost::num_vertices(G));
-    for(auto e : range(boost::edges(G)))
-      boost::add_edge(p[boost::source(e, G)], p[boost::target(e, G)], g);
+    auto p = shuffled(vertices(G), generator);
+    Graph g(num_vertices(G));
+    for(auto e : range(edges(G)))
+      add_edge(p[source(e, G)], p[target(e, G)], g);
     return g;
   }
 
@@ -157,7 +157,7 @@ public:
       throw std::invalid_argument("File does not exist: " + f);
     }
     boost::dynamic_properties dp;
-    boost::read_graphml(file, G, dp);
+    read_graphml(file, G, dp);
     generate_seeds(seeds.begin(), seeds.end());
   }
   std::string type() const {

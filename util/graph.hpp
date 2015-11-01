@@ -77,8 +77,8 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
   if(mst) {
     assert(is_connected(g));
     std::vector<WeightedEdge> t;
-    boost::kruskal_minimum_spanning_tree(g, std::back_inserter(t));
-    for(auto e : t) boost::add_edge(source(e, g), target(e, g), G);
+    kruskal_minimum_spanning_tree(g, std::back_inserter(t));
+    for(auto e : t) add_edge(source(e, g), target(e, g), G);
   }
 }
 
@@ -115,7 +115,7 @@ public:
       D.range_search(Circle(v.point(), d*d), boost::make_function_output_iterator(
           [&](Vertex_handle u){
             if(v.info() < u->info())
-              boost::add_edge(v.info(), u->info(), G);
+              add_edge(v.info(), u->info(), G);
       }));
   }
 
@@ -136,12 +136,12 @@ public:
       if(vc != 0) do {
         if(D.is_infinite(vc)) continue;
         unsigned d = vc->info();
-        boost::add_edge(s, d, CGAL::squared_distance(vit->point(), vc->point()), g);
+        add_edge(s, d, CGAL::squared_distance(vit->point(), vc->point()), g);
       } while(++vc != done);
     }
 
     std::vector<WeightedEdge> mst;
-    boost::kruskal_minimum_spanning_tree(g, std::back_inserter(mst));
-    for(auto e : mst) boost::add_edge(source(e, g), target(e, g), G);
+    kruskal_minimum_spanning_tree(g, std::back_inserter(mst));
+    for(auto e : mst) add_edge(source(e, g), target(e, g), G);
   }
 };
