@@ -172,7 +172,7 @@ bool rule0(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template <class Tree, class LeafInfo>
-void rule2action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
+void rule1action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   add_edge(l1, l2, T);
   remove_edge(i.branching(l1), i.branching_neighbor(l1), T);
   i.update();
@@ -183,7 +183,7 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l1 : info.leaves())
     for(auto l2 : info.leaves())
       if(edge(l1, l2, G).second) {
-        rule2action(l1, l2, T, info);
+        rule1action(l1, l2, T, info);
         return true;
       }
   return false;
@@ -224,14 +224,14 @@ bool ruleCycleElimination(Graph& G, Tree& T, LeafInfo& info) {
             add_edge(l, x, T);
             remove_edge(a, b, T);
             info.update();
-            rule2action(b, supported_other(b, l), T, info);
+            rule1action(b, supported_other(b, l), T, info);
             return true;
           }
           if (supports_other(a, l) && out_degree(b, T) > 2) {
             add_edge(l, x, T);
             remove_edge(a, b, T);
             info.update();
-            if(a != x) rule2action(a, supported_other(a, l), T, info);
+            if(a != x) rule1action(a, supported_other(a, l), T, info);
             return true;
           }
           a = b;
@@ -278,7 +278,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
         add_edge(l, x, T);
         remove_edge(x, xl, T);
         info.update();
-        rule2action(l2, xl, T, info);
+        rule1action(l2, xl, T, info);
         return true;
       }
   return false;
@@ -323,7 +323,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
         add_edge(l, x, T);
         remove_edge(info.branching(l), blx, T);
         info.update();
-        rule2action(l2, blx, T, info);
+        rule1action(l2, blx, T, info);
         return true;
       }
   return false;
@@ -379,7 +379,7 @@ bool rule6extended(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template <class Tree, class LeafInfo>
-void rule8action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
+void rule7action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   add_edge(i.branching_neighbor(l1), l2, T);
   remove_edge(i.branching_neighbor(l1), i.branching(l1), T);
   i.update();
@@ -390,7 +390,7 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l1 : info.leaves()) if(!info.is_short(l1)) {
     for(auto l2 : info.leaves()) if(/*!info.is_short(l2) && */l1 != l2) {
       if(edge(info.branching_neighbor(l1), l2, G).second) {
-        rule8action(l1, l2, T, info);
+        rule7action(l1, l2, T, info);
         return true;
       }
     }
@@ -544,7 +544,7 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
     for(auto u : info.leafish())
       if(edge(u, l, T).second && info.branch(u) != l) {
         ruleA(u, T, info);
-        rule2action(l, u, T, info);
+        rule1action(l, u, T, info);
         return true;
       }
   return false;
@@ -557,7 +557,7 @@ bool rule11(Graph& G, Tree& T, LeafInfo& info) {
       if(edge(u, v, T).second && info.branch(u) != info.branch(v)) {
         ruleA(u, T, info);
         ruleA(v, T, info);
-        rule2action(u, v, T, info);
+        rule1action(u, v, T, info);
         return true;
       }
   return false;
@@ -570,7 +570,7 @@ bool rule12(Graph& G, Tree& T, LeafInfo& info) {
       if(edge(u, info.branching_neighbor(l), T).second
           && info.branch(u) != l) {
         ruleA(u, T, info);
-        rule8action(l, u, T, info);
+        rule7action(l, u, T, info);
         return true;
       }
   return false;
