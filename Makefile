@@ -7,8 +7,8 @@ GDB =
 INCLUDES = graph util test
 
 # Default compiler and linker flags
-CXXFLAGS = -Wall $(MODE) -std=c++0x -frounding-math -fopenmp
-LDFLAGS = -lCGAL -lgmp -lboost_graph -lboost_thread -lboost_unit_test_framework -fopenmp -lrt
+override CXXFLAGS += -Wall $(MODE) -std=c++0x -frounding-math -fopenmp
+override LDFLAGS += -lCGAL -lgmp -lboost_graph -lboost_thread -lboost_unit_test_framework -fopenmp -lrt
 
 # Automatically find all sources and use implicit make rules
 SRCS = $(shell find * -name \*.cpp)
@@ -49,7 +49,7 @@ cleanobjs:
 
 # Files, flags and rules for auto dependencies
 .PRECIOUS: %.d %.o
-CXXFLAGS += -MP -MMD $(INCLUDES:%=-I%)
+override CXXFLAGS += -MP -MMD $(INCLUDES:%=-I%)
 -include $(DEPS)
 
 # Show variables for Makefile debugging
