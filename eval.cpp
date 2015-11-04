@@ -61,12 +61,12 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
-    std::stringstream buffer;
     std::string steps;
     double elapsed_c, elapsed_i;
     timing timer;
     #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
+      std::stringstream buffer;
       auto G = suite.get(i);
       if(!is_connected(G)) continue;
 
@@ -106,9 +106,9 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
           elapsed_c += elapsed_i;
         }
       }
+      #pragma omp critical
+      std::cout << buffer.str() << std::flush;
     }
-    #pragma omp critical
-    std::cout << buffer.str();
   }
 }
 
