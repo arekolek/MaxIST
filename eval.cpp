@@ -57,7 +57,7 @@ std::function<Tree(Graph&)> make_construction(std::string name) {
 }
 
 template <class Graph, class Tree, class Suite, class Strings>
-void run(Suite& suite, Strings const & constructions, Strings const & improvements) {
+void run(Suite& suite, Strings const & constructions, Strings const & improvements, bool scratch) {
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
@@ -78,7 +78,11 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
 
         assert(num_edges(T) == num_vertices(T)-1);
 
+        const auto tree(T);
+
         for(auto iname : improvements) {
+          if(scratch) T = tree;
+
           auto improve = make_improvement<Graph, Tree>(iname);
           timer.start();
           steps = improve(G, T);
@@ -103,7 +107,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             ;
           //show("graph" + std::to_string(i) + ".dot", G, T);
 
-          elapsed_c += elapsed_i;
+          if(!scratch) elapsed_c += elapsed_i;
         }
       }
       #pragma omp critical
@@ -114,18 +118,18 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
 
 template <class Graph, class Tree, class Sizes, class Params, class Strings>
 void run(std::string t, unsigned z, Sizes sizes, Params params,
-         Strings const & constructions, Strings const & improvements) {
+         Strings const & constructions, Strings const & improvements, bool scratch) {
   if (t.find(".xml") != std::string::npos) {
     real_suite<Graph> suite(t, z);
-    run<Graph, Tree>(suite, constructions, improvements);
+    run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else if (t.find('.') != std::string::npos) {
     file_suite<Graph> suite(t);
-    run<Graph, Tree>(suite, constructions, improvements);
+    run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else {
     for (auto n : sizes) {
       for (auto p : params) {
         test_suite<Graph> suite(t, z, n, p);
-        run<Graph, Tree>(suite, constructions, improvements);
+        run<Graph, Tree>(suite, constructions, improvements, scratch);
       }
     }
   }
@@ -147,12 +151,13 @@ int main(int argc, char** argv){
   });
   auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs50", "ilst", "random"});
   auto improvements = opt.getList<string>("-i", {"none"/*, "prieto", "lost-light", "lost"*/});
+  auto scratch = opt.has("--scratch");
 
   //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
 
   //std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
-    run<alist, alist>(t, z, sizes, parameters, constructions, improvements);
+    run<alist, alist>(t, z, sizes, parameters, constructions, improvements, scratch);
 
   return 0;
 }

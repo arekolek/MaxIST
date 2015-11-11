@@ -29,7 +29,7 @@ namespace opt_util {
 class options {
 public:
   unsigned find(std::string const& name) const {
-    for(int i = 1; i < argc-1; ++i)
+    for(int i = 1; i < argc; ++i)
       if(strcmp(argv[i], name.c_str()) == 0)
         return i + 1;
     return 0;
@@ -37,6 +37,9 @@ public:
   template <class Result = std::string>
   Result get(std::string name, Result def = Result()) {
     return find(name) ? opt_util::convert<Result>(argv[find(name)]) : def;
+  }
+  bool has(std::string name) {
+    return find(name);
   }
   template <class Result>
   std::vector<Result> getList(std::string name, std::initializer_list<Result> def = {}) {
