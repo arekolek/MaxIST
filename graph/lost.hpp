@@ -620,7 +620,7 @@ bool rule14(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree>
-std::function<std::string(Graph&,Tree&)> make_improvement(std::string name) {
+std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&,Tree&,leaf_info<Graph,Tree>&)>> typedef Rules;
   Rules rules = {
           rule0<Graph,Tree,leaf_info<Graph,Tree>>,
@@ -660,13 +660,18 @@ std::function<std::string(Graph&,Tree&)> make_improvement(std::string name) {
     active = {0,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1};
   }
   else if (name == "none")
-    return [](Graph& G, Tree& T) { return ""; };
+    return [](Graph& G, Tree& T) {
+      std::array<unsigned, 17> counter;
+      counter.fill(0);
+      return counter;
+    };
   else
     throw std::invalid_argument("Unknown construction method: " + name);
   return [rules, active, extended](Graph& G, Tree& T) {
     leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
     bool applied = true;
-    std::array<unsigned, 17> counter = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    std::array<unsigned, 17> counter;
+    counter.fill(0);
     //show("step" + std::to_string(i) + ".dot", G, T);
     while(applied && !info.is_path()) {
       applied = false;
@@ -680,7 +685,7 @@ std::function<std::string(Graph&,Tree&)> make_improvement(std::string name) {
         }
       }
     }
-    return join(counter, "-");
+    return counter;
   };
 }
 

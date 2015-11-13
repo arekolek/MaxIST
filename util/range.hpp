@@ -51,3 +51,8 @@ std::string join(Container const & container, std::string const & delimeter) {
   auto tostr = static_cast<std::string(*)(value_type)>(std::to_string);
   return join(container | transformed(tostr), delimeter);
 };
+
+template<class Container>
+int sum(Container const & container) {
+  return std::accumulate(container.begin(), container.end(), 0);
+};

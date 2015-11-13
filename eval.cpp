@@ -61,7 +61,6 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
-    std::string steps;
     double elapsed_c, elapsed_i;
     timing timer;
     #pragma omp for schedule(dynamic) nowait
@@ -85,7 +84,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
 
           auto improve = make_improvement<Graph, Tree>(iname);
           timer.start();
-          steps = improve(G, T);
+          auto rules = improve(G, T);
           elapsed_i = timer.stop();
 
           // run type parameter vertices edges upper construction improvement internal time steps
@@ -102,7 +101,8 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             << num_internal(T) << '\t'
             << elapsed_c << '\t'
             << elapsed_i << '\t'
-            << steps << '\t'
+            << sum(rules) << '\t'
+            << join(rules, "-") << '\t'
             << std::endl;
             ;
           //show("graph" + std::to_string(i) + ".dot", G, T);
