@@ -643,6 +643,7 @@ std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::stri
         };
   std::array<bool, 17> active;
   bool extended = false;
+  bool fast = false;
   if (name == "prieto")
     active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost-light")
@@ -657,7 +658,14 @@ std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::stri
   }
   else if (name == "lost-ex") {
     extended = true;
-    active = {0,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1};
+    active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+  }
+  else if (name == "lost-simple") {
+    active = {0,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0};
+  }
+  else if (name == "lost-fast") {
+    fast = true;
+    active = {0,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0};
   }
   else if (name == "none")
     return [](Graph& G, Tree& T) {
@@ -665,20 +673,26 @@ std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::stri
       counter.fill(0);
       return counter;
     };
-  else
-    throw std::invalid_argument("Unknown construction method: " + name);
-  return [rules, active, extended](Graph& G, Tree& T) {
+  else {
+    auto k = std::stoi(name);
+    active.fill(0);
+    for(int i = 1; i <= k; ++i) active[i] = true;
+    extended = k > 9;
+  }
+  return [rules, active, extended, fast](Graph& G, Tree& T) {
     leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
     bool applied = true;
     std::array<unsigned, 17> counter;
     counter.fill(0);
     //show("step" + std::to_string(i) + ".dot", G, T);
+    unsigned i = 0;
     while(applied && !info.is_path()) {
       applied = false;
-      for(unsigned i = 0; i < rules.size(); ++i) {
+      for(; i < rules.size(); ++i) {
         if(active[i] && rules[i](G, T, info)) {
           applied = true;
           ++counter[i];
+          if(!fast) i = 0;
           //std::cerr << ("rule " + std::to_string(k) + "\n");
           //show("step" + std::to_string(i) + ".dot", G, T);
           break;
