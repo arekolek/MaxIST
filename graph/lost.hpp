@@ -620,7 +620,7 @@ bool rule14(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree>
-std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::string name) {
+std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&,Tree&,leaf_info<Graph,Tree>&)>> typedef Rules;
   Rules rules = {
           rule0<Graph,Tree,leaf_info<Graph,Tree>>,
@@ -641,7 +641,7 @@ std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::stri
           rule13<Graph,Tree,leaf_info<Graph,Tree>>,
           rule14<Graph,Tree,leaf_info<Graph,Tree>>,
         };
-  std::array<bool, 17> active;
+  std::vector<bool> active(rules.size(), 0);
   bool extended = false;
   bool fast = false;
   if (name == "prieto")
@@ -668,22 +668,18 @@ std::function<std::array<unsigned, 17>(Graph&,Tree&)> make_improvement(std::stri
     active = {0,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0};
   }
   else if (name == "none")
-    return [](Graph& G, Tree& T) {
-      std::array<unsigned, 17> counter;
-      counter.fill(0);
-      return counter;
+    return [active](Graph& G, Tree& T) {
+      return std::vector<unsigned>(active.size(), 0);
     };
   else {
     auto k = std::stoi(name);
-    active.fill(0);
-    for(int i = 1; i <= k; ++i) active[i] = true;
+    std::fill(active.begin()+1, active.begin()+k+1, true);
     extended = k > 9;
   }
   return [rules, active, extended, fast](Graph& G, Tree& T) {
     leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
     bool applied = true;
-    std::array<unsigned, 17> counter;
-    counter.fill(0);
+    std::vector<unsigned> counter(active.size(), 0);
     //show("step" + std::to_string(i) + ".dot", G, T);
     unsigned i = 0;
     while(applied && !info.is_path()) {
