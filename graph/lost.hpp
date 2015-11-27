@@ -643,7 +643,6 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
         };
   std::vector<bool> active(rules.size(), 0);
   bool extended = false;
-  bool fast = false;
   if (name == "prieto")
     active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost-light")
@@ -663,10 +662,6 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   else if (name == "lost-simple") {
     active = {0,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0};
   }
-  else if (name == "lost-fast") {
-    fast = true;
-    active = {0,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0};
-  }
   else if (name == "none")
     return [active](Graph& G, Tree& T) {
       return std::vector<unsigned>(active.size(), 0);
@@ -676,19 +671,17 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
     std::fill(active.begin()+1, active.begin()+k+1, true);
     extended = k > 9;
   }
-  return [rules, active, extended, fast](Graph& G, Tree& T) {
+  return [rules, active, extended](Graph& G, Tree& T) {
     leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
     //show("step" + std::to_string(i) + ".dot", G, T);
-    unsigned i = 0;
     while(applied && !info.is_path()) {
       applied = false;
-      for(; i < rules.size(); ++i) {
+      for(unsigned i = 0; i < rules.size(); ++i) {
         if(active[i] && rules[i](G, T, info)) {
           applied = true;
           ++counter[i];
-          if(!fast) i = 0;
           //std::cerr << ("rule " + std::to_string(k) + "\n");
           //show("step" + std::to_string(i) + ".dot", G, T);
           break;
