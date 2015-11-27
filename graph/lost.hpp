@@ -675,15 +675,12 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
     leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
-    //show("step" + std::to_string(i) + ".dot", G, T);
     while(applied && !info.is_path()) {
       applied = false;
       for(unsigned i = 0; i < rules.size(); ++i) {
         if(active[i] && rules[i](G, T, info)) {
           applied = true;
           ++counter[i];
-          //std::cerr << ("rule " + std::to_string(k) + "\n");
-          //show("step" + std::to_string(i) + ".dot", G, T);
           break;
         }
       }
