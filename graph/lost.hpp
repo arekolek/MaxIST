@@ -186,58 +186,6 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template<class Graph, class Tree, class LeafInfo>
-bool ruleCycleElimination(Graph& G, Tree& T, LeafInfo& info) {
-  int n = num_vertices(G);
-  std::vector<std::vector<uint>> supported(n);
-  for (auto l : info.leaves())
-    for (auto x : range(adjacent_vertices(l, G)))
-      if (!info.on_branch(l, x))
-        supported[x].push_back(l);
-
-  auto supports_other = [supported](uint x, uint l){
-    return supported[x].size() > 1 || (supported[x].size() == 1 && *supported[x].begin() != l);
-  };
-
-  auto supported_other = [supported](uint x, uint l){
-    auto it = supported[x].begin();
-    return *it == l ? *(it+1) : *it;
-  };
-
-  for (auto l : info.leaves())
-    for (auto x : range(adjacent_vertices(l, G)))
-      if (!info.on_branch(l, x)) {
-        auto a = x;
-        auto b = info.parent(x, l);
-        auto bln = info.branching_neighbor(l);
-        while (b != bln) {
-          if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
-            add_edge(l, x, T);
-            remove_edge(a, b, T);
-            info.update();
-            return true;
-          }
-          if (out_degree(a, T) > 2 && supports_other(b, l)) {
-            add_edge(l, x, T);
-            remove_edge(a, b, T);
-            info.update();
-            rule1action(b, supported_other(b, l), T, info);
-            return true;
-          }
-          if (supports_other(a, l) && out_degree(b, T) > 2) {
-            add_edge(l, x, T);
-            remove_edge(a, b, T);
-            info.update();
-            if(a != x) rule1action(a, supported_other(a, l), T, info);
-            return true;
-          }
-          a = b;
-          b = info.parent(b, l);
-        }
-      }
-  return false;
-}
-
 template <class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   for(auto l : info.leaves())
@@ -322,6 +270,76 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
         info.update();
         rule1action(l2, blx, T, info);
         return true;
+      }
+  return false;
+}
+
+
+template<class Graph, class Tree, class LeafInfo>
+bool ruleCycleElimination1(Graph& G, Tree& T, LeafInfo& info) {
+  for (auto l : info.leaves())
+    for (auto x : range(adjacent_vertices(l, G)))
+      if (!info.on_branch(l, x)) {
+        auto a = info.parent(x, l);
+        auto b = info.parent(a, l);
+        auto bl = info.branching(l);
+        while (b != bl) {
+          if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
+            add_edge(l, x, T);
+            remove_edge(a, b, T);
+            info.update();
+            return true;
+          }
+          a = b;
+          b = info.parent(b, l);
+        }
+      }
+  return false;
+}
+
+
+template<class Graph, class Tree, class LeafInfo>
+bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
+  int n = num_vertices(G);
+  std::vector<std::vector<uint>> supported(n);
+  for (auto l : info.leaves())
+    for (auto x : range(adjacent_vertices(l, G)))
+      if (!info.on_branch(l, x))
+        supported[x].push_back(l);
+
+  auto supports_other = [supported](uint x, uint l){
+    return supported[x].size() > 1 || (supported[x].size() == 1 && *supported[x].begin() != l);
+  };
+
+  auto supported_other = [supported](uint x, uint l){
+    auto it = supported[x].begin();
+    return *it == l ? *(it+1) : *it;
+  };
+
+  for (auto l : info.leaves())
+    for (auto x : range(adjacent_vertices(l, G)))
+      if (!info.on_branch(l, x)) {
+        auto a = info.parent(x, l);
+        auto b = info.parent(a, l);
+        auto bl = info.branching(l);
+        while (b != bl) {
+          if (out_degree(a, T) > 2 && supports_other(b, l)) {
+            add_edge(l, x, T);
+            remove_edge(a, b, T);
+            info.update();
+            rule1action(b, supported_other(b, l), T, info);
+            return true;
+          }
+          if (supports_other(a, l) && out_degree(b, T) > 2) {
+            add_edge(l, x, T);
+            remove_edge(a, b, T);
+            info.update();
+            rule1action(a, supported_other(a, l), T, info);
+            return true;
+          }
+          a = b;
+          b = info.parent(b, l);
+        }
       }
   return false;
 }
@@ -629,7 +647,8 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
           rule3<Graph,Tree,leaf_info<Graph,Tree>>,
           rule4<Graph,Tree,leaf_info<Graph,Tree>>,
           rule5<Graph,Tree,leaf_info<Graph,Tree>>,
-          ruleCycleElimination<Graph,Tree,leaf_info<Graph,Tree>>,
+          ruleCycleElimination1<Graph,Tree,leaf_info<Graph,Tree>>,
+          ruleCycleElimination2<Graph,Tree,leaf_info<Graph,Tree>>,
           rule6<Graph,Tree,leaf_info<Graph,Tree>>,
           rule6extended<Graph,Tree,leaf_info<Graph,Tree>>,
           rule7<Graph,Tree,leaf_info<Graph,Tree>>,
@@ -644,23 +663,23 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   std::vector<bool> active(rules.size(), 0);
   bool extended = false;
   if (name == "prieto")
-    active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost-light")
-    active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0};
+    active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost") {
     extended = true;
-    active = {0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1};
+    active = {0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost15") {
     extended = true;
-    active = {1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1};
+    active = {1,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-ex") {
     extended = true;
-    active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-simple") {
-    active = {0,1,1,1,1,0,1,0,1,0,1,0,0,0,0,0,0};
+    active = {0,1,1,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0};
   }
   else if (name == "none")
     return [active](Graph& G, Tree& T) {
