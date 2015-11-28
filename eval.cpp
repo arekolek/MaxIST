@@ -56,6 +56,16 @@ std::function<Tree(Graph&)> make_construction(std::string name) {
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
+template<class Graph>
+std::function<unsigned(Graph&)> make_upper(std::string name) {
+  if (name == "5/3") {
+    return [](const Graph& G) {
+      return 5*(num_vertices(G)-3)/6;
+    };
+  }
+  return upper_bound<Graph> ;
+}
+
 template <class Graph, class Tree, class Suite, class Strings>
 void run(Suite& suite, Strings const & constructions, Strings const & improvements, bool scratch) {
   #pragma omp parallel
@@ -71,6 +81,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
 
       for(auto cname : constructions) {
         auto construct = make_construction<Graph, Tree>(cname);
+        auto upper = make_upper<Graph>(cname);
         timer.start();
         auto T = construct(G);
         elapsed_c = timer.stop();
@@ -95,7 +106,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             << suite.parameter() << '\t'
             << num_vertices(G) << '\t'
             << num_edges(G) << '\t'
-            << upper_bound(G) << '\t'
+            << upper(G) << '\t'
             << cname << '\t'
             << iname << '\t'
             << num_internal(T) << '\t'
