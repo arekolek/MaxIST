@@ -45,3 +45,4 @@ if __name__ == '__main__':
     
     g.save('output/{}.xml'.format(name))
     gt.graph_draw(g, pos, vertex_size=2, vertex_color='black', vertex_fill_color='black', edge_pen_width=0.2, edge_color='black', output='output/{}.pdf'.format(name), output_size=(75,75))
+
