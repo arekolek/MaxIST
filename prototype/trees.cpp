@@ -20,13 +20,13 @@ boost::property<boost::edge_color_t, boost::default_color_type> typedef color;
 boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS,
     boost::no_property, color> typedef graph;
 
-typedef pair<int, int> edge;
+typedef pair<int, int> node_pair;
 
 template <class Graph>
 Graph dfs(Graph const & G, int v) {
   Graph T;
   int parent;
-  stack<edge> S;
+  stack<node_pair> S;
   vector<bool> V(num_vertices(G));
   S.emplace(-1, v);
   while(!S.empty()) {
@@ -47,7 +47,7 @@ Graph dfs(Graph const & G, int v) {
 template <class Graph>
 Graph dfs2(Graph const & G, int v) {
   vector<bool> V(num_vertices(G));
-  stack<edge> E;
+  stack<node_pair> E;
   Graph T;
   while(true) {
     V[v] = true;
@@ -78,7 +78,7 @@ template <class Graph>
 Graph dfs_fifo(Graph const & G, int v) {
   int rank;
   vector<int> V(num_vertices(G), rank = 0);
-  queue<edge> E;
+  queue<node_pair> E;
   Graph T;
   while(true) {
     V[v] = ++rank;
@@ -112,7 +112,7 @@ Graph dfs_fifo(Graph const & G, int v) {
 template <class Graph>
 Graph dfs_fifo2(Graph const & G, int v) {
   vector<bool> V(num_vertices(G));
-  queue<edge> E;
+  queue<node_pair> E;
   Graph T;
   while(true) {
     V[v] = true;
@@ -141,7 +141,7 @@ template <class Graph>
 Graph bfs(Graph const & G, int v) {
   Graph T;
   int parent;
-  queue<edge> Q;
+  queue<node_pair> Q;
   vector<bool> V(num_vertices(G));
   Q.emplace(-1, v);
   V[v] = true;
@@ -162,12 +162,12 @@ Graph bfs(Graph const & G, int v) {
 
 template<class Graph>
 bool isomorphic(Graph const & A, Graph const & B) {
-  if(boost::num_vertices(A) != boost::num_vertices(B))
+  if(num_vertices(A) != num_vertices(B))
     return false;
-  if(boost::num_edges(A) != boost::num_edges(B))
+  if(num_edges(A) != num_edges(B))
       return false;
-  for(auto e : range(boost::edges(A)))
-    if(!boost::edge(boost::source(e, A), boost::target(e, A), B).second)
+  for(auto e : range(edges(A)))
+    if(!edge(source(e, A), target(e, A), B).second)
       return false;
   return true;
 }
@@ -185,8 +185,8 @@ int main(int argc, char** argv) {
   test_suite<graph> suite("gnp", z, n, p);
 
   for(auto G : suite) {
-    auto tree1 = rdfs_tree(G);
-    auto tree2 = rdfs_tree2(G);
+    auto tree1 = rdfs_tree<graph, graph>(G);
+    auto tree2 = rdfs_tree<graph, graph>(G);
     if(!isomorphic(tree1, tree2)) {
       show("iso-12-1.dot", G, tree1);
       show("iso-12-2.dot", G, tree2);
