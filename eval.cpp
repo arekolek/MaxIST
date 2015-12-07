@@ -154,20 +154,14 @@ int main(int argc, char** argv){
   std::ios_base::sync_with_stdio(0);
 
   options opt(argc, argv);
-  auto z = opt.get<int>("-z", 100);
+  auto z = opt.get<int>("-z", 1);
   auto sizes = opt.getList<int>("-n", {100});
-  auto tests = opt.getList<string>("-t", {"gnp+path"/*, "rgg"*/});
-  auto parameters = opt.getList<float>("-p", {
-      0.0001f//, 0.0005f, 0.001f, 0.003f, 0.005f, 0.008f, 0.01f, 0.03f, 0.05f, 0.08f, 0.1f, 0.2f, 0.25f, 0.3f, 0.35f,
-      //0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99
-  });
+  auto tests = opt.getList<string>("-t", {"gnp+mst"});
+  auto parameters = opt.getList<float>("-p", { 0.03f });
   auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs50", "ilst", "random"});
-  auto improvements = opt.getList<string>("-i", {"none"/*, "prieto", "lost-light", "lost"*/});
+  auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost", "lost-ex"});
   auto scratch = opt.has("--scratch");
 
-  //~ vector<float> ps {0.0002, 0.0105, 0.021, 0.0312, 0.0415, 0.0518, 0.062, 0.0725, 0.0827};
-
-  //std::cout << "run,type,parameter,vertices,edges,upper,construction,improvement,internal,time,steps" << std::endl;
   for(auto t : tests)
     run<alist, alist>(t, z, sizes, parameters, constructions, improvements, scratch);
 
