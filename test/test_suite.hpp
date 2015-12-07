@@ -151,7 +151,7 @@ public:
     return g;
   }
 
-  real_suite(std::string f, unsigned size) : t(f.substr(0, f.find('.'))), seeds(size) {
+  real_suite(std::string f, unsigned size) : G(0), t(f.substr(0, f.find('.'))), seeds(size) {
     std::ifstream file(f);
     if(!file.good()) {
       throw std::invalid_argument("File does not exist: " + f);
@@ -167,7 +167,7 @@ public:
     return 0;
   }
 private:
+  Graph G;
   std::string t;
   std::vector<unsigned> seeds;
-  Graph G;
 };
