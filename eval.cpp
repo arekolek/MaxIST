@@ -98,7 +98,8 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
           auto rules = improve(G, T);
           elapsed_i = timer.stop();
 
-          // run type parameter vertices edges upper construction improvement internal time steps
+          //  1    2       3      4      5         6      7      8             9            10        11     12     13     14
+          //  run  thread  model  param  vertices  edges  upper  construction  improvement  internal  ctime  itime  steps  rules
           buffer
             << i << '\t'
             << id << '\t'
