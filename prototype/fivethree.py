@@ -28,11 +28,9 @@ def five_three(k):
       print(*(6*i + 1, 6*(i+1) + 4))
       print(*(6*i + 5, 6*(i+1) + 5))
 
-'''
 print(10)
 for k in range(2, 100, 10):
   five_three(k)
-'''
 
 '''
 print(1)
@@ -67,5 +65,5 @@ def dot(k):
   for i in range(k):
     print('{} -- {};'.format(6*i + 0, 6*i + 2))
 
-dot(4)
+#dot(4)
 
