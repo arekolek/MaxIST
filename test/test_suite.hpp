@@ -37,22 +37,30 @@ public:
 
   std::tuple<Graph, double, double> get(unsigned i) const {
     std::default_random_engine generator(seeds[i % seeds.size()]);
-    auto d = degrees[(i / seeds.size()) % degrees.size()];
+    auto Ed = degrees[(i / seeds.size()) % degrees.size()];
     auto n = sizes[i / seeds.size() / degrees.size()];
+    auto d = Ed;
     Graph G(n);
 
-    if(t.find("path") != std::string::npos) add_spider(G, 1, generator);
+    if(t.find("path") != std::string::npos) {
+      add_spider(G, 1, generator);
+      // the overlap satisfies    y     = a    x     + b
+      // full graph satisfies:    0     = a  (n-1)   + b
+      // tree graph satisfies: 2(n-1)/n = a 2(n-1)/n + b
+      // so we must subtract this:
+      d -= 2/(2-double(n)) * d + 1. + double(n)/(n-2);
+    }
     if(t.find("rgg") != std::string::npos) {
       auto r = find_argument(d/(n-1), pr_within, 0, sqrt(2));
       Geometric points(n, generator);
       points.add_random_geometric(G, r);
       if(t.find("mst") != std::string::npos) points.add_mst(G);
-      return std::make_tuple(G, d, r);
+      return std::make_tuple(G, Ed, r);
     } else {
       auto p = d/(n-1);
       bool mst = t.find("mst") != std::string::npos;
       add_edges_uniform(G, p, generator, mst);
-      return std::make_tuple(G, d, p);
+      return std::make_tuple(G, Ed, p);
     }
   }
 
