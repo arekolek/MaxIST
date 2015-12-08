@@ -23,51 +23,25 @@ void generate_seeds(Iterator begin, Iterator end) {
 template <class Graph>
 class test_suite {
 public:
-  class iterator {
-    friend class test_suite;
-  public:
-    Graph operator *() const {
-      Graph G(suite.num_vertices());
-      std::default_random_engine generator(suite.seed(i));
-      if(suite.type().find("path") != std::string::npos)
-        add_spider(G, 1, generator);
-      if(suite.type().find("rgg") != std::string::npos) {
-        Geometric points(suite.num_vertices(), generator);
-        points.add_random_geometric(G, suite.parameter());
-        if(suite.type().find("mst") != std::string::npos)
-          points.add_mst(G);
-      }
-      if(suite.type().find("gnp") != std::string::npos) {
-        bool mst = suite.type().find("mst") != std::string::npos;
-        add_edges_uniform(G, suite.parameter(), generator, mst);
-      }
-      return G;
-    }
-    const iterator &operator ++() { ++i; return *this; }
-    iterator operator ++(int) { iterator copy(*this); ++i; return copy; }
-
-    bool operator ==(const iterator &other) const { return i == other.i; }
-    bool operator !=(const iterator &other) const { return i != other.i; }
-
-  protected:
-    iterator(test_suite const& s, unsigned i) : suite(s), i(i) { }
-
-  private:
-    test_suite const& suite;
-    unsigned long i;
-  };
-
-  iterator begin() const { return iterator(*this, 0); }
-  iterator end() const { return iterator(*this, size()); }
   unsigned size() const { return seeds.size(); }
 
-  unsigned seed(unsigned i) const { return seeds[i]; }
-  unsigned num_vertices() const { return n; }
   float parameter() const { return p; }
   std::string type() const { return t; }
 
-  Graph get(uint i) const {
-    return *iterator(*this, i);
+  Graph get(unsigned i) const {
+    Graph G(n);
+    std::default_random_engine generator(seeds[i]);
+    if(t.find("path") != std::string::npos) add_spider(G, 1, generator);
+    if(t.find("rgg") != std::string::npos) {
+      Geometric points(n, generator);
+      points.add_random_geometric(G, p);
+      if(t.find("mst") != std::string::npos) points.add_mst(G);
+    }
+    if(t.find("gnp") != std::string::npos) {
+      bool mst = t.find("mst") != std::string::npos;
+      add_edges_uniform(G, p, generator, mst);
+    }
+    return G;
   }
 
   test_suite(std::string t, unsigned z, unsigned n, float p) : t(t), n(n), p(p) {
