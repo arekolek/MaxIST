@@ -17,7 +17,15 @@ namespace opt_util {
     return atoi(cstr);
   }
   template <>
+  unsigned convert<unsigned>(const char* cstr) {
+    return atoll(cstr);
+  }
+  template <>
   float convert<float>(const char* cstr) {
+    return atof(cstr);
+  }
+  template <>
+  double convert<double>(const char* cstr) {
     return atof(cstr);
   }
   template <>

@@ -143,12 +143,8 @@ void run(std::string t, unsigned z, Sizes sizes, Params params,
     file_suite<Graph> suite(t);
     run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else {
-    for (auto n : sizes) {
-      for (auto p : params) {
-        test_suite<Graph> suite(t, z, n, p);
-        run<Graph, Tree>(suite, constructions, improvements, scratch);
-      }
-    }
+    test_suite<Graph> suite(t, z, sizes, params);
+    run<Graph, Tree>(suite, constructions, improvements, scratch);
   }
 }
 
@@ -160,9 +156,9 @@ int main(int argc, char** argv){
 
   options opt(argc, argv);
   auto z = opt.get<int>("-z", 1);
-  auto sizes = opt.getList<int>("-n", {100});
+  auto sizes = opt.getList<unsigned>("-n", {100});
   auto tests = opt.getList<string>("-t", {"gnp+mst"});
-  auto degrees = opt.getList<float>("-d", { 3. });
+  auto degrees = opt.getList<double>("-d", { 3. });
   auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs50", "ilst", "random"});
   auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost", "lost-ex"});
   auto scratch = opt.has("--scratch");

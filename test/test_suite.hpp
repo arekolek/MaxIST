@@ -31,14 +31,15 @@ double pr_within(double x) {
 template <class Graph>
 class test_suite {
 public:
-  unsigned size() const { return seeds.size(); }
+  unsigned size() const { return seeds.size() * degrees.size() * sizes.size(); }
 
   std::string type() const { return t; }
 
   std::tuple<Graph, double, double> get(unsigned i) const {
-    std::default_random_engine generator(seeds[i]);
+    std::default_random_engine generator(seeds[i % seeds.size()]);
+    auto d = degrees[(i / seeds.size()) % degrees.size()];
+    auto n = sizes[i / seeds.size() / degrees.size()];
     Graph G(n);
-    auto d = degree;
 
     if(t.find("path") != std::string::npos) add_spider(G, 1, generator);
     if(t.find("rgg") != std::string::npos) {
@@ -55,14 +56,15 @@ public:
     }
   }
 
-  test_suite(std::string t, unsigned z, unsigned n, double d) : t(t), n(n), degree(d) {
+  template<class Sizes, class Degrees>
+  test_suite(std::string t, unsigned z, Sizes ns, Degrees ds) : t(t), sizes(ns), degrees(ds) {
     seeds.resize(z);
     generate_seeds(seeds.begin(), seeds.end());
   }
 private:
   std::string t;
-  unsigned n;
-  double degree;
+  std::vector<unsigned> sizes;
+  std::vector<double> degrees;
   std::vector<unsigned> seeds;
 };
 
