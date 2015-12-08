@@ -40,6 +40,14 @@ bool is_connected(Graph const & G) {
   return connected_components(G, &component[0]) == 1;
 }
 
+template<class G>
+void add_edge_no_dup(
+    typename boost::graph_traits<G>::vertex_descriptor v,
+    typename boost::graph_traits<G>::vertex_descriptor u,
+    G& g) {
+  if(!edge(v, u, g).second) add_edge(v, u, g);
+}
+
 template <class Input, class Output>
 void copy_edges(const Input& in, Output& out) {
   for(auto e : range(edges(in)))
@@ -54,7 +62,7 @@ void add_spider(Graph& G, unsigned legs, Generator generator) {
   std::vector<int> path(range_iterator(0), range_iterator(n));
   std::shuffle(path.begin(), path.end(), generator);
   for(unsigned i = 0; i < n-1; ++i)
-    add_edge(path[i % cutoff == 0 ? 0 : i], path[i+1], G);
+    add_edge_no_dup(path[i % cutoff == 0 ? 0 : i], path[i+1], G);
 }
 
 template<class Graph, class Generator>
@@ -72,18 +80,18 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
       for(unsigned j = i + 1; j < n; ++j) {
         auto w = trial();
         if(w < connectedness) add_edge(i, j, w, g);
-        if(w < p) add_edge(i, j, G);
+        if(w < p) add_edge_no_dup(i, j, G);
       }
     }
     std::vector<WeightedEdge> t;
     kruskal_minimum_spanning_tree(g, std::back_inserter(t));
-    for(auto e : t) add_edge(source(e, g), target(e, g), G);
+    for(auto e : t) add_edge_no_dup(source(e, g), target(e, g), G);
   } else {
     std::bernoulli_distribution distribution(p);
     auto trial = std::bind(distribution, generator);
     for(unsigned i = 0; i < n; ++i) {
       for(unsigned j = i + 1; j < n; ++j) {
-        if(trial()) add_edge(i, j, G);
+        if(trial()) add_edge_no_dup(i, j, G);
       }
     }
   }
@@ -122,7 +130,7 @@ public:
       D.range_search(Circle(v.point(), d*d), boost::make_function_output_iterator(
           [&](Vertex_handle u){
             if(v.info() < u->info())
-              add_edge(v.info(), u->info(), G);
+              add_edge_no_dup(v.info(), u->info(), G);
       }));
   }
 
@@ -149,6 +157,6 @@ public:
 
     std::vector<WeightedEdge> mst;
     kruskal_minimum_spanning_tree(g, std::back_inserter(mst));
-    for(auto e : mst) add_edge(source(e, g), target(e, g), G);
+    for(auto e : mst) add_edge_no_dup(source(e, g), target(e, g), G);
   }
 };
