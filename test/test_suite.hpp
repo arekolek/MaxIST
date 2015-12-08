@@ -4,9 +4,11 @@
 
 #include <chrono>
 #include <random>
+#include <tuple>
 
 #include <boost/graph/graphml.hpp>
 
+#include "algorithm.hpp"
 #include "graph.hpp"
 
 unsigned time_seed() {
@@ -20,38 +22,47 @@ void generate_seeds(Iterator begin, Iterator end) {
   seq.generate(begin, end);
 }
 
+double pr_within(double x) {
+  return x <= 1
+    ?  .5*x*x*x*x - 8./3*x*x*x + M_PI*x*x
+    : -.5*x*x*x*x - 4*x*x*atan(sqrt(x*x-1)) + 4./3*(2*x*x+1)*sqrt(x*x-1) + (M_PI-2)*x*x + 1./3;
+};
+
 template <class Graph>
 class test_suite {
 public:
   unsigned size() const { return seeds.size(); }
 
-  float parameter() const { return p; }
   std::string type() const { return t; }
 
-  Graph get(unsigned i) const {
-    Graph G(n);
+  std::tuple<Graph, double, double> get(unsigned i) const {
     std::default_random_engine generator(seeds[i]);
+    Graph G(n);
+    auto d = degree;
+
     if(t.find("path") != std::string::npos) add_spider(G, 1, generator);
     if(t.find("rgg") != std::string::npos) {
+      auto r = find_argument(d/(n-1), pr_within, 0, sqrt(2));
       Geometric points(n, generator);
-      points.add_random_geometric(G, p);
+      points.add_random_geometric(G, r);
       if(t.find("mst") != std::string::npos) points.add_mst(G);
-    }
-    if(t.find("gnp") != std::string::npos) {
+      return std::make_tuple(G, d, r);
+    } else {
+      auto p = d/(n-1);
       bool mst = t.find("mst") != std::string::npos;
       add_edges_uniform(G, p, generator, mst);
+      return std::make_tuple(G, d, p);
     }
-    return G;
   }
 
-  test_suite(std::string t, unsigned z, unsigned n, float p) : t(t), n(n), p(p) {
+  test_suite(std::string t, unsigned z, unsigned n, double d) : t(t), n(n), degree(d) {
     seeds.resize(z);
     generate_seeds(seeds.begin(), seeds.end());
   }
 private:
   std::string t;
   unsigned n;
-  float p;
+  double degree;
   std::vector<unsigned> seeds;
 };
 

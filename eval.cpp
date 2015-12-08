@@ -76,7 +76,8 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
     #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
       std::stringstream buffer;
-      auto G = suite.get(i);
+      auto trial = suite.get(i);
+      auto G = std::get<0>(trial);
       if(!is_connected(G)) continue;
 
       for(auto cname : constructions) {
@@ -98,13 +99,14 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
           auto rules = improve(G, T);
           elapsed_i = timer.stop();
 
-          //  1    2       3      4      5         6      7      8             9            10        11     12     13     14
-          //  run  thread  model  param  vertices  edges  upper  construction  improvement  internal  ctime  itime  steps  rules
+//  1    2       3      4       5      6         7      8      9             10           11        12     13     14     15
+//  run  thread  model  degree  param  vertices  edges  upper  construction  improvement  internal  ctime  itime  steps  rules
           buffer
             << i << '\t'
             << id << '\t'
             << suite.type() << '\t'
-            << suite.parameter() << '\t'
+            << std::get<1>(trial) << '\t'
+            << std::get<2>(trial) << '\t'
             << num_vertices(G) << '\t'
             << num_edges(G) << '\t'
             << upper(G) << '\t'
@@ -132,11 +134,11 @@ template <class Graph, class Tree, class Sizes, class Params, class Strings>
 void run(std::string t, unsigned z, Sizes sizes, Params params,
          Strings const & constructions, Strings const & improvements, bool scratch) {
   if (t.find(".xml") != std::string::npos) {
-    real_suite<Graph> suite(t, z);
-    run<Graph, Tree>(suite, constructions, improvements, scratch);
+    //real_suite<Graph> suite(t, z);
+    //run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else if (t.find('.') != std::string::npos) {
-    file_suite<Graph> suite(t);
-    run<Graph, Tree>(suite, constructions, improvements, scratch);
+    //file_suite<Graph> suite(t);
+    //run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else {
     for (auto n : sizes) {
       for (auto p : params) {
@@ -157,13 +159,13 @@ int main(int argc, char** argv){
   auto z = opt.get<int>("-z", 1);
   auto sizes = opt.getList<int>("-n", {100});
   auto tests = opt.getList<string>("-t", {"gnp+mst"});
-  auto parameters = opt.getList<float>("-p", { 0.03f });
+  auto degrees = opt.getList<float>("-d", { 3. });
   auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs50", "ilst", "random"});
   auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost", "lost-ex"});
   auto scratch = opt.has("--scratch");
 
   for(auto t : tests)
-    run<alist, alist>(t, z, sizes, parameters, constructions, improvements, scratch);
+    run<alist, alist>(t, z, sizes, degrees, constructions, improvements, scratch);
 
   return 0;
 }
