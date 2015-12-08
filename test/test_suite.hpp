@@ -69,57 +69,36 @@ private:
 template <class Graph>
 class file_suite {
 public:
-  class iterator {
-    friend class file_suite;
-  public:
-    Graph operator *() const {
-      int n, m, s, t;
-      suite.file >> n >> m;
-      Graph G(n);
-      for(int i = 0; i < m; ++i) {
-        suite.file >> s >> t;
-        add_edge(s, t, G);
-      }
-      return G;
-    }
-    const iterator &operator ++() { ++i; return *this; }
-    iterator operator ++(int) { iterator copy(*this); ++i; return copy; }
-
-    bool operator ==(const iterator &other) const { return i == other.i; }
-    bool operator !=(const iterator &other) const { return i != other.i; }
-
-  protected:
-    iterator(file_suite const& s, unsigned i) : suite(s), i(i) {}
-
-  private:
-    file_suite const& suite;
-    unsigned long i;
-  };
-
-  iterator begin() const { return iterator(*this, 0); }
-  iterator end() const { return iterator(*this, size_); }
-  unsigned size() const { return size_; }
-
-  Graph get(uint i) const {
-    return *iterator(*this, i);
+  std::tuple<Graph, double, double> get(unsigned i) const {
+    return std::make_tuple(graphs[i], 0, 0);
   }
 
-  file_suite(std::string f) : t(f.substr(0, f.find('.'))), file(f), size_(0) {
+  unsigned size() const { return graphs.size(); }
+
+  file_suite(std::string f) : t(f.substr(0, f.find('.'))) {
+    std::ifstream file(f);
     if(!file.good()) {
       throw std::invalid_argument("File does not exist: " + f);
     }
-    file >> size_;
+    int z, n, m, s, t;
+    file >> z;
+    while(z--) {
+      file >> n >> m;
+      Graph G(n);
+      for(int i = 0; i < m; ++i) {
+        file >> s >> t;
+        add_edge(s, t, G);
+      }
+      graphs.push_back(G);
+    }
+    file.close();
   }
   std::string type() const {
     return t;
   }
-  int parameter() const {
-    return 0;
-  }
 private:
   std::string t;
-  mutable std::ifstream file;
-  unsigned size_;
+  std::vector<Graph> graphs;
 };
 
 template <class Graph>
@@ -127,13 +106,13 @@ class real_suite {
 public:
   unsigned size() const { return seeds.size(); }
 
-  Graph get(uint i) const {
+  std::tuple<Graph, double, double> get(uint i) const {
     std::default_random_engine generator(seeds[i]);
     auto p = shuffled(vertices(G), generator);
     Graph g(num_vertices(G));
     for(auto e : range(edges(G)))
       add_edge(p[source(e, G)], p[target(e, G)], g);
-    return g;
+    return std::make_tuple(G, 0, 0);
   }
 
   real_suite(std::string f, unsigned size) : G(0), t(f.substr(0, f.find('.'))), seeds(size) {
@@ -147,9 +126,6 @@ public:
   }
   std::string type() const {
     return t;
-  }
-  int parameter() const {
-    return 0;
   }
 private:
   Graph G;

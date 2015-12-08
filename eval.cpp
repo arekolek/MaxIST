@@ -137,11 +137,11 @@ template <class Graph, class Tree, class Sizes, class Params, class Strings>
 void run(std::string t, unsigned z, Sizes sizes, Params params,
          Strings const & constructions, Strings const & improvements, bool scratch) {
   if (t.find(".xml") != std::string::npos) {
-    //real_suite<Graph> suite(t, z);
-    //run<Graph, Tree>(suite, constructions, improvements, scratch);
+    real_suite<Graph> suite(t, z);
+    run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else if (t.find('.') != std::string::npos) {
-    //file_suite<Graph> suite(t);
-    //run<Graph, Tree>(suite, constructions, improvements, scratch);
+    file_suite<Graph> suite(t);
+    run<Graph, Tree>(suite, constructions, improvements, scratch);
   } else {
     for (auto n : sizes) {
       for (auto p : params) {
