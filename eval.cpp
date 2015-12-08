@@ -29,7 +29,10 @@
 #include "timing.hpp"
 
 boost::adjacency_matrix<boost::undirectedS> typedef amatrix;
-boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef alist;
+boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef ahash;
+boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS> typedef alist;
+boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS> typedef aset;
+boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> typedef avec;
 
 template<class Graph, class Tree>
 std::function<Tree(Graph&)> make_construction(std::string name) {
