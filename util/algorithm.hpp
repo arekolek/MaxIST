@@ -14,6 +14,8 @@ double find_argument(double y, Function f, double lo, double hi, double e = 1e-9
   while(true) {
     x = lo + (y - f(lo)) * (hi - lo) / (f(hi) - f(lo));
 
+    if(x < lo) return lo;
+    if(x > hi) return hi;
     if(abs(f(x)-y) < e) return x;
 
     if(abs(f(x)-f(lo)) < abs(y-f(lo))) lo = x;
