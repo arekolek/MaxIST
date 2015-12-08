@@ -1,0 +1,9 @@
+#!/usr/bin/python
+
+from __future__ import print_function
+from sys import argv
+from numpy import log10, logspace
+
+start, stop, steps = map(float, argv[1:])
+print(*logspace(log10(start), log10(stop), steps), sep=',')
+
