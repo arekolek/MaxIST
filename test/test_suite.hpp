@@ -40,6 +40,8 @@ public:
     auto Ed = degrees[(i / seeds.size()) % degrees.size()];
     auto n = sizes[i / seeds.size() / degrees.size()];
     auto d = Ed;
+    auto td = 2.*(n-1)/n;
+    bool mst = t.find("mst") != std::string::npos;
     Graph G(n);
 
     if(t.find("path") != std::string::npos) {
@@ -48,17 +50,18 @@ public:
       // full graph satisfies:    0     = a  (n-1)   + b
       // tree graph satisfies: 2(n-1)/n = a 2(n-1)/n + b
       // so we must subtract this:
-      d -= 2/(2-double(n)) * d + 1. + double(n)/(n-2);
+      d -= 2./(2.-n) * d + 1. + n/(n-2.);
     }
     if(t.find("rgg") != std::string::npos) {
-      auto r = find_argument(d/(n-1), pr_within, 0, sqrt(2));
+      if(mst) d -= d<2 ? td : 1/sinh(d-sqrt(2.)); // approximate fit
+      auto r = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
       Geometric points(n, generator);
       points.add_random_geometric(G, r);
-      if(t.find("mst") != std::string::npos) points.add_mst(G);
+      if(mst) points.add_mst(G);
       return std::make_tuple(G, Ed, r);
     } else {
-      auto p = d/(n-1);
-      bool mst = t.find("mst") != std::string::npos;
+      if(mst) d -= d<2 ? td : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
+      auto p = d<0 ? 0 : d/(n-1);
       add_edges_uniform(G, p, generator, mst);
       return std::make_tuple(G, Ed, p);
     }
