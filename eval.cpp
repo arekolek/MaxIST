@@ -129,7 +129,10 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       }
       #pragma omp critical
       std::cout << buffer.str() << std::flush;
+
+      if(suite.size() > 9999 && i % (suite.size() / 10) == 0) std::cerr << 100*i/suite.size() << "% ";
     }
+    if(id == 0 && suite.size() > 9999) std::cerr << "100%\n";
   }
 }
 
