@@ -5,5 +5,5 @@ from sys import argv
 from numpy import linspace
 
 start, stop, steps = map(float, argv[1:])
-print(*linspace(start, stop, steps).astype(int), sep=',')
+print(*linspace(start, stop, steps), sep=',')
 
