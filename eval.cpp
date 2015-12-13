@@ -71,6 +71,9 @@ std::function<unsigned(Graph&)> make_upper(std::string name) {
 
 template <class Graph, class Tree, class Suite, class Strings>
 void run(Suite& suite, Strings const & constructions, Strings const & improvements, bool scratch) {
+  timing total(CLOCK_REALTIME);
+  total.start();
+  std::cerr << "Suite size: " << suite.size() << std::endl;
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
@@ -130,10 +133,13 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       #pragma omp critical
       std::cout << buffer.str() << std::flush;
 
-      if(suite.size() > 9999 && i % (suite.size() / 10) == 0) std::cerr << 100*i/suite.size() << "% ";
+      if(id == 0) {
+        std::cerr << "\t" << 100*i/suite.size() << "%\t";
+        std::cerr << readable(total.stop()) << " elapsed    \r";
+      }
     }
-    if(id == 0 && suite.size() > 9999) std::cerr << "100%\n";
   }
+  std::cerr << "\t100%\n";
 }
 
 template <class Graph, class Tree, class Sizes, class Params, class Strings>
