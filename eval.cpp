@@ -74,7 +74,6 @@ template <class Graph, class Tree, class Suite, class Strings>
 void run(Suite& suite, Strings const & constructions, Strings const & improvements, bool scratch) {
   timing total(CLOCK_REALTIME);
   total.start();
-  std::cerr << "Suite size: " << suite.size() << std::endl;
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
@@ -135,8 +134,8 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       std::cout << buffer.str() << std::flush;
 
       if(id == 0) {
-        std::cerr << "\t" << 100*i/suite.size() << "%\t";
-        std::cerr << readable(total.stop()) << " elapsed    \r";
+        std::cerr << '\t' << 100*(i+1)/suite.size() << "% of " << suite.size();
+        std::cerr << '\t' << readable(total.stop()) << " elapsed    \r";
       }
     }
   }
