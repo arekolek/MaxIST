@@ -31,6 +31,7 @@
 boost::adjacency_matrix<boost::undirectedS> typedef amatrix;
 boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef ahash;
 boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS> typedef alist;
+boost::adjacency_list<boost::slistS, boost::vecS, boost::undirectedS> typedef aslist;
 boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS> typedef aset;
 boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> typedef avec;
 
@@ -172,8 +173,9 @@ int main(int argc, char** argv){
   auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost", "lost-ex"});
   auto scratch = opt.has("--scratch");
 
-  for(auto t : tests)
-    run<alist, alist>(t, z, sizes, degrees, constructions, improvements, scratch);
+  for(auto t : tests) {
+    run<alist, avec>(t, z, sizes, degrees, constructions, improvements, scratch);
+  }
 
   return 0;
 }
