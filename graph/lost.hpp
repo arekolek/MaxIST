@@ -41,6 +41,7 @@ public:
   std::vector<unsigned> const & leafish_free() const {
     return LP;
   }
+
   unsigned branching(unsigned l) const {
     // b(l)
     return B[l];
@@ -60,6 +61,10 @@ public:
     // b(l)->x
     return BN[l*n + x];
   }
+  bool is_short(unsigned l) const {
+    return parent(branching(l), l) == l;
+  }
+
   unsigned branch(unsigned x) const {
     // l: x ∈ br(l)
     return BR[x];
@@ -71,9 +76,7 @@ public:
   bool on_trunk(unsigned x) const {
     return BR[x] == -1;
   }
-  bool is_short(unsigned l) const {
-    return parent(branching(l), l) == l;
-  }
+
   void update() {
     L.clear();
     BR.assign(n, -1);
@@ -82,7 +85,7 @@ public:
     for(auto v : range(vertices(T)))
       if(out_degree(v, T) == 1) {
         L.push_back(v);
-        traverse(v, T);
+        traverse(v, T); // this could be lazy
       }
     if(G != NULL && L.size() > 2) {
       std::vector<bool> lp(n, false);
