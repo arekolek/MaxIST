@@ -85,7 +85,7 @@ public:
     for(auto v : range(vertices(T)))
       if(out_degree(v, T) == 1) {
         L.push_back(v);
-        traverse(v, T); // this could be lazy
+        traverse(v); // this could be lazy
       }
     if(G != NULL && L.size() > 2) {
       std::vector<bool> lp(n, false);
@@ -106,10 +106,10 @@ public:
           LP.push_back(l);
     }
   }
-  void traverse(unsigned l, Tree const & T) {
-    traverse(l, l, l, T);
+  void traverse(unsigned l) {
+    traverse(l, l, l);
   }
-  void traverse(unsigned l, unsigned a, unsigned b, Tree const & T) {
+  void traverse(unsigned l, unsigned a, unsigned b) {
     do {
       std::tie(a, b) = next(a, b);
       P[l*n + b] = a;
@@ -120,10 +120,10 @@ public:
       B[l] = b;
       for(auto v : range(adjacent_vertices(b, T)))
         if(v != a)
-          traverse(l, v, b, v, T);
+          traverse(l, v, b, v);
     }
   }
-  void traverse(unsigned l, unsigned blx, unsigned a, unsigned b, Tree const & T) {
+  void traverse(unsigned l, unsigned blx, unsigned a, unsigned b) {
     P[l*n + b] = a;
     BN[l*n + b] = blx;
     while(out_degree(b, T) == 2) {
@@ -134,7 +134,7 @@ public:
     if(out_degree(b, T) > 2) {
       for(auto v : range(adjacent_vertices(b, T)))
         if(v != a)
-          traverse(l, blx, b, v, T);
+          traverse(l, blx, b, v);
     }
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b) const {
