@@ -21,7 +21,7 @@ RM = rm -f
 # Using target-specific variables would be nicer,
 #   but they force you to build the whole source tree
 ifeq ($(GDB), off)
-	MODE = -O4
+	MODE = -O4 -DNDEBUG
 else
 	ifeq ($(GDB), on)
 		MODE = -O0 -g -ggdb
