@@ -23,32 +23,32 @@ namespace std {
 template <class Graph, class Tree>
 class leaf_info {
 public:
-  leaf_info(Graph const * G_, Tree const & T_) : G(G_), T(T_), n(num_vertices(T)) {
-    B.resize(n);
-    P.resize(n*n);
-    BN.resize(n*n);
+  leaf_info(Graph const * g, Tree const & t) : _g(g), _t(t), _n(num_vertices(_t)) {
+    _branching.resize(_n);
+    _parent.resize(_n*_n);
+    _branching_neighbor.resize(_n*_n);
     update();
   }
   bool is_path() const {
-    return L.size() == 2;
+    return _leaves.size() == 2;
   }
   std::vector<unsigned> const & leaves() const {
-    return L;
+    return _leaves;
   }
   std::vector<unsigned> const & leafish() const {
-    return LSH;
+    return _leafish;
   }
   std::vector<unsigned> const & leafish_free() const {
-    return LP;
+    return _leafish_free;
   }
 
   unsigned branching(unsigned l) const {
     // b(l)
-    return B[l];
+    return _branching[l];
   }
   unsigned parent(unsigned x, unsigned l) const {
     // x->l
-    return P[l*n + x];
+    return _parent[l*_n + x];
   }
   unsigned base(unsigned x) const {
     return next(parent(x, branch(x)), x).second;
@@ -59,7 +59,7 @@ public:
   }
   unsigned branching_neighbor(unsigned l, unsigned x) const {
     // b(l)->x
-    return BN[l*n + x];
+    return _branching_neighbor[l*_n + x];
   }
   bool is_short(unsigned l) const {
     return parent(branching(l), l) == l;
@@ -67,43 +67,43 @@ public:
 
   unsigned branch(unsigned x) const {
     // l: x ∈ br(l)
-    return BR[x];
+    return _branch[x];
   }
   bool on_branch(unsigned l, unsigned x) const {
     return l == x || branching(l) == x
-      || (out_degree(x, T) == 2 && !on_trunk(x) && branch(x) == l);
+      || (out_degree(x, _t) == 2 && !on_trunk(x) && branch(x) == l);
   }
   bool on_trunk(unsigned x) const {
-    return BR[x] == -1;
+    return _branch[x] == -1;
   }
 
   void update() {
-    L.clear();
-    BR.assign(n, -1);
-    LSH.clear();
-    LP.clear();
-    for(auto v : range(vertices(T)))
-      if(out_degree(v, T) == 1) {
-        L.push_back(v);
+    _leaves.clear();
+    _branch.assign(_n, -1);
+    _leafish.clear();
+    _leafish_free.clear();
+    for(auto v : range(vertices(_t)))
+      if(out_degree(v, _t) == 1) {
+        _leaves.push_back(v);
         traverse(v); // this could be lazy
       }
-    if(G != NULL && L.size() > 2) {
-      std::vector<bool> lp(n, false);
+    if(_g != NULL && _leaves.size() > 2) {
+      std::vector<bool> lp(_n, false);
       for(auto l : leaves())
         lp[l] = true;
       for(auto l : leaves())
-        if(!is_short(l) && edge(l, branching(l), *G).second) {
-          LSH.push_back(branching_neighbor(l));
+        if(!is_short(l) && edge(l, branching(l), *_g).second) {
+          _leafish.push_back(branching_neighbor(l));
           lp[l] = false;
         }
-      for(auto x : range(vertices(T)))
-        if(out_degree(x, T) == 2 && !on_trunk(x) && edge(branch(x), x, *G).second && x != branch(x)) {
-          LSH.push_back(parent(x, branch(x)));
+      for(auto x : range(vertices(_t)))
+        if(out_degree(x, _t) == 2 && !on_trunk(x) && edge(branch(x), x, *_g).second && x != branch(x)) {
+          _leafish.push_back(parent(x, branch(x)));
           lp[branch(x)] = false;
         }
       for(unsigned l = 0; l < lp.size(); ++l)
         if(lp[l])
-          LP.push_back(l);
+          _leafish_free.push_back(l);
     }
   }
   void traverse(unsigned l) {
@@ -112,42 +112,42 @@ public:
   void traverse(unsigned l, unsigned a, unsigned b) {
     do {
       std::tie(a, b) = next(a, b);
-      P[l*n + b] = a;
-      BR[a] = l;
-    } while(out_degree(b, T) == 2);
-    BR[b] = l;
-    if(out_degree(b, T) > 2) {
-      B[l] = b;
-      for(auto v : range(adjacent_vertices(b, T)))
+      _parent[l*_n + b] = a;
+      _branch[a] = l;
+    } while(out_degree(b, _t) == 2);
+    _branch[b] = l;
+    if(out_degree(b, _t) > 2) {
+      _branching[l] = b;
+      for(auto v : range(adjacent_vertices(b, _t)))
         if(v != a)
           traverse(l, v, b, v);
     }
   }
   void traverse(unsigned l, unsigned blx, unsigned a, unsigned b) {
-    P[l*n + b] = a;
-    BN[l*n + b] = blx;
-    while(out_degree(b, T) == 2) {
+    _parent[l*_n + b] = a;
+    _branching_neighbor[l*_n + b] = blx;
+    while(out_degree(b, _t) == 2) {
       std::tie(a, b) = next(a, b);
-      P[l*n + b] = a;
-      BN[l*n + b] = blx;
+      _parent[l*_n + b] = a;
+      _branching_neighbor[l*_n + b] = blx;
     }
-    if(out_degree(b, T) > 2) {
-      for(auto v : range(adjacent_vertices(b, T)))
+    if(out_degree(b, _t) > 2) {
+      for(auto v : range(adjacent_vertices(b, _t)))
         if(v != a)
           traverse(l, blx, b, v);
     }
   }
   std::pair<unsigned, unsigned> next(unsigned a, unsigned b) const {
-    auto it = adjacent_vertices(b, T).first;
+    auto it = adjacent_vertices(b, _t).first;
     return std::make_pair(b, a == *it ? *(++it) : *it);
   }
 private:
-  Graph const* G;
-  Tree const& T;
-  unsigned n;
-  std::vector<unsigned> L, LSH, LP;
-  std::vector<int> B, BR;
-  std::vector<int> P, BN;
+  Graph const* _g;
+  Tree const& _t;
+  unsigned _n;
+  std::vector<unsigned> _leaves, _leafish, _leafish_free;
+  std::vector<int> _branching, _branch;
+  std::vector<int> _parent, _branching_neighbor;
 };
 
 template <class Graph, class Tree, class LeafInfo>
