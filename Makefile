@@ -38,9 +38,6 @@ all: $(EXEC)
 %.exe : %.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
-%.o : %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $< 2> error.log || less error.log
-
 cleanall: clean
 	$(RM) **/*~ *.dot
 
