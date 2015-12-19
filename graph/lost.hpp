@@ -173,8 +173,10 @@ bool rule0(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Tree, class LeafInfo>
 void rule1action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
+  auto x = i.branching(l1);
+  auto y = i.branching_neighbor(l1);
   add_edge(l1, l2, T);
-  remove_edge(i.branching(l1), i.branching_neighbor(l1), T);
+  remove_edge(x, y, T);
   i.update();
 }
 
@@ -268,8 +270,9 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
         int l, x;
         if(extra[blx].size() == 1 && extra[blx].begin()->first == l2) continue;
         std::tie(l, x) = extra[blx].begin()->first == l2 ? *(extra[blx].begin()+1) : *extra[blx].begin();
+        auto bl = info.branching(l);
         add_edge(l, x, T);
-        remove_edge(info.branching(l), blx, T);
+        remove_edge(bl, blx, T);
         info.update();
         rule1action(l2, blx, T, info);
         return true;
@@ -356,10 +359,11 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
       if(info.is_short(l)
         && !edge(l, x, T).second && !edge(l, y, T).second
         && edge(l, x, G).second && edge(l, y, G).second) {
+        auto bl = info.branching(l);
         add_edge(l, x, T);
         add_edge(l, y, T);
         remove_edge(x, y, T);
-        remove_edge(l, info.branching(l), T);
+        remove_edge(l, bl, T);
         info.update();
         return true;
       }
@@ -384,10 +388,12 @@ bool rule6extended(Graph& G, Tree& T, LeafInfo& info) {
       auto b = info.branching_neighbor(l);
       if(check(a, b) || check(b, a)) {
         if(check(b, a)) std::swap(a, b);
+        auto bl = info.branching(l);
+        auto bln = info.branching_neighbor(l);
         add_edge(a, x, T);
         add_edge(b, y, T);
         remove_edge(x, y, T);
-        remove_edge(info.branching(l), info.branching_neighbor(l), T);
+        remove_edge(bl, bln, T);
         info.update();
         return true;
       }
@@ -398,8 +404,10 @@ bool rule6extended(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Tree, class LeafInfo>
 void rule7action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
-  add_edge(i.branching_neighbor(l1), l2, T);
-  remove_edge(i.branching_neighbor(l1), i.branching(l1), T);
+  auto bl = i.branching(l1);
+  auto bln = i.branching_neighbor(l1);
+  add_edge(bln, l2, T);
+  remove_edge(bln, bl, T);
   i.update();
 }
 
@@ -466,12 +474,14 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
       if(m[i*n + j]) {
         for(auto x : range(adjacent_vertices(l1, G)))
           if(!info.on_branch(l1, x) && (!info.on_branch(l2, x) || out_degree(x, T) > 2)) {
-            unsigned bn1 = info.branching_neighbor(l1);
-            unsigned bn2 = info.branching_neighbor(l2);
+            auto b1 = info.branching(l1);
+            auto b2 = info.branching(l2);
+            auto bn1 = info.branching_neighbor(l1);
+            auto bn2 = info.branching_neighbor(l2);
             add_edge(l1, x, T);
             add_edge(bn1, bn2, T);
-            remove_edge(info.branching(l1), bn1, T);
-            remove_edge(info.branching(l2), bn2, T);
+            remove_edge(b1, bn1, T);
+            remove_edge(b2, bn2, T);
             info.update();
             return true;
           }
@@ -532,12 +542,14 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
       if(m[i*n + j]) {
         for(auto x : range(adjacent_vertices(l1, G)))
           if(!info.on_branch(l1, x) && !info.on_branch(l2, x)) {
-            unsigned bn1 = info.branching_neighbor(l1);
-            unsigned bn2 = info.branching_neighbor(l2);
+            auto b1 = info.branching(l1);
+            auto b2 = info.branching(l2);
+            auto bn1 = info.branching_neighbor(l1);
+            auto bn2 = info.branching_neighbor(l2);
             add_edge(l1, x, T);
             add_edge(bn1, bn2, T);
-            remove_edge(info.branching(l1), bn1, T);
-            remove_edge(info.branching(l2), bn2, T);
+            remove_edge(b1, bn1, T);
+            remove_edge(b2, bn2, T);
             info.update();
             return true;
           }
@@ -550,7 +562,8 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Tree, class LeafInfo>
 void ruleA(unsigned u, Tree& T, LeafInfo& i) {
-  auto l = i.branch(u), x = i.base(u);
+  auto l = i.branch(u);
+  auto x = i.base(u);
   add_edge(l, x, T);
   remove_edge(x, u, T);
   i.update();
@@ -614,8 +627,9 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
       if (m[i * n + j] >= 0 && m[j * n + i] >= 0) {
         auto l1 = lp[i];
         auto x = m[i * n + j];
+        auto xl = info.parent(x, l1);
         add_edge(l1, x, T);
-        remove_edge(x, info.parent(x, l1), T);
+        remove_edge(x, xl, T);
         info.update();
         return true;
       }
@@ -632,8 +646,11 @@ bool rule14(Graph& G, Tree& T, LeafInfo& info) {
           && info.branching(l1) == info.branching(l2)
           && out_degree(info.branching(l1), T) == 3
           && edge(info.branching_neighbor(l1), info.branching_neighbor(l2), G).second) {
-        add_edge(info.branching_neighbor(l1), info.branching_neighbor(l2), T);
-        remove_edge(info.branching(l2), info.branching_neighbor(l2), T);
+        auto bn1 = info.branching_neighbor(l1);
+        auto bn2 = info.branching_neighbor(l2);
+        auto b2 = info.branching(l2);
+        add_edge(bn1, bn2, T);
+        remove_edge(b2, bn2, T);
         info.update();
         return true;
       }
