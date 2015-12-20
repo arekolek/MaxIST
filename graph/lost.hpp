@@ -23,10 +23,15 @@ namespace std {
 template <class Graph, class Tree>
 class leaf_info {
 public:
-  leaf_info(Graph const & g, Tree const & t) : _g(g), _t(t), _n(num_vertices(_t)) {
+  leaf_info(Graph const & g, Tree const & t, bool leafish, bool lazy)
+      : _g(g),
+        _t(t),
+        _n(num_vertices(_t)),
+        _needs_leafish(leafish),
+        _lazy(lazy) {
     _branching.resize(_n);
-    _parent.resize(_n*_n);
-    _branching_neighbor.resize(_n*_n);
+    _parent.resize(_n * _n);
+    _branching_neighbor.resize(_n * _n);
     update();
   }
   bool is_path() const {
@@ -91,6 +96,7 @@ public:
 
   void update() {
     _leaves.clear();
+    _traversed_all = false;
     _traversed.assign(_n, false);
     _branch.assign(_n, -1);
     _leafish.clear();
@@ -98,6 +104,11 @@ public:
     for(auto v : range(vertices(_t)))
       if(out_degree(v, _t) == 1)
         _leaves.push_back(v);
+
+    if(!_lazy) {
+      traverse_all();
+      if(_needs_leafish) update_leafish();
+    }
   }
 
 protected:
@@ -123,7 +134,10 @@ protected:
     }
   }
   void traverse_all() {
-    for(auto l : _leaves) traverse(l);
+    if(!_traversed_all) {
+      _traversed_all = true;
+      for(auto l : _leaves) traverse(l);
+    }
   }
   void traverse(unsigned l) {
     if(!_traversed[l]) {
@@ -168,8 +182,11 @@ private:
   Graph const& _g;
   Tree const& _t;
   unsigned _n;
-  std::vector<unsigned> _leaves, _leafish, _leafish_free;
+  bool _needs_leafish;
+  bool _lazy;
+  bool _traversed_all;
   std::vector<bool> _traversed;
+  std::vector<unsigned> _leaves, _leafish, _leafish_free;
   std::vector<int> _branching, _branch;
   std::vector<int> _parent, _branching_neighbor;
 };
@@ -704,18 +721,22 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
           rule13<Graph,Tree,leaf_info<Graph,Tree>>,
           rule14<Graph,Tree,leaf_info<Graph,Tree>>,
         };
+
   std::vector<bool> active(rules.size(), 0);
+  bool lazy = name.find("lazy") != std::string::npos;
+
   if (name == "prieto")
     active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  else if (name == "lost-light")
+  else if (name == "lost-light" || name == "lost-light+lazy") {
     active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
-  else if (name == "lost") {
+  }
+  else if (name == "lost" || name == "lost+lazy") {
     active = {0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost15") {
     active = {1,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
-  else if (name == "lost-ex") {
+  else if (name == "lost-ex" || name == "lost-ex+lazy") {
     active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-simple") {
@@ -729,8 +750,13 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
     auto k = std::stoi(name);
     std::fill(active.begin()+1, active.begin()+k+1, true);
   }
-  return [rules, active](Graph& G, Tree& T) {
-    leaf_info<Graph,Tree> info(G, T);
+
+  bool leafish = false;
+  for(unsigned i = 13; i < active.size(); ++i)
+    if(active[i]) leafish = true;
+
+  return [rules, active, leafish, lazy](Graph& G, Tree& T) {
+    leaf_info<Graph,Tree> info(G, T, leafish, lazy);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
     while(applied && !info.is_path()) {
