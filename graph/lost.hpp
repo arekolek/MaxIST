@@ -23,7 +23,7 @@ namespace std {
 template <class Graph, class Tree>
 class leaf_info {
 public:
-  leaf_info(Graph const * g, Tree const & t) : _g(g), _t(t), _n(num_vertices(_t)) {
+  leaf_info(Graph const & g, Tree const & t) : _g(g), _t(t), _n(num_vertices(_t)) {
     _branching.resize(_n);
     _parent.resize(_n*_n);
     _branching_neighbor.resize(_n*_n);
@@ -107,13 +107,13 @@ protected:
       for (auto l : leaves())
         lp[l] = true;
       for (auto l : leaves())
-        if (!is_short(l) && edge(l, branching(l), *_g).second) {
+        if (!is_short(l) && edge(l, branching(l), _g).second) {
           _leafish.push_back(branching_neighbor(l));
           lp[l] = false;
         }
       for (auto x : range(vertices(_t)))
         if (out_degree(x, _t) == 2 && !on_trunk(x)
-            && edge(branch(x), x, *_g).second && x != branch(x)) {
+            && edge(branch(x), x, _g).second && x != branch(x)) {
           _leafish.push_back(parent(x, branch(x)));
           lp[branch(x)] = false;
         }
@@ -165,7 +165,7 @@ protected:
   }
 
 private:
-  Graph const* _g;
+  Graph const& _g;
   Tree const& _t;
   unsigned _n;
   std::vector<unsigned> _leaves, _leafish, _leafish_free;
@@ -705,21 +705,17 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
           rule14<Graph,Tree,leaf_info<Graph,Tree>>,
         };
   std::vector<bool> active(rules.size(), 0);
-  bool extended = false;
   if (name == "prieto")
     active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost-light")
     active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost") {
-    extended = true;
     active = {0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost15") {
-    extended = true;
     active = {1,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-ex") {
-    extended = true;
     active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-simple") {
@@ -732,10 +728,9 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   else {
     auto k = std::stoi(name);
     std::fill(active.begin()+1, active.begin()+k+1, true);
-    extended = k > 9;
   }
-  return [rules, active, extended](Graph& G, Tree& T) {
-    leaf_info<Graph,Tree> info(extended ? &G : NULL, T);
+  return [rules, active](Graph& G, Tree& T) {
+    leaf_info<Graph,Tree> info(G, T);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
     while(applied && !info.is_path()) {
