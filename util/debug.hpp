@@ -10,7 +10,7 @@
 struct graph_writer {
   bool labels;
   graph_writer(bool l) : labels(l) {}
-  virtual void operator()(std::ostream& out) const {
+  void operator()(std::ostream& out) const {
     if(labels) {
       out << "node [shape=circle color=burlywood style=filled]" << std::endl;
       out << "edge [style=dashed color=burlywood penwidth=4 weight=0.3]" << std::endl;
