@@ -21,14 +21,17 @@ public:
   }
 };
 
-std::string readable(double t) {
-  if(t < 1000) return std::to_string((int)t) + " ms";
+std::string readable(int t) {
+  if(t < 1000) return std::to_string(t) + " ms";
   t /= 1000;
-  if(t < 60) return std::to_string((int)t) + " s";
+
+  std::string result = std::to_string(t % 60) + " s";
+  if(t < 60) return result;
   t /= 60;
-  if(t < 60) return std::to_string(t) + " minutes";
+
+  result = std::to_string(t % 60) + " m " + result;
+  if(t < 60) return result;
   t /= 60;
-  if(t < 24) return std::to_string(t) + " hours";
-  t /= 24;
-  return std::to_string(t) + " days";
+
+  return std::to_string(t) + " h " + result;
 }

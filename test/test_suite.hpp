@@ -35,8 +35,9 @@ public:
 
   std::string type() const { return t; }
 
-  std::tuple<Graph, double, double> get(unsigned i) const {
-    std::default_random_engine generator(seeds[i % seeds.size()]);
+  std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
+    auto run = i % seeds.size();
+    std::default_random_engine generator(seeds[run]);
     auto Ed = degrees[(i / seeds.size()) % degrees.size()];
     auto n = sizes[i / seeds.size() / degrees.size()];
     auto d = Ed;
@@ -58,12 +59,12 @@ public:
       Geometric points(n, generator);
       points.add_random_geometric(G, r);
       if(mst) points.add_mst(G);
-      return std::make_tuple(G, Ed, r);
+      return std::make_tuple(G, run, Ed, r);
     } else {
       if(mst) d -= d<2 ? td : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
       auto p = d<0 ? 0 : d/(n-1);
       add_edges_uniform(G, p, generator, mst);
-      return std::make_tuple(G, Ed, p);
+      return std::make_tuple(G, run, Ed, p);
     }
   }
 
@@ -82,8 +83,8 @@ private:
 template <class Graph>
 class file_suite {
 public:
-  std::tuple<Graph, double, double> get(unsigned i) const {
-    return std::make_tuple(graphs[i], 0, 0);
+  std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
+    return std::make_tuple(graphs[i], i, 0, 0);
   }
 
   unsigned size() const { return graphs.size(); }
@@ -119,13 +120,13 @@ class real_suite {
 public:
   unsigned size() const { return seeds.size(); }
 
-  std::tuple<Graph, double, double> get(uint i) const {
+  std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
     std::default_random_engine generator(seeds[i]);
     auto p = shuffled(vertices(G), generator);
     Graph g(num_vertices(G));
     for(auto e : range(edges(G)))
       add_edge(p[source(e, G)], p[target(e, G)], g);
-    return std::make_tuple(G, 0, 0);
+    return std::make_tuple(G, i, 0, 0);
   }
 
   real_suite(std::string f, unsigned size) : G(0), t(f.substr(0, f.find('.'))), seeds(size) {

@@ -119,11 +119,11 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
           buffer
             << graph_type << '\t'
             << tree_type << '\t'
-            << i << '\t' // TODO i should be equal to the seeds index in case of test_suite
+            << std::get<1>(trial) << '\t'
             << id << '\t'
             << suite.type() << '\t'
-            << std::get<1>(trial) << '\t'
             << std::get<2>(trial) << '\t'
+            << std::get<3>(trial) << '\t'
             << num_vertices(G) << '\t'
             << num_edges(G) << '\t'
             << upper(G) << '\t'
@@ -144,13 +144,13 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       #pragma omp critical
       std::cout << buffer.str() << std::flush;
 
-      if(id == 0) {
+      if(id == 0 || i+1 == suite.size()) {
         std::cerr << '\t' << 100*(i+1)/suite.size() << "% of " << suite.size();
         std::cerr << '\t' << readable(total.stop()) << " elapsed    \r";
       }
     }
   }
-  std::cerr << "\t100%\n";
+  std::cerr << std::endl;
 }
 
 template <class Graph, class Tree, class Sizes, class Params, class Strings>
