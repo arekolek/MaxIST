@@ -33,6 +33,7 @@ boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS> typedef
 boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS> typedef alist;
 boost::adjacency_list<boost::slistS, boost::vecS, boost::undirectedS> typedef aslist;
 boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS> typedef aset;
+boost::adjacency_list<boost::multisetS, boost::vecS, boost::undirectedS> typedef amultiset;
 boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> typedef avec;
 
 template<class Graph, class Tree>
@@ -70,10 +71,20 @@ std::function<unsigned(Graph&)> make_upper(std::string name) {
   return upper_bound<Graph> ;
 }
 
+std::string type(amatrix const & G) { return "matrix"; }
+std::string type(ahash const & G) { return "unordered_set"; }
+std::string type(aset const & G) { return "set"; }
+std::string type(amultiset const & G) { return "multiset"; }
+std::string type(alist const & G) { return "list"; }
+std::string type(aslist const & G) { return "slist"; }
+std::string type(avec const & G) { return "vector"; }
+
 template <class Graph, class Tree, class Suite, class Strings>
 void run(Suite& suite, Strings const & constructions, Strings const & improvements, bool scratch) {
   timing total(CLOCK_REALTIME);
   total.start();
+  auto graph_type = type(Graph(0));
+  auto tree_type = type(Tree(0));
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
@@ -105,10 +116,10 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
           auto rules = improve(G, T);
           elapsed_i = timer.stop();
 
-//  1    2       3      4       5      6         7      8      9             10           11        12     13     14     15
-//  run  thread  model  degree  param  vertices  edges  upper  construction  improvement  internal  ctime  itime  steps  rules
           buffer
-            << i << '\t'
+            << graph_type << '\t'
+            << tree_type << '\t'
+            << i << '\t' // TODO i should be equal to the seeds index in case of test_suite
             << id << '\t'
             << suite.type() << '\t'
             << std::get<1>(trial) << '\t'
@@ -122,7 +133,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             << elapsed_c << '\t'
             << elapsed_i << '\t'
             << sum(rules) << '\t'
-            << join(rules, "-") << '\t'
+            << join(rules, "-")
             << std::endl;
             ;
           //show("graph" + std::to_string(i) + ".dot", G, T);
@@ -157,6 +168,30 @@ void run(std::string t, unsigned z, Sizes sizes, Params params,
   }
 }
 
+template <class Graph, class Sizes, class Degrees, class Strings>
+void run(std::string tree, std::string t, unsigned z, Sizes sizes, Degrees degrees,
+         Strings const & constructions, Strings const & improvements, bool scratch) {
+  if(tree == "matrix") run<Graph, amatrix>(t, z, sizes, degrees, constructions, improvements, scratch);
+  if(tree == "hash") run<Graph, ahash>(t, z, sizes, degrees, constructions, improvements, scratch);
+  if(tree == "set") run<Graph, aset>(t, z, sizes, degrees, constructions, improvements, scratch);
+  if(tree == "multiset") run<Graph, amultiset>(t, z, sizes, degrees, constructions, improvements, scratch);
+  if(tree == "list") run<Graph, alist>(t, z, sizes, degrees, constructions, improvements, scratch);
+  if(tree == "slist") run<Graph, aslist>(t, z, sizes, degrees, constructions, improvements, scratch);
+  if(tree == "vec") run<Graph, avec>(t, z, sizes, degrees, constructions, improvements, scratch);
+}
+
+template <class Sizes, class Degrees, class Strings>
+void run(std::string graph, std::string tree, std::string t, unsigned z, Sizes sizes, Degrees degrees,
+         Strings const & constructions, Strings const & improvements, bool scratch) {
+  if(graph == "matrix") run<amatrix>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+  if(graph == "hash") run<ahash>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+  if(graph == "set") run<aset>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+  if(graph == "multiset") run<amultiset>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+  if(graph == "list") run<alist>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+  if(graph == "slist") run<aslist>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+  if(graph == "vec") run<avec>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+}
+
 int main(int argc, char** argv){
   using std::string;
   using std::vector;
@@ -165,16 +200,39 @@ int main(int argc, char** argv){
 
   options opt(argc, argv);
   auto z = opt.get<int>("-z", 1);
+  auto graphs = opt.getList<string>("-g", {"list"});
+  auto trees = opt.getList<string>("-t", {"vec"});
   auto sizes = opt.getList<unsigned>("-n", {100});
-  auto tests = opt.getList<string>("-t", {"gnp+mst"});
+  auto tests = opt.getList<string>("-m", {"gnp+mst"});
   auto degrees = opt.getList<double>("-d", { 3. });
   auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs50", "ilst", "random"});
   auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost", "lost-ex"});
   auto scratch = opt.has("--scratch");
 
-  for(auto t : tests) {
-    run<alist, avec>(t, z, sizes, degrees, constructions, improvements, scratch);
-  }
+  std::cout
+    << "graph\t"
+    << "tree\t"
+    << "run\t"
+    << "thread\t"
+    << "model\t"
+    << "degree\t"
+    << "param\t"
+    << "vertices\t"
+    << "edges\t"
+    << "upper\t"
+    << "construction\t"
+    << "improvement\t"
+    << "internal\t"
+    << "ctime\t"
+    << "itime\t"
+    << "steps\t"
+    << "rules"
+    << std::endl;
+
+  for(auto t : tests)
+    for(auto graph : graphs)
+      for(auto tree : trees)
+        run(graph, tree, t, z, sizes, degrees, constructions, improvements, scratch);
 
   return 0;
 }
