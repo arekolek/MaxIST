@@ -80,7 +80,7 @@ public:
     return _branch[x];
   }
   unsigned base(unsigned x) {
-    traverse_all(); // this is not lazy, but this function almost doesn't get called
+    // traverse_all() is called in branch(x) if needed
     return next(parent(x, branch(x)), x).second;
   }
   bool on_branch(unsigned l, unsigned x) {
@@ -90,7 +90,7 @@ public:
         || (out_degree(x, _t) == 2 && _branch[x] == l); // we can access _branch directly in this case
   }
   bool on_trunk(unsigned x) {
-    traverse_all(); // this is not lazy, but this function almost doesn't get called
+    // traverse_all() is called in branch(x) if needed
     return branch(x) == -1;
   }
 
@@ -492,7 +492,7 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
     for(auto x : range(adjacent_vertices(l1, G)))
       if(!info.on_branch(l1, x)) {
         ++count;
-        if(info.on_trunk(x) || out_degree(x, T) > 2)
+        if(info.on_trunk(x) || out_degree(x, T) > 2) // FIXME why "|| out_degree(x, T) > 2"
           ok = true;
         else if(count == 1)
           l2 = info.branch(x);
@@ -724,19 +724,20 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
 
   std::vector<bool> active(rules.size(), 0);
   bool lazy = name.find("lazy") != std::string::npos;
+  if(lazy) name = name.substr(0, name.find("+"));
 
   if (name == "prieto")
     active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  else if (name == "lost-light" || name == "lost-light+lazy") {
+  else if (name == "lost-light") {
     active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
   }
-  else if (name == "lost" || name == "lost+lazy") {
+  else if (name == "lost") {
     active = {0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost15") {
     active = {1,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
-  else if (name == "lost-ex" || name == "lost-ex+lazy") {
+  else if (name == "lost-ex") {
     active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-simple") {
