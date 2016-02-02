@@ -76,10 +76,12 @@ public:
 
   // l: x ∈ br(l)
   unsigned branch(unsigned x) {
+    assert(out_degree(x, _t) < 3);
     traverse_all(); // this is not lazy, but this function almost doesn't get called
     return _branch[x];
   }
   unsigned base(unsigned x) {
+    assert(out_degree(x, _t) < 3);
     // traverse_all() is called in branch(x) if needed
     return next(parent(x, branch(x)), x).second;
   }
@@ -90,8 +92,8 @@ public:
         || (out_degree(x, _t) == 2 && _branch[x] == l); // we can access _branch directly in this case
   }
   bool on_trunk(unsigned x) {
-    // traverse_all() is called in branch(x) if needed
-    return branch(x) == -1;
+    traverse_all();
+    return _branch[x] == -1;
   }
 
   void update() {
@@ -116,7 +118,7 @@ protected:
     if (_leafish.empty() && _leafish_free.empty()) {
       std::vector<bool> lp(_n, false);
       for (auto l : leaves())
-        lp[l] = true;
+        lp[l] = !is_short(l);
       for (auto l : leaves())
         if (!is_short(l) && edge(l, branching(l), _g).second) {
           _leafish.push_back(branching_neighbor(l));
@@ -124,7 +126,7 @@ protected:
         }
       for (auto x : range(vertices(_t)))
         if (out_degree(x, _t) == 2 && !on_trunk(x)
-            && edge(branch(x), x, _g).second && x != branch(x)) {
+            && edge(branch(x), x, _g).second && !edge(branch(x), x, _t).second) {
           _leafish.push_back(parent(x, branch(x)));
           lp[branch(x)] = false;
         }
@@ -612,11 +614,11 @@ void ruleA(unsigned u, Tree& T, LeafInfo& i) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule10(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l : info.leaves())
+  for(auto l2 : info.leaves())
     for(auto u : info.leafish())
-      if(edge(u, l, T).second && info.branch(u) != l) {
+      if(edge(u, l2, G).second && info.branch(u) != l2) {
         ruleA(u, T, info);
-        rule1action(l, u, T, info);
+        rule1action(l2, u, T, info);
         return true;
       }
   return false;
@@ -626,7 +628,7 @@ template <class Graph, class Tree, class LeafInfo>
 bool rule11(Graph& G, Tree& T, LeafInfo& info) {
   for(auto u : info.leafish())
     for(auto v : info.leafish())
-      if(edge(u, v, T).second && info.branch(u) != info.branch(v)) {
+      if(edge(u, v, G).second && info.branch(u) != info.branch(v)) {
         ruleA(u, T, info);
         ruleA(v, T, info);
         rule1action(u, v, T, info);
@@ -637,12 +639,12 @@ bool rule11(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule12(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l : info.leaves())
+  for(auto l2 : info.leaves())
     for(auto u : info.leafish())
-      if(edge(u, info.branching_neighbor(l), T).second
-          && info.branch(u) != l) {
+      if(edge(u, info.branching_neighbor(l2), G).second
+          && info.branch(u) != l2) {
         ruleA(u, T, info);
-        rule7action(l, u, T, info);
+        rule7action(l2, u, T, info);
         return true;
       }
   return false;
@@ -651,18 +653,14 @@ bool rule12(Graph& G, Tree& T, LeafInfo& info) {
 template <class Graph, class Tree, class LeafInfo>
 bool rule13(Graph& G, Tree& T, LeafInfo& info) {
   auto const & lp = info.leafish_free();
-  std::unordered_map<unsigned, unsigned> lookup;
-  for(unsigned i = 0; i < lp.size(); ++i)
-    lookup[lp[i]] = i;
   unsigned n = lp.size();
   std::vector<int> m(n * n, -1);
   for(unsigned i = 0; i < n; ++i)
-    for(auto x : range(adjacent_vertices(lp[i], G)))
-      if(!info.on_trunk(x) && info.branch(x) != lp[i])
-        try {
-          m[i*n + lookup.at(info.branch(x))] = x;
-        } catch (std::out_of_range& e) {
-        }
+    for(unsigned j = 0; j < n; ++j)
+      if(i != j)
+        for(auto x : range(adjacent_vertices(lp[i], G)))
+          if(out_degree(x, T) == 2 && info.on_branch(lp[j], x))
+              m[i*n + j] = x;
   for (unsigned i = 0; i < n; ++i) {
     for (unsigned j = 0; j < n; ++j) {
       if (m[i * n + j] >= 0 && m[j * n + i] >= 0) {
@@ -681,20 +679,21 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule14(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l1 : info.leafish_free())
-    for(auto l2 : info.leafish_free())
-      if(l1 != l2
-          && info.branching(l1) == info.branching(l2)
-          && out_degree(info.branching(l1), T) == 3
-          && edge(info.branching_neighbor(l1), info.branching_neighbor(l2), G).second) {
-        auto bn1 = info.branching_neighbor(l1);
-        auto bn2 = info.branching_neighbor(l2);
-        auto b2 = info.branching(l2);
-        add_edge(bn1, bn2, T);
-        remove_edge(b2, bn2, T);
-        info.update();
-        return true;
-      }
+  if(info.leaves().size() > 3)
+    for(auto l1 : info.leafish_free())
+      for(auto l2 : info.leafish_free())
+        if(l1 != l2
+            && info.branching(l1) == info.branching(l2)
+            && out_degree(info.branching(l1), T) == 3
+            && edge(info.branching_neighbor(l1), info.branching_neighbor(l2), G).second) {
+          auto bn1 = info.branching_neighbor(l1);
+          auto bn2 = info.branching_neighbor(l2);
+          auto b2 = info.branching(l2);
+          add_edge(bn1, bn2, T);
+          remove_edge(b2, bn2, T);
+          info.update();
+          return true;
+        }
   return false;
 }
 
@@ -760,6 +759,7 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
     leaf_info<Graph,Tree> info(G, T, leafish, lazy);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
+    unsigned steps = num_vertices(G);
     while(applied && !info.is_path()) {
       applied = false;
       for(unsigned i = 0; i < rules.size(); ++i) {
@@ -769,6 +769,7 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
           break;
         }
       }
+      assert(--steps > 0);
     }
     return counter;
   };
