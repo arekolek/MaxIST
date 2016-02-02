@@ -703,7 +703,9 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   Rules rules = {
           rule0<Graph,Tree,leaf_info<Graph,Tree>>,
           rule1<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule7<Graph,Tree,leaf_info<Graph,Tree>>,
           rule2<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule10<Graph,Tree,leaf_info<Graph,Tree>>,
           rule3<Graph,Tree,leaf_info<Graph,Tree>>,
           rule4<Graph,Tree,leaf_info<Graph,Tree>>,
           rule5<Graph,Tree,leaf_info<Graph,Tree>>,
@@ -726,21 +728,24 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   if(lazy) name = name.substr(0, name.find("+"));
 
   if (name == "prieto")
-    active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   else if (name == "lost-light") {
-    active = {0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
+    active = {0,1,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
   }
   else if (name == "lost") {
-    active = {0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
+    active = {0,1,0,1,0,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost15") {
-    active = {1,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
+    active = {1,1,0,1,0,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
   }
   else if (name == "lost-ex") {
-    active = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    active = {0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+  }
+  else if (name == "lost-ex2") {
+    active = {0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1};
   }
   else if (name == "lost-simple") {
-    active = {0,1,1,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0};
+    active = {0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0};
   }
   else if (name == "none")
     return [active](Graph& G, Tree& T) {
@@ -751,8 +756,8 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
     std::fill(active.begin()+1, active.begin()+k+1, true);
   }
 
-  bool leafish = false;
-  for(unsigned i = 13; i < active.size(); ++i)
+  bool leafish = active[4];
+  for(unsigned i = 15; i < active.size(); ++i)
     if(active[i]) leafish = true;
 
   return [rules, active, leafish, lazy](Graph& G, Tree& T) {
