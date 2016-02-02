@@ -7,12 +7,19 @@
 #include <utility>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/connected_components.hpp>
-#include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/function_input_iterator.hpp>
 #include <boost/function_output_iterator.hpp>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/kruskal_min_spanning_tree.hpp>
+#include <boost/graph/boyer_myrvold_planar_test.hpp>
+#include <boost/graph/planar_canonical_ordering.hpp>
+#include <boost/graph/chrobak_payne_drawing.hpp>
+#include <boost/graph/make_connected.hpp>
+#include <boost/graph/make_biconnected_planar.hpp>
+#include <boost/graph/make_maximal_planar.hpp>
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
@@ -31,7 +38,7 @@ unsigned num_internal(Graph const & G) {
 
 template<class Graph>
 unsigned upper_bound(Graph const & G) {
-  return std::min(num_internal(G), (unsigned)num_vertices(G) - 2);
+  return std::min(num_internal(G), (unsigned) num_vertices(G) - 2);
 }
 
 template<class Graph>
@@ -160,3 +167,81 @@ public:
     for(auto e : mst) add_edge_no_dup(source(e, g), target(e, g), G);
   }
 };
+
+template<class G>
+bool is_planar(G const & gIn) {
+  return boyer_myrvold_planarity_test(gIn);
+}
+
+//a class to hold the coordinates of the straight line embedding
+struct coord_t {
+  std::size_t x;
+  std::size_t y;
+};
+
+template<class G>
+std::vector<coord_t> straight_line_drawing(G const & gIn) {
+  using namespace boost;
+
+  typedef adjacency_list<vecS, vecS, undirectedS, property<vertex_index_t, int>,
+      property<edge_index_t, int> > Graph;
+
+  Graph g;
+  copy_edges(gIn, g);
+
+  //Define the storage type for the planar embedding
+  typedef std::vector<std::vector<graph_traits<Graph>::edge_descriptor>> embedding_storage_t;
+  typedef iterator_property_map<embedding_storage_t::iterator,
+      property_map<Graph, vertex_index_t>::type> embedding_t;
+
+  make_connected(g);
+
+  // Create the planar embedding
+  embedding_storage_t embedding_storage(num_vertices(g));
+  embedding_t embedding(embedding_storage.begin(), get(vertex_index, g));
+
+  boyer_myrvold_planarity_test(boyer_myrvold_params::graph = g,
+                               boyer_myrvold_params::embedding = embedding);
+
+  //Initialize the interior edge index
+  property_map<Graph, edge_index_t>::type e_index = get(edge_index, g);
+  graph_traits<Graph>::edges_size_type edge_count = 0;
+  graph_traits<Graph>::edge_iterator ei, ei_end;
+  for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+    put(e_index, *ei, edge_count++);
+
+  make_biconnected_planar(g, embedding);
+
+  // Re-initialize the edge index, since we just added a few edges
+  edge_count = 0;
+  for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+    put(e_index, *ei, edge_count++);
+
+  //Test for planarity again; compute the planar embedding as a side-effect
+  boyer_myrvold_planarity_test(boyer_myrvold_params::graph = g,
+                               boyer_myrvold_params::embedding = embedding);
+
+  make_maximal_planar(g, embedding);
+
+  //Test for planarity again; compute the planar embedding as a side-effect
+  boyer_myrvold_planarity_test(boyer_myrvold_params::graph = g,
+                               boyer_myrvold_params::embedding = embedding);
+
+  // Find a canonical ordering
+  std::vector<typename graph_traits<Graph>::vertex_descriptor> ordering;
+  planar_canonical_ordering(g, embedding, std::back_inserter(ordering));
+
+  //Set up a property map to hold the mapping from vertices to coord_t's
+  typedef std::vector<coord_t> drawing_storage_t;
+  typedef boost::iterator_property_map<drawing_storage_t::iterator,
+      property_map<Graph, vertex_index_t>::type> drawing_t;
+
+  drawing_storage_t drawing_storage(num_vertices(g));
+  drawing_t drawing(drawing_storage.begin(), get(vertex_index, g));
+
+  // Compute the straight line drawing
+  chrobak_payne_straight_line_drawing(g, embedding, ordering.begin(),
+                                      ordering.end(), drawing);
+
+  return drawing_storage;
+}
