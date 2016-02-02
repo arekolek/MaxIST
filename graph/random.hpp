@@ -38,7 +38,7 @@ template <class Graph, class Tree>
 Tree wilson_tree(Graph& G) {
   unsigned n = num_vertices(G);
   std::vector<int> pred(n);
-  std::default_random_engine gen;
+  static std::default_random_engine gen;
   random_spanning_tree(G, gen, boost::predecessor_map(&pred[0]));
   Tree T(n);
   for(int i = 0; i < n; ++i)
