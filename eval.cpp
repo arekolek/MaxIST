@@ -37,7 +37,7 @@ boost::adjacency_list<boost::multisetS, boost::vecS, boost::undirectedS> typedef
 boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> typedef avec;
 
 template<class Graph, class Tree>
-std::function<Tree(Graph&)> make_construction(std::string name) {
+std::function<Tree(Graph&)> make_construction(std::string name, unsigned size, unsigned index) {
   if (name == "bfs")
     return bfs_tree<Graph, Tree> ;
   if (name == "dfs")
@@ -58,6 +58,12 @@ std::function<Tree(Graph&)> make_construction(std::string name) {
     return ilst<Graph, Tree> ;
   if (name == "5/3")
     return five_three_tree<Graph, Tree> ;
+  if (name.find(".xml") != std::string::npos) {
+    return [name,size,index](const Graph& G) {
+      real_suite<Tree> suite(name, size);
+      return std::get<0>(suite.get(index));
+    };
+  }
   throw std::invalid_argument("Unknown construction method: " + name);
 }
 
@@ -98,7 +104,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       if(!is_connected(G)) continue;
 
       for(auto cname : constructions) {
-        auto construct = make_construction<Graph, Tree>(cname);
+        auto construct = make_construction<Graph, Tree>(cname, suite.size(), i);
         auto upper = make_upper<Graph>(cname);
         timer.start();
         auto T = construct(G);
