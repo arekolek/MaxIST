@@ -309,12 +309,17 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
 
   for(int l2 : info.leaves())
     for(int blx = 0; blx < n; ++blx)
-      if(!extra[blx].empty() && edge(l2, blx, G).second) {
-        int l, x;
-        if(extra[blx].size() == 1 && extra[blx].begin()->first == l2) continue;
-        std::tie(l, x) = extra[blx].begin()->first == l2 ? *(extra[blx].begin()+1) : *extra[blx].begin();
-        auto bl = info.branching(l);
-        add_edge(l, x, T);
+      if(!extra[blx].empty() && edge(l2, blx, G).second && !edge(l2, blx, T).second) {
+        int l1 = -1, x;
+        for(auto e : extra[blx]) {
+          if(e.first != l2 && e.second != l2 && e.second != blx) {
+            std::tie(l1, x) = e;
+            break;
+          }
+        }
+        if(l1 == -1) continue;
+        auto bl = info.branching(l1);
+        add_edge(l1, x, T);
         remove_edge(bl, blx, T);
         info.update();
         rule1action(l2, blx, T, info);
@@ -332,6 +337,7 @@ bool ruleCycleElimination1(Graph& G, Tree& T, LeafInfo& info) {
         auto a = info.parent(x, l);
         auto b = info.parent(a, l);
         auto bl = info.branching(l);
+        if(a == bl) continue;
         while (b != bl) {
           if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
             add_edge(l, x, T);
@@ -371,19 +377,14 @@ bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
         auto a = info.parent(x, l);
         auto b = info.parent(a, l);
         auto bl = info.branching(l);
+        if(a == bl) continue;
         while (b != bl) {
-          if (out_degree(a, T) > 2 && supports_other(b, l)) {
+          if (supports_other(a, l) && out_degree(a, T) == 2 && out_degree(b, T) > 2) std::swap(a, b);
+          if (out_degree(a, T) > 2 && out_degree(b, T) == 2 && supports_other(b, l)) {
             add_edge(l, x, T);
             remove_edge(a, b, T);
             info.update();
             rule1action(b, supported_other(b, l), T, info);
-            return true;
-          }
-          if (supports_other(a, l) && out_degree(b, T) > 2) {
-            add_edge(l, x, T);
-            remove_edge(a, b, T);
-            info.update();
-            rule1action(a, supported_other(a, l), T, info);
             return true;
           }
           a = b;
@@ -703,16 +704,11 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   Rules rules = {
           rule0<Graph,Tree,leaf_info<Graph,Tree>>,
           rule1<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule7<Graph,Tree,leaf_info<Graph,Tree>>,
           rule2<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule10<Graph,Tree,leaf_info<Graph,Tree>>,
           rule3<Graph,Tree,leaf_info<Graph,Tree>>,
           rule4<Graph,Tree,leaf_info<Graph,Tree>>,
           rule5<Graph,Tree,leaf_info<Graph,Tree>>,
-          ruleCycleElimination1<Graph,Tree,leaf_info<Graph,Tree>>,
-          ruleCycleElimination2<Graph,Tree,leaf_info<Graph,Tree>>,
           rule6<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule6extended<Graph,Tree,leaf_info<Graph,Tree>>,
           rule7<Graph,Tree,leaf_info<Graph,Tree>>,
           rule8<Graph,Tree,leaf_info<Graph,Tree>>,
           rule9<Graph,Tree,leaf_info<Graph,Tree>>,
@@ -721,60 +717,68 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
           rule12<Graph,Tree,leaf_info<Graph,Tree>>,
           rule13<Graph,Tree,leaf_info<Graph,Tree>>,
           rule14<Graph,Tree,leaf_info<Graph,Tree>>,
+          ruleCycleElimination1<Graph,Tree,leaf_info<Graph,Tree>>,
+          ruleCycleElimination2<Graph,Tree,leaf_info<Graph,Tree>>,
+          rule6extended<Graph,Tree,leaf_info<Graph,Tree>>,
         };
 
-  std::vector<bool> active(rules.size(), 0);
+  std::vector<unsigned> active;
   bool lazy = name.find("lazy") != std::string::npos;
-  if(lazy) name = name.substr(0, name.find("+"));
+  if(lazy) name = name.substr(0, name.find("lazy")-1);
 
-  if (name == "prieto")
-    active = {0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  if (name == "prieto") {
+    active = {1};
+  }
   else if (name == "lost-light") {
-    active = {0,1,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0};
+    active = {1,2,3,4,5};
   }
   else if (name == "lost") {
-    active = {0,1,0,1,0,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
+    active = {1,2,3,4,5,6,7,8,9,10,11,12,13,14};
   }
   else if (name == "lost15") {
-    active = {1,1,0,1,0,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1};
+    active = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
   }
   else if (name == "lost-ex") {
-    active = {0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    active = {1,2,3,4,5,15,16,6,17,7,8,9,10,11,12,13,14};
   }
-  else if (name == "lost-ex2") {
-    active = {0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1};
-  }
-  else if (name == "lost-simple") {
-    active = {0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0};
-  }
-  else if (name == "none")
+  else if (name == "none") {
     return [active](Graph& G, Tree& T) {
-      return std::vector<unsigned>(active.size(), 0);
+      return std::vector<unsigned>(1, 0);
     };
+  }
   else {
-    auto k = std::stoi(name);
-    std::fill(active.begin()+1, active.begin()+k+1, true);
+    std::stringstream ss(name);
+    unsigned i;
+    while (ss >> i) {
+      active.push_back(i);
+      if (ss.peek() == '+') ss.ignore();
+    }
   }
 
-  bool leafish = active[4];
-  for(unsigned i = 15; i < active.size(); ++i)
-    if(active[i]) leafish = true;
+  bool leafish = false;
+  for(auto rule : active)
+    if(9 > rule && rule < 15) leafish = true;
 
   return [rules, active, leafish, lazy](Graph& G, Tree& T) {
     leaf_info<Graph,Tree> info(G, T, leafish, lazy);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
-    unsigned steps = num_vertices(G);
+    #ifndef NDEBUG
+    unsigned steps = 0;
+    #endif
     while(applied && !info.is_path()) {
+      //show("tree" + std::to_string(steps) + ".dot", G, T);
+      assert(++steps < num_vertices(G));
+      assert(num_edges(T) == num_vertices(T)-1);
+      assert(is_connected(T));
       applied = false;
-      for(unsigned i = 0; i < rules.size(); ++i) {
-        if(active[i] && rules[i](G, T, info)) {
+      for(unsigned i = 0; i < active.size(); ++i) {
+        if(rules[active[i]](G, T, info)) {
           applied = true;
           ++counter[i];
           break;
         }
       }
-      assert(--steps > 0);
     }
     return counter;
   };
