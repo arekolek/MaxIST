@@ -177,25 +177,29 @@ void run(std::string t, unsigned z, Sizes sizes, Params params,
 template <class Graph, class Sizes, class Degrees, class Strings>
 void run(std::string tree, std::string t, unsigned z, Sizes sizes, Degrees degrees,
          Strings const & constructions, Strings const & improvements, bool scratch) {
+#ifdef GRAPH_REPR
   if(tree == "matrix") run<Graph, amatrix>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "hash") run<Graph, ahash>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "set") run<Graph, aset>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "multiset") run<Graph, amultiset>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "list") run<Graph, alist>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "slist") run<Graph, aslist>(t, z, sizes, degrees, constructions, improvements, scratch);
+#endif
   if(tree == "vec") run<Graph, avec>(t, z, sizes, degrees, constructions, improvements, scratch);
 }
 
 template <class Sizes, class Degrees, class Strings>
 void run(std::string graph, std::string tree, std::string t, unsigned z, Sizes sizes, Degrees degrees,
          Strings const & constructions, Strings const & improvements, bool scratch) {
+#ifdef GRAPH_REPR
   if(graph == "matrix") run<amatrix>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
   if(graph == "hash") run<ahash>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
   if(graph == "set") run<aset>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
   if(graph == "multiset") run<amultiset>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
-  if(graph == "list") run<alist>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
   if(graph == "slist") run<aslist>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
   if(graph == "vec") run<avec>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
+#endif
+  if(graph == "list") run<alist>(tree, t, z, sizes, degrees, constructions, improvements, scratch);
 }
 
 int main(int argc, char** argv){
