@@ -5,6 +5,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include "algorithm.hpp"
 #include "debug.hpp"
 #include "range.hpp"
 
@@ -78,6 +79,7 @@ public:
   unsigned branch(unsigned x) {
     assert(out_degree(x, _t) < 3);
     traverse_all(); // this is not lazy, but this function almost doesn't get called
+    assert(_branch[x] > -1);
     return _branch[x];
   }
   unsigned base(unsigned x) {
@@ -89,7 +91,7 @@ public:
     // traverse(l) is called in branching(l) if needed
     return x == l
         || x == branching(l)
-        || (out_degree(x, _t) == 2 && _branch[x] == l); // we can access _branch directly in this case
+        || (out_degree(x, _t) == 2 && _branch[x] == (int)l); // we can access _branch directly in this case
   }
   bool on_trunk(unsigned x) {
     traverse_all();
@@ -724,7 +726,8 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
 
   std::vector<unsigned> active;
   bool lazy = name.find("lazy") != std::string::npos;
-  if(lazy) name = name.substr(0, name.find("lazy")-1);
+  bool rand = name.find("rand") != std::string::npos;
+  name = name.substr(0, name.find("/"));
 
   if (name == "prieto") {
     active = {1};
@@ -759,23 +762,28 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   for(auto rule : active)
     if(9 > rule && rule < 15) leafish = true;
 
-  return [rules, active, leafish, lazy](Graph& G, Tree& T) {
+  return [=](Graph& G, Tree& T) mutable {
     leaf_info<Graph,Tree> info(G, T, leafish, lazy);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
-    #ifndef NDEBUG
+    auto order = active;
+#ifndef NDEBUG
     unsigned steps = 0;
-    #endif
+    //show("tree-" + std::to_string(steps) + ".dot", G, T);
+#endif
     while(applied && !info.is_path()) {
-      //show("tree" + std::to_string(steps) + ".dot", G, T);
       assert(++steps < num_vertices(G));
       assert(num_edges(T) == num_vertices(T)-1);
       assert(is_connected(T));
       applied = false;
-      for(unsigned i = 0; i < active.size(); ++i) {
-        if(rules[active[i]](G, T, info)) {
+      if(rand) std::random_shuffle(order.begin(), order.end());
+      for(unsigned i : order) {
+        if(rules[i](G, T, info)) {
           applied = true;
-          ++counter[i];
+          ++counter[find_index(active, i)];
+#ifndef NDEBUG
+          //show("tree-" + std::to_string(steps) + "-" + std::to_string(i) + ".dot", G, T);
+#endif
           break;
         }
       }

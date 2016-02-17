@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 
 /**
@@ -21,4 +22,9 @@ double find_argument(double y, Function f, double lo, double hi, double e = 1e-9
     if(abs(f(x)-f(lo)) < abs(y-f(lo))) lo = x;
     else hi = x;
   }
+}
+
+template <class Container, class Value>
+inline unsigned find_index(Container const & container, Value const & value) {
+  return std::distance(container.begin(), std::find(container.begin(), container.end(), value));
 }
