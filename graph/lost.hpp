@@ -756,6 +756,7 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
       active.push_back(i);
       if (ss.peek() == '+') ss.ignore();
     }
+    if (active.empty()) throw std::invalid_argument("Unknown improvement method: " + name);
   }
 
   bool leafish = false;
