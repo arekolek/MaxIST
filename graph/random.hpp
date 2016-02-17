@@ -36,8 +36,9 @@ Tree random_tree(Graph& G) {
 
 template <class Graph, class Tree>
 Tree wilson_tree(Graph& G) {
+  typedef typename boost::graph_traits<Graph>::vertex_descriptor vertex;
   unsigned n = num_vertices(G);
-  std::vector<unsigned> pred(n);
+  std::vector<vertex> pred(n);
   static std::default_random_engine gen;
   random_spanning_tree(G, gen, boost::predecessor_map(&pred[0]));
   Tree T(n);
