@@ -37,11 +37,11 @@ Tree random_tree(Graph& G) {
 template <class Graph, class Tree>
 Tree wilson_tree(Graph& G) {
   unsigned n = num_vertices(G);
-  std::vector<int> pred(n);
+  std::vector<unsigned> pred(n);
   static std::default_random_engine gen;
   random_spanning_tree(G, gen, boost::predecessor_map(&pred[0]));
   Tree T(n);
-  for(int i = 0; i < n; ++i)
+  for(unsigned i = 0; i < n; ++i)
     if(pred[i] != boost::graph_traits<Graph>::null_vertex())
       add_edge(i, pred[i], T);
   return T;

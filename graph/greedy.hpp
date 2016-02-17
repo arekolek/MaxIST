@@ -18,7 +18,7 @@ Tree greedy_tree(Graph const & G) {
 
   std::vector<bool> visited(n, false);
   std::deque<edge> edges;
-  int v = random<int>(0, n-1), x, y;
+  int v = random<int>(0, n-1), x = -1, y = -1;
 
   while(true) {
     visited[v] = true;

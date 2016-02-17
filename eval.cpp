@@ -144,6 +144,8 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             ;
           //show("graph" + std::to_string(i) + ".dot", G, T);
 
+          //if(rules[rules.size()-2] > 10) show("graph" + std::to_string(i) + ".dot", G, T);
+
           if(!scratch) elapsed_c += elapsed_i;
         }
       }
