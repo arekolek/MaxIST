@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include <boost/functional/hash.hpp>
+#include <boost/range/algorithm/find_if.hpp>
 
 #include "algorithm.hpp"
 #include "debug.hpp"
@@ -20,6 +21,8 @@ namespace std {
     }
   };
 }
+
+typedef std::pair<unsigned, unsigned> Edge;
 
 template <class Graph, class Tree>
 class leaf_info {
@@ -177,7 +180,7 @@ protected:
           traverse(l, blx, b, v);
     }
   }
-  std::pair<unsigned, unsigned> next(unsigned a, unsigned b) const {
+  Edge next(unsigned a, unsigned b) const {
     auto it = adjacent_vertices(b, _t).first;
     return std::make_pair(b, a == *it ? *(++it) : *it);
   }
@@ -254,23 +257,21 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  int n = num_vertices(G);
-  std::vector<std::vector<std::pair<int,int>>> extra(n);
+  std::vector<Edge> extra[num_vertices(G)];
   for(auto l : info.leaves())
     for(auto x : range(adjacent_vertices(l, G)))
       if(!info.on_branch(l, x)) {
         auto xl = info.parent(x, l);
-        if(out_degree(xl, T) == 2)
-          extra[xl].emplace_back(l, x);
+        if(out_degree(xl, T) == 2) extra[xl].emplace_back(l, x);
       }
 
-  for(int l2 : info.leaves())
-    for(int xl = 0; xl < n; ++xl)
-      if(!extra[xl].empty() && edge(l2, xl, G).second) {
-        int l, x;
-        if(extra[xl].size() == 1 && extra[xl].begin()->first == l2) continue;
-        std::tie(l, x) = extra[xl].begin()->first == l2 ? *(extra[xl].begin()+1) : *extra[xl].begin();
-        add_edge(l, x, T);
+  for(auto l2 : info.leaves())
+    for(auto xl : range(adjacent_vertices(l2, G)))
+      if(!extra[xl].empty() && !edge(l2, xl, T).second) {
+        auto e = boost::find_if(extra[xl], [=](Edge e){ return e.first != l2; });
+        if (e == extra[xl].end()) continue;
+        auto l1 = e->first, x = e->second;
+        add_edge(l1, x, T);
         remove_edge(x, xl, T);
         info.update();
         rule1action(l2, xl, T, info);
@@ -298,28 +299,22 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule5(Graph& G, Tree& T, LeafInfo& info) {
-  int n = num_vertices(G);
-  std::vector<std::vector<std::pair<int,int>>> extra(n);
+  std::vector<Edge> extra[num_vertices(G)];
   for(auto l : info.leaves())
     for(auto x : range(adjacent_vertices(l, G)))
       if(!info.on_branch(l, x)) {
         auto blx = info.branching_neighbor(l, x);
-        if(out_degree(blx, T) == 2) {
-          extra[blx].emplace_back(l, x);
-        }
+        if(out_degree(blx, T) == 2) extra[blx].emplace_back(l, x);
       }
 
-  for(int l2 : info.leaves())
-    for(int blx = 0; blx < n; ++blx)
-      if(!extra[blx].empty() && edge(l2, blx, G).second && !edge(l2, blx, T).second) {
-        int l1 = -1, x;
-        for(auto e : extra[blx]) {
-          if(e.first != l2 && e.second != l2 && e.second != blx) {
-            std::tie(l1, x) = e;
-            break;
-          }
-        }
-        if(l1 == -1) continue;
+  for(auto l2 : info.leaves())
+    for(auto blx : range(adjacent_vertices(l2, G)))
+      if(!extra[blx].empty() && !edge(l2, blx, T).second) {
+        auto e = boost::find_if(extra[blx], [=](Edge e) {
+          return e.first != l2 && e.second != l2 && e.second != blx;
+        });
+        if (e == extra[blx].end()) continue;
+        auto l1 = e->first, x = e->second;
         auto bl = info.branching(l1);
         add_edge(l1, x, T);
         remove_edge(bl, blx, T);
