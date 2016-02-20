@@ -454,14 +454,12 @@ void rule7action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule7(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l1 : info.leaves()) if(!info.is_short(l1)) {
-    for(auto l2 : info.leaves()) if(/*!info.is_short(l2) && */l1 != l2) {
-      if(edge(info.branching_neighbor(l1), l2, G).second) {
+  for(auto l1 : info.leaves())
+    for(auto l2 : info.leaves())
+      if(l1 != l2 && edge(info.branching_neighbor(l1), l2, G).second) {
         rule7action(l1, l2, T, info);
         return true;
       }
-    }
-  }
   return false;
 }
 
