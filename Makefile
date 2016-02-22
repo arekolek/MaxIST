@@ -7,7 +7,7 @@ GDB =
 INCLUDES = graph util test
 
 # Default compiler and linker flags
-override CXXFLAGS += -Wall $(MODE) -std=c++0x -frounding-math -fopenmp
+override CXXFLAGS += -Wall $(MODE) -std=c++1y -frounding-math -fopenmp
 override LDFLAGS += -lCGAL -lgmp -lboost_graph -lboost_thread -lboost_unit_test_framework -fopenmp -lrt
 
 # Automatically find all sources and use implicit make rules
