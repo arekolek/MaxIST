@@ -10,24 +10,9 @@
 #include <utility>
 #include <random>
 
-template <class Iterator>
-class iterator_pair {
-public:
-  iterator_pair(std::pair<Iterator, Iterator> p_) : p(p_) { }
-  Iterator begin() { return p.first; }
-  Iterator end() { return p.second; }
-private:
-  std::pair<Iterator, Iterator> p;
-};
-
-template <class Iterator>
-iterator_pair<Iterator> range(std::pair<Iterator, Iterator> p) {
-  return iterator_pair<Iterator>(p);
-}
-
-template <class Iterator>
-iterator_pair<Iterator> range(Iterator begin, Iterator end) {
-  return iterator_pair<Iterator>(std::make_pair(begin, end));
+template <typename ... Args>
+auto range(Args&& ... args) -> decltype(boost::make_iterator_range(std::forward<Args>(args)...)) {
+   return boost::make_iterator_range(std::forward<Args>(args)...);
 }
 
 template <class Iterator, class Generator = std::default_random_engine>
