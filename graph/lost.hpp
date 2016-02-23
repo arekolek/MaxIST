@@ -534,38 +534,28 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
                         G).second;
 
   for (unsigned i = 0; i < n; ++i) {
-    unsigned l1 = lg[i];
-    unsigned count = 0, l2 = 0;
-    bool ok = false;
-    for(auto x : info.support(l1)) {
-      if(info.on_trunk(x) || (out_degree(x, T) > 2 && x != info.branching(l1)))
-        ok = true;
-      else if(out_degree(x, T) == 2) {
-        ++count;
-        if(count == 1)
-          l2 = info.branch(x);
-        else if(l2 != info.branch(x))
-          ok = true;
-      }
-      if(ok) break;
+    auto l1 = lg[i];
+    auto xs = info.support(l1);
+    if (boost::empty(xs)) {
+      for (unsigned j = 0; j < n; ++j) m[i*n + j] = false;
+    } else {
+      auto outside = [&](unsigned x){ return out_degree(x, T) > 2 || info.on_trunk(x); };
+      if (boost::algorithm::any_of(xs, outside)) continue;
+      auto l2 = info.branch(*xs.begin());
+      if (info.is_short(l2)) continue;
+      auto on_one_branch = [&](unsigned x){ return info.on_branch(l2, x); };
+      if (boost::algorithm::all_of(xs, on_one_branch)) m[i*n + find_index(lg, l2)] = false;
     }
-    if(!ok)
-      for(unsigned j = 0; j < lg.size(); ++j)
-        if(count == 0 || lg[j] == l2)
-          m[i*n + j] = false;
   }
 
-  for(unsigned i = 0; i < lg.size(); ++i) {
-    unsigned l1 = lg[i];
-    for(unsigned j = 0; j < lg.size(); ++j) {
-      unsigned l2 = lg[j];
+  for(unsigned i = 0; i < n; ++i)
+    for(unsigned j = 0; j < n; ++j)
       if(m[i*n + j]) {
+        unsigned l1 = lg[i], l2 = lg[j];
         for(auto x : info.support(l1))
           if(!info.on_branch(l2, x)) {
-            auto b1 = info.branching(l1);
-            auto b2 = info.branching(l2);
-            auto bn1 = info.branching_neighbor(l1);
-            auto bn2 = info.branching_neighbor(l2);
+            auto b1 = info.branching(l1), bn1 = info.branching_neighbor(l1);
+            auto b2 = info.branching(l2), bn2 = info.branching_neighbor(l2);
             add_edge(l1, x, T);
             add_edge(bn1, bn2, T);
             remove_edge(b1, bn1, T);
@@ -575,8 +565,6 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
           }
         assert(false);
       }
-    }
-  }
   return false;
 }
 
