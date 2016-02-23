@@ -471,18 +471,13 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
-bool rule8(Graph& G, Tree& T, LeafInfo& info) {
+template <class Graph, class Tree, class LeafInfo, class Condition>
+bool double_relocation(Graph& G, Tree& T, LeafInfo& info, Condition condition) {
   std::vector<unsigned> lg;
   for (auto l : info.leaves()) if (info.is_long(l)) lg.push_back(l);
   unsigned n = lg.size();
-  std::vector<bool> m(n * n, false);
-  for (unsigned i = 0; i < n; ++i)
-    for (unsigned j = 0; j < n; ++j)
-      m[i*n + j] = info.branching(lg[i]) != info.branching(lg[j])
-                && edge(info.branching_neighbor(lg[i]),
-                        info.branching_neighbor(lg[j]),
-                        G).second;
+  std::vector<bool> m(n*n, false);
+  for (unsigned i = 0; i < n*n; ++i) m[i] = condition(lg[i/n], lg[i%n]);
 
   for (unsigned i = 0; i < n; ++i) {
     auto l1 = lg[i];
@@ -520,52 +515,24 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template <class Graph, class Tree, class LeafInfo>
+bool rule8(Graph& G, Tree& T, LeafInfo& info) {
+  return double_relocation(G, T, info, [&](auto l1, auto l2){
+    return info.branching(l1) != info.branching(l2)
+        && edge(info.branching_neighbor(l1),
+                info.branching_neighbor(l2),
+                G).second;
+  });
+}
+
+template <class Graph, class Tree, class LeafInfo>
 bool rule9(Graph& G, Tree& T, LeafInfo& info) {
-  std::vector<unsigned> lg;
-  for (auto l : info.leaves()) if (info.is_long(l)) lg.push_back(l);
-  unsigned n = lg.size();
-  std::vector<bool> m(n * n, false);
-  for (unsigned i = 0; i < n; ++i)
-    for (unsigned j = 0; j < n; ++j)
-      m[i*n + j] = info.branching(lg[i]) == info.branching(lg[j])
-                && out_degree(info.branching(lg[i]), T) >= 4
-                && edge(info.branching_neighbor(lg[i]),
-                        info.branching_neighbor(lg[j]),
-                        G).second;
-
-  for (unsigned i = 0; i < n; ++i) {
-    auto l1 = lg[i];
-    auto xs = info.support(l1);
-    if (boost::empty(xs)) {
-      for (unsigned j = 0; j < n; ++j) m[i*n + j] = false;
-    } else {
-      auto outside = [&](unsigned x){ return out_degree(x, T) > 2 || info.on_trunk(x); };
-      if (boost::algorithm::any_of(xs, outside)) continue;
-      auto l2 = info.branch(*xs.begin());
-      if (info.is_short(l2)) continue;
-      auto on_one_branch = [&](unsigned x){ return info.on_branch(l2, x); };
-      if (boost::algorithm::all_of(xs, on_one_branch)) m[i*n + find_index(lg, l2)] = false;
-    }
-  }
-
-  for(unsigned i = 0; i < n; ++i)
-    for(unsigned j = 0; j < n; ++j)
-      if(m[i*n + j]) {
-        unsigned l1 = lg[i], l2 = lg[j];
-        for(auto x : info.support(l1))
-          if(!info.on_branch(l2, x)) {
-            auto b1 = info.branching(l1), bn1 = info.branching_neighbor(l1);
-            auto b2 = info.branching(l2), bn2 = info.branching_neighbor(l2);
-            add_edge(l1, x, T);
-            add_edge(bn1, bn2, T);
-            remove_edge(b1, bn1, T);
-            remove_edge(b2, bn2, T);
-            info.update();
-            return true;
-          }
-        assert(false);
-      }
-  return false;
+  return double_relocation(G, T, info, [&](auto l1, auto l2){
+    return info.branching(l1) == info.branching(l2)
+        && out_degree(info.branching(l1), T) >= 4
+        && edge(info.branching_neighbor(l1),
+                info.branching_neighbor(l2),
+                G).second;
+  });
 }
 
 template <class Tree, class LeafInfo>
