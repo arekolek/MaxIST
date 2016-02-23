@@ -79,6 +79,10 @@ public:
     traverse(l);
     return parent(branching(l), l) == l;
   }
+  bool is_long(unsigned l) {
+    traverse(l);
+    return parent(branching(l), l) != l;
+  }
 
   // l: x ∈ br(l)
   unsigned branch(unsigned x) {
@@ -132,22 +136,22 @@ protected:
   void update_leafish() {
     if (_leafish.empty() && _leafish_free.empty()) {
       std::vector<bool> lp(_n, false);
+      for (auto l : leaves()) lp[l] = is_long(l);
       for (auto l : leaves())
-        lp[l] = !is_short(l);
-      for (auto l : leaves())
-        if (!is_short(l) && edge(l, branching(l), _g).second) {
+        if (is_long(l) && edge(l, branching(l), _g).second) {
           _leafish.push_back(branching_neighbor(l));
           lp[l] = false;
         }
       for (auto x : range(vertices(_t)))
-        if (out_degree(x, _t) == 2 && !on_trunk(x)
-            && edge(branch(x), x, _g).second && !edge(branch(x), x, _t).second) {
+        if (out_degree(x, _t) == 2
+            && !on_trunk(x)
+            &&  edge(branch(x), x, _g).second
+            && !edge(branch(x), x, _t).second) {
           _leafish.push_back(parent(x, branch(x)));
           lp[branch(x)] = false;
         }
       for (unsigned l = 0; l < lp.size(); ++l)
-        if (lp[l])
-          _leafish_free.push_back(l);
+        if (lp[l]) _leafish_free.push_back(l);
     }
   }
   void traverse_all() {
@@ -399,12 +403,11 @@ bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
 template <class Graph, class Tree, class LeafInfo>
 bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   for(auto e : range(edges(T))) {
-    auto x = source(e, T);
-    auto y = target(e, T);
+    auto x = source(e, T), y = target(e, T);
     for(auto l : info.leaves()) {
       if(info.is_short(l)
         && !edge(l, x, T).second && !edge(l, y, T).second
-        && edge(l, x, G).second && edge(l, y, G).second) {
+        &&  edge(l, x, G).second &&  edge(l, y, G).second) {
         auto bl = info.branching(l);
         add_edge(l, x, T);
         add_edge(l, y, T);
@@ -471,7 +474,7 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
 template <class Graph, class Tree, class LeafInfo>
 bool rule8(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<unsigned> lg;
-  for (auto l : info.leaves()) if (!info.is_short(l)) lg.push_back(l);
+  for (auto l : info.leaves()) if (info.is_long(l)) lg.push_back(l);
   unsigned n = lg.size();
   std::vector<bool> m(n * n, false);
   for (unsigned i = 0; i < n; ++i)
@@ -519,7 +522,7 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
 template <class Graph, class Tree, class LeafInfo>
 bool rule9(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<unsigned> lg;
-  for (auto l : info.leaves()) if (!info.is_short(l)) lg.push_back(l);
+  for (auto l : info.leaves()) if (info.is_long(l)) lg.push_back(l);
   unsigned n = lg.size();
   std::vector<bool> m(n * n, false);
   for (unsigned i = 0; i < n; ++i)
