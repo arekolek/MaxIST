@@ -519,24 +519,17 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
 template <class Graph, class Tree, class LeafInfo>
 bool rule9(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<unsigned> lg;
-  for(auto l : info.leaves())
-    if(!info.is_short(l))
-      lg.push_back(l);
+  for (auto l : info.leaves()) if (!info.is_short(l)) lg.push_back(l);
   unsigned n = lg.size();
-  std::vector<bool> m(n * n);
-  for (unsigned i = 0; i < n; ++i) {
-    unsigned l1 = lg[i];
-    for (unsigned j = 0; j < n; ++j) {
-      unsigned l2 = lg[j];
-      m[i*n + j] =
-        info.branching(l1) == info.branching(l2) &&
-        out_degree(info.branching(l1), T) >= 4 &&
-        edge(
-          info.branching_neighbor(l1),
-          info.branching_neighbor(l2),
-          G).second;
-    }
-  }
+  std::vector<bool> m(n * n, false);
+  for (unsigned i = 0; i < n; ++i)
+    for (unsigned j = 0; j < n; ++j)
+      m[i*n + j] = info.branching(lg[i]) == info.branching(lg[j])
+                && out_degree(info.branching(lg[i]), T) >= 4
+                && edge(info.branching_neighbor(lg[i]),
+                        info.branching_neighbor(lg[j]),
+                        G).second;
+
   for (unsigned i = 0; i < n; ++i) {
     unsigned l1 = lg[i];
     unsigned count = 0, l2 = 0;
@@ -558,6 +551,7 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
         if(count == 0 || lg[j] == l2)
           m[i*n + j] = false;
   }
+
   for(unsigned i = 0; i < lg.size(); ++i) {
     unsigned l1 = lg[i];
     for(unsigned j = 0; j < lg.size(); ++j) {
