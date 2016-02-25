@@ -546,11 +546,11 @@ void ruleA(unsigned u, Tree& T, LeafInfo& i) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule10(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l2 : info.leaves())
-    for(auto u : info.leafish())
-      if(edge(u, l2, G).second && info.branch(u) != l2) {
+  for (auto l : info.leaves())
+    for (auto u : info.leafish())
+      if (edge(u, l, G).second && !info.on_branch(l, u)) {
         ruleA(u, T, info);
-        rule1action(u, l2, T, info);
+        rule1action(u, l, T, info);
         return true;
       }
   return false;
