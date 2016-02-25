@@ -17,40 +17,40 @@ template<class Graph, class Tree>
 class leaf_info {
  public:
   leaf_info(Graph const & g, Tree const & t, bool leafish, bool lazy)
-      : _g(g),
-        _t(t),
-        _n(num_vertices(_t)),
-        _needs_leafish(leafish),
-        _lazy(lazy) {
-    _branching.resize(_n);
-    _parent.resize(_n * _n);
-    _branching_neighbor.resize(_n * _n);
+      : graph_(g),
+        tree_(t),
+        num_vertices_(num_vertices(tree_)),
+        needs_leafish_(leafish),
+        lazy_(lazy) {
+    branching_.resize(num_vertices_);
+    parent_.resize(num_vertices_ * num_vertices_);
+    branching_neighbor_.resize(num_vertices_ * num_vertices_);
     update();
   }
   bool is_path() const {
-    return _leaves.size() == 2;
+    return leaves_.size() == 2;
   }
   std::vector<unsigned> const & leaves() const {
-    return _leaves;
+    return leaves_;
   }
   std::vector<unsigned> const & leafish() {
     update_leafish();
-    return _leafish;
+    return leafish_;
   }
   std::vector<unsigned> const & leafish_free() {
     update_leafish();
-    return _leafish_free;
+    return leafish_free_;
   }
 
   // b(l)
   unsigned branching(unsigned l) {
     traverse(l);
-    return _branching[l];
+    return branching_[l];
   }
   // x->l
   unsigned parent(unsigned x, unsigned l) {
     traverse(l);
-    return _parent[l * _n + x];
+    return parent_[l * num_vertices_ + x];
   }
   // b(l)->l
   unsigned branching_neighbor(unsigned l) {
@@ -60,7 +60,7 @@ class leaf_info {
   // b(l)->x
   unsigned branching_neighbor(unsigned l, unsigned x) {
     traverse(l);
-    return _branching_neighbor[l * _n + x];
+    return branching_neighbor_[l * num_vertices_ + x];
   }
   bool is_short(unsigned l) {
     traverse(l);
@@ -73,13 +73,13 @@ class leaf_info {
 
   // l: x ∈ br(l)
   unsigned branch(unsigned x) {
-    assert(out_degree(x, _t) < 3);
+    assert(out_degree(x, tree_) < 3);
     traverse_all();  // this is not lazy, but this function almost doesn't get called
-    assert(_branch[x] > -1);
-    return _branch[x];
+    assert(branch_[x] > -1);
+    return branch_[x];
   }
   unsigned base(unsigned x) {
-    assert(out_degree(x, _t) < 3);
+    assert(out_degree(x, tree_) < 3);
     // traverse_all() is called in branch(x) if needed
     return next(parent(x, branch(x)), x).second;
   }
@@ -87,15 +87,15 @@ class leaf_info {
     // traverse(l) is called in branching(l) if needed
     return x == l
         || x == branching(l)
-        || (out_degree(x, _t) == 2 && _branch[x] == (int) l);
+        || (out_degree(x, tree_) == 2 && branch_[x] == (int) l);
   }
   bool on_trunk(unsigned x) {
     traverse_all();
-    return _branch[x] == -1;
+    return branch_[x] == -1;
   }
 
   auto support(unsigned l) {
-    auto neighbors = adjacent_vertices(l, _g);
+    auto neighbors = adjacent_vertices(l, graph_);
     auto supports = [&](unsigned x) {return !on_branch(l, x);};
     auto start = filter(supports, neighbors.first, neighbors.second);
     auto end = filter(supports, neighbors.second, neighbors.second);
@@ -103,96 +103,96 @@ class leaf_info {
   }
 
   void update() {
-    _leaves.clear();
-    _traversed_all = false;
-    _traversed.assign(_n, false);
-    _branch.assign(_n, -1);
-    _leafish.clear();
-    _leafish_free.clear();
-    for (auto v : range(vertices(_t)))
-      if (out_degree(v, _t) == 1) _leaves.push_back(v);
+    leaves_.clear();
+    traversed_all_ = false;
+    traversed_.assign(num_vertices_, false);
+    branch_.assign(num_vertices_, -1);
+    leafish_.clear();
+    leafish_free_.clear();
+    for (auto v : range(vertices(tree_)))
+      if (out_degree(v, tree_) == 1) leaves_.push_back(v);
 
-    if (!_lazy) {
+    if (!lazy_) {
       traverse_all();
-      if (_needs_leafish) update_leafish();
+      if (needs_leafish_) update_leafish();
     }
   }
 
  protected:
   void update_leafish() {
-    if (_leafish.empty() && _leafish_free.empty()) {
-      std::vector<bool> lp(_n, false);
+    if (leafish_.empty() && leafish_free_.empty()) {
+      std::vector<bool> lp(num_vertices_, false);
       for (auto l : leaves()) lp[l] = is_long(l);
       for (auto l : leaves())
-        if (is_long(l) && edge(l, branching(l), _g).second) {
-          _leafish.push_back(branching_neighbor(l));
+        if (is_long(l) && edge(l, branching(l), graph_).second) {
+          leafish_.push_back(branching_neighbor(l));
           lp[l] = false;
         }
-      for (auto x : range(vertices(_t)))
-        if (out_degree(x, _t) == 2 && !on_trunk(x)
-            && edge(branch(x), x, _g).second
-            && !edge(branch(x), x, _t).second) {
-          _leafish.push_back(parent(x, branch(x)));
+      for (auto x : range(vertices(tree_)))
+        if (out_degree(x, tree_) == 2 && !on_trunk(x)
+            && edge(branch(x), x, graph_).second
+            && !edge(branch(x), x, tree_).second) {
+          leafish_.push_back(parent(x, branch(x)));
           lp[branch(x)] = false;
         }
       for (unsigned l = 0; l < lp.size(); ++l)
-        if (lp[l]) _leafish_free.push_back(l);
+        if (lp[l]) leafish_free_.push_back(l);
     }
   }
   void traverse_all() {
-    if (!_traversed_all) {
-      _traversed_all = true;
-      for (auto l : _leaves) traverse(l);
+    if (!traversed_all_) {
+      traversed_all_ = true;
+      for (auto l : leaves_) traverse(l);
     }
   }
   void traverse(unsigned l) {
-    if (!_traversed[l]) {
-      _traversed[l] = true;
+    if (!traversed_[l]) {
+      traversed_[l] = true;
       traverse(l, l, l);
     }
   }
   void traverse(unsigned l, unsigned a, unsigned b) {
     do {
       std::tie(a, b) = next(a, b);
-      _parent[l * _n + b] = a;
-      _branch[a] = l;
-    } while (out_degree(b, _t) == 2);
-    _branch[b] = l;
-    if (out_degree(b, _t) > 2) {
-      _branching[l] = b;
-      for (auto v : range(adjacent_vertices(b, _t)))
+      parent_[l * num_vertices_ + b] = a;
+      branch_[a] = l;
+    } while (out_degree(b, tree_) == 2);
+    branch_[b] = l;
+    if (out_degree(b, tree_) > 2) {
+      branching_[l] = b;
+      for (auto v : range(adjacent_vertices(b, tree_)))
         if (v != a) traverse(l, v, b, v);
     }
   }
   void traverse(unsigned l, unsigned blx, unsigned a, unsigned b) {
-    _parent[l * _n + b] = a;
-    _branching_neighbor[l * _n + b] = blx;
-    while (out_degree(b, _t) == 2) {
+    parent_[l * num_vertices_ + b] = a;
+    branching_neighbor_[l * num_vertices_ + b] = blx;
+    while (out_degree(b, tree_) == 2) {
       std::tie(a, b) = next(a, b);
-      _parent[l * _n + b] = a;
-      _branching_neighbor[l * _n + b] = blx;
+      parent_[l * num_vertices_ + b] = a;
+      branching_neighbor_[l * num_vertices_ + b] = blx;
     }
-    if (out_degree(b, _t) > 2) {
-      for (auto v : range(adjacent_vertices(b, _t)))
+    if (out_degree(b, tree_) > 2) {
+      for (auto v : range(adjacent_vertices(b, tree_)))
         if (v != a) traverse(l, blx, b, v);
     }
   }
   Edge next(unsigned a, unsigned b) const {
-    auto it = adjacent_vertices(b, _t).first;
+    auto it = adjacent_vertices(b, tree_).first;
     return std::make_pair(b, a == *it ? *(++it) : *it);
   }
 
  private:
-  Graph const& _g;
-  Tree const& _t;
-  unsigned _n;
-  bool _needs_leafish;
-  bool _lazy;
-  bool _traversed_all;
-  std::vector<bool> _traversed;
-  std::vector<unsigned> _leaves, _leafish, _leafish_free;
-  std::vector<int> _branching, _branch;
-  std::vector<int> _parent, _branching_neighbor;
+  Graph const& graph_;
+  Tree const& tree_;
+  unsigned num_vertices_;
+  bool needs_leafish_;
+  bool lazy_;
+  bool traversed_all_;
+  std::vector<bool> traversed_;
+  std::vector<unsigned> leaves_, leafish_, leafish_free_;
+  std::vector<int> branching_, branch_;
+  std::vector<int> parent_, branching_neighbor_;
 };
 
 template<class Graph, class Tree, class LeafInfo>
