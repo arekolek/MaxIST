@@ -550,7 +550,7 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
     for(auto u : info.leafish())
       if(edge(u, l2, G).second && info.branch(u) != l2) {
         ruleA(u, T, info);
-        rule1action(l2, u, T, info);
+        rule1action(u, l2, T, info);
         return true;
       }
   return false;
