@@ -15,6 +15,11 @@ auto range(Args&& ... args) -> decltype(boost::make_iterator_range(std::forward<
    return boost::make_iterator_range(std::forward<Args>(args)...);
 }
 
+template <typename ... Args>
+auto filter(Args&& ... args) {
+   return boost::make_filter_iterator(std::forward<Args>(args)...);
+}
+
 template <class Iterator, class Generator = std::default_random_engine>
 auto shuffled(std::pair<Iterator, Iterator> p, Generator generator = Generator()) -> std::vector<decltype(*p.first)> {
   std::vector<decltype(*p.first)> R(p.first, p.second);

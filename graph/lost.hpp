@@ -1,7 +1,6 @@
 // (C) 2014 Arek Olek
 
 #include <functional>
-#include <unordered_map>
 
 #include <boost/functional/hash.hpp>
 #include <boost/algorithm/cxx11/all_of.hpp>
@@ -12,23 +11,11 @@
 #include "debug.hpp"
 #include "range.hpp"
 
-namespace std {
-  template<typename S, typename T>
-  struct hash<pair<S, T>> {
-    inline size_t operator()(const pair<S, T> & v) const {
-      size_t seed = 0;
-      boost::hash_combine(seed, v.first);
-      boost::hash_combine(seed, v.second);
-      return seed;
-    }
-  };
-}
-
 typedef std::pair<unsigned, unsigned> Edge;
 
-template <class Graph, class Tree>
+template<class Graph, class Tree>
 class leaf_info {
-public:
+ public:
   leaf_info(Graph const & g, Tree const & t, bool leafish, bool lazy)
       : _g(g),
         _t(t),
@@ -63,7 +50,7 @@ public:
   // x->l
   unsigned parent(unsigned x, unsigned l) {
     traverse(l);
-    return _parent[l*_n + x];
+    return _parent[l * _n + x];
   }
   // b(l)->l
   unsigned branching_neighbor(unsigned l) {
@@ -73,7 +60,7 @@ public:
   // b(l)->x
   unsigned branching_neighbor(unsigned l, unsigned x) {
     traverse(l);
-    return _branching_neighbor[l*_n + x];
+    return _branching_neighbor[l * _n + x];
   }
   bool is_short(unsigned l) {
     traverse(l);
@@ -87,7 +74,7 @@ public:
   // l: x ∈ br(l)
   unsigned branch(unsigned x) {
     assert(out_degree(x, _t) < 3);
-    traverse_all(); // this is not lazy, but this function almost doesn't get called
+    traverse_all();  // this is not lazy, but this function almost doesn't get called
     assert(_branch[x] > -1);
     return _branch[x];
   }
@@ -100,7 +87,7 @@ public:
     // traverse(l) is called in branching(l) if needed
     return x == l
         || x == branching(l)
-        || (out_degree(x, _t) == 2 && _branch[x] == (int)l); // we can access _branch directly in this case
+        || (out_degree(x, _t) == 2 && _branch[x] == (int) l);
   }
   bool on_trunk(unsigned x) {
     traverse_all();
@@ -109,9 +96,9 @@ public:
 
   auto support(unsigned l) {
     auto neighbors = adjacent_vertices(l, _g);
-    auto supports = [&](unsigned x){ return !on_branch(l, x); };
-    auto start = boost::make_filter_iterator(supports, neighbors.first, neighbors.second);
-    auto end   = boost::make_filter_iterator(supports, neighbors.second, neighbors.second);
+    auto supports = [&](unsigned x) {return !on_branch(l, x);};
+    auto start = filter(supports, neighbors.first, neighbors.second);
+    auto end = filter(supports, neighbors.second, neighbors.second);
     return range(start, end);
   }
 
@@ -122,17 +109,16 @@ public:
     _branch.assign(_n, -1);
     _leafish.clear();
     _leafish_free.clear();
-    for(auto v : range(vertices(_t)))
-      if(out_degree(v, _t) == 1)
-        _leaves.push_back(v);
+    for (auto v : range(vertices(_t)))
+      if (out_degree(v, _t) == 1) _leaves.push_back(v);
 
-    if(!_lazy) {
+    if (!_lazy) {
       traverse_all();
-      if(_needs_leafish) update_leafish();
+      if (_needs_leafish) update_leafish();
     }
   }
 
-protected:
+ protected:
   void update_leafish() {
     if (_leafish.empty() && _leafish_free.empty()) {
       std::vector<bool> lp(_n, false);
@@ -143,9 +129,8 @@ protected:
           lp[l] = false;
         }
       for (auto x : range(vertices(_t)))
-        if (out_degree(x, _t) == 2
-            && !on_trunk(x)
-            &&  edge(branch(x), x, _g).second
+        if (out_degree(x, _t) == 2 && !on_trunk(x)
+            && edge(branch(x), x, _g).second
             && !edge(branch(x), x, _t).second) {
           _leafish.push_back(parent(x, branch(x)));
           lp[branch(x)] = false;
@@ -155,13 +140,13 @@ protected:
     }
   }
   void traverse_all() {
-    if(!_traversed_all) {
+    if (!_traversed_all) {
       _traversed_all = true;
-      for(auto l : _leaves) traverse(l);
+      for (auto l : _leaves) traverse(l);
     }
   }
   void traverse(unsigned l) {
-    if(!_traversed[l]) {
+    if (!_traversed[l]) {
       _traversed[l] = true;
       traverse(l, l, l);
     }
@@ -169,29 +154,27 @@ protected:
   void traverse(unsigned l, unsigned a, unsigned b) {
     do {
       std::tie(a, b) = next(a, b);
-      _parent[l*_n + b] = a;
+      _parent[l * _n + b] = a;
       _branch[a] = l;
-    } while(out_degree(b, _t) == 2);
+    } while (out_degree(b, _t) == 2);
     _branch[b] = l;
-    if(out_degree(b, _t) > 2) {
+    if (out_degree(b, _t) > 2) {
       _branching[l] = b;
-      for(auto v : range(adjacent_vertices(b, _t)))
-        if(v != a)
-          traverse(l, v, b, v);
+      for (auto v : range(adjacent_vertices(b, _t)))
+        if (v != a) traverse(l, v, b, v);
     }
   }
   void traverse(unsigned l, unsigned blx, unsigned a, unsigned b) {
-    _parent[l*_n + b] = a;
-    _branching_neighbor[l*_n + b] = blx;
-    while(out_degree(b, _t) == 2) {
+    _parent[l * _n + b] = a;
+    _branching_neighbor[l * _n + b] = blx;
+    while (out_degree(b, _t) == 2) {
       std::tie(a, b) = next(a, b);
-      _parent[l*_n + b] = a;
-      _branching_neighbor[l*_n + b] = blx;
+      _parent[l * _n + b] = a;
+      _branching_neighbor[l * _n + b] = blx;
     }
-    if(out_degree(b, _t) > 2) {
-      for(auto v : range(adjacent_vertices(b, _t)))
-        if(v != a)
-          traverse(l, blx, b, v);
+    if (out_degree(b, _t) > 2) {
+      for (auto v : range(adjacent_vertices(b, _t)))
+        if (v != a) traverse(l, blx, b, v);
     }
   }
   Edge next(unsigned a, unsigned b) const {
@@ -199,7 +182,7 @@ protected:
     return std::make_pair(b, a == *it ? *(++it) : *it);
   }
 
-private:
+ private:
   Graph const& _g;
   Tree const& _t;
   unsigned _n;
