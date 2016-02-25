@@ -571,12 +571,11 @@ bool rule11(Graph& G, Tree& T, LeafInfo& info) {
 
 template <class Graph, class Tree, class LeafInfo>
 bool rule12(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l2 : info.leaves())
-    for(auto u : info.leafish())
-      if(edge(u, info.branching_neighbor(l2), G).second
-          && info.branch(u) != l2) {
+  for (auto l : info.leaves())
+    for (auto u : info.leafish())
+      if (edge(u, info.branching_neighbor(l), G).second && !info.on_branch(l, u)) {
         ruleA(u, T, info);
-        rule7action(l2, u, T, info);
+        rule7action(l, u, T, info);
         return true;
       }
   return false;
