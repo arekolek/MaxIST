@@ -212,17 +212,17 @@ private:
   std::vector<int> _parent, _branching_neighbor;
 };
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule0(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l1 : info.leaves())
-    for(auto l2 : info.leaves())
-      if(edge(l1, l2, G).second) {
+  for (auto l1 : info.leaves())
+    for (auto l2 : info.leaves())
+      if (edge(l1, l2, G).second) {
         auto x = l1;
         auto y = *adjacent_vertices(l1, T).first;
-        while(y != l2) {
+        while (y != l2) {
           x = y;
           y = info.parent(y, l2);
-          if(out_degree(x, T) > 2 && out_degree(y, T) > 2) {
+          if (out_degree(x, T) > 2 && out_degree(y, T) > 2) {
             add_edge(l1, l2, T);
             remove_edge(x, y, T);
             info.update();
@@ -233,7 +233,7 @@ bool rule0(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Tree, class LeafInfo>
+template<class Tree, class LeafInfo>
 void rule1action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   auto x = i.branching(l1);
   auto y = i.branching_neighbor(l1);
@@ -242,23 +242,23 @@ void rule1action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   i.update();
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule1(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l1 : info.leaves())
-    for(auto l2 : info.leaves())
-      if(edge(l1, l2, G).second) {
+  for (auto l1 : info.leaves())
+    for (auto l2 : info.leaves())
+      if (edge(l1, l2, G).second) {
         rule1action(l1, l2, T, info);
         return true;
       }
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l : info.leaves())
-    for(auto x : info.support(l)) {
+  for (auto l : info.leaves())
+    for (auto x : info.support(l)) {
       auto xl = info.parent(x, l);
-      if(out_degree(xl, T) > 2) {
+      if (out_degree(xl, T) > 2) {
         add_edge(l, x, T);
         remove_edge(x, xl, T);
         info.update();
@@ -268,19 +268,19 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<Edge> extra[num_vertices(G)];
-  for(auto l : info.leaves())
-    for(auto x : info.support(l)) {
+  for (auto l : info.leaves())
+    for (auto x : info.support(l)) {
       auto xl = info.parent(x, l);
-      if(out_degree(xl, T) == 2) extra[xl].emplace_back(l, x);
+      if (out_degree(xl, T) == 2) extra[xl].emplace_back(l, x);
     }
 
-  for(auto l2 : info.leaves())
-    for(auto xl : range(adjacent_vertices(l2, G)))
-      if(!extra[xl].empty() && !edge(l2, xl, T).second) {
-        auto e = boost::find_if(extra[xl], [=](Edge e){ return e.first != l2; });
+  for (auto l2 : info.leaves())
+    for (auto xl : range(adjacent_vertices(l2, G)))
+      if (!extra[xl].empty() && !edge(l2, xl, T).second) {
+        auto e = boost::find_if(extra[xl], [=](Edge e) {return e.first != l2;});
         if (e == extra[xl].end()) continue;
         auto l1 = e->first, x = e->second;
         add_edge(l1, x, T);
@@ -292,13 +292,13 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule4(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l : info.leaves())
-    for(auto x : info.support(l)) {
+  for (auto l : info.leaves())
+    for (auto x : info.support(l)) {
       auto bl = info.branching(l);
       auto blx = info.branching_neighbor(l, x);
-      if(out_degree(blx, T) > 2) {
+      if (out_degree(blx, T) > 2) {
         add_edge(l, x, T);
         remove_edge(bl, blx, T);
         info.update();
@@ -308,18 +308,18 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<Edge> extra[num_vertices(G)];
-  for(auto l : info.leaves())
-    for(auto x : info.support(l)) {
+  for (auto l : info.leaves())
+    for (auto x : info.support(l)) {
       auto blx = info.branching_neighbor(l, x);
-      if(out_degree(blx, T) == 2) extra[blx].emplace_back(l, x);
+      if (out_degree(blx, T) == 2) extra[blx].emplace_back(l, x);
     }
 
-  for(auto l2 : info.leaves())
-    for(auto blx : range(adjacent_vertices(l2, G)))
-      if(!extra[blx].empty() && !edge(l2, blx, T).second) {
+  for (auto l2 : info.leaves())
+    for (auto blx : range(adjacent_vertices(l2, G)))
+      if (!extra[blx].empty() && !edge(l2, blx, T).second) {
         auto e = boost::find_if(extra[blx], [=](Edge e) {
           return e.first != l2 && e.second != l2 && e.second != blx;
         });
@@ -343,7 +343,7 @@ bool ruleCycleElimination1(Graph& G, Tree& T, LeafInfo& info) {
       auto a = info.parent(x, l);
       auto b = info.parent(a, l);
       auto bl = info.branching(l);
-      if(a == bl) continue;
+      if (a == bl) continue;
       while (b != bl) {
         if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
           add_edge(l, x, T);
@@ -383,10 +383,12 @@ bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
       auto a = info.parent(x, l);
       auto b = info.parent(a, l);
       auto bl = info.branching(l);
-      if(a == bl) continue;
+      if (a == bl) continue;
       while (b != bl) {
-        if (supports_other(a, l) && out_degree(a, T) == 2 && out_degree(b, T) > 2) std::swap(a, b);
-        if (out_degree(a, T) > 2 && out_degree(b, T) == 2 && supports_other(b, l)) {
+        if (out_degree(a, T) == 2 && out_degree(b, T) > 2
+            && supports_other(a, l)) std::swap(a, b);
+        if (out_degree(a, T) > 2 && out_degree(b, T) == 2
+            && supports_other(b, l)) {
           add_edge(l, x, T);
           remove_edge(a, b, T);
           info.update();
@@ -400,14 +402,14 @@ bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule6(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto e : range(edges(T))) {
+  for (auto e : range(edges(T))) {
     auto x = source(e, T), y = target(e, T);
-    for(auto l : info.leaves()) {
-      if(info.is_short(l)
-        && !edge(l, x, T).second && !edge(l, y, T).second
-        &&  edge(l, x, G).second &&  edge(l, y, G).second) {
+    for (auto l : info.leaves()) {
+      if (info.is_short(l)
+          && !edge(l, x, T).second && !edge(l, y, T).second
+          &&  edge(l, x, G).second &&  edge(l, y, G).second) {
         auto bl = info.branching(l);
         add_edge(l, x, T);
         add_edge(l, y, T);
@@ -421,22 +423,22 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule6extended(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto e : range(edges(T))) {
+  for (auto e : range(edges(T))) {
     auto x = source(e, T);
     auto y = target(e, T);
     auto check = [&](uint a, uint b) {
       return !edge(a, x, T).second && !edge(b, y, T).second
-      && edge(a, x, G).second && edge(b, y, G).second;
+          &&  edge(a, x, G).second &&  edge(b, y, G).second;
     };
-    for(auto l : info.leaves()) {
-      if(info.on_branch(l, x) && x != info.branching(l)) continue;
-      if(info.on_branch(l, y) && y != info.branching(l)) continue;
+    for (auto l : info.leaves()) {
+      if (info.on_branch(l, x) && x != info.branching(l)) continue;
+      if (info.on_branch(l, y) && y != info.branching(l)) continue;
       auto a = l;
       auto b = info.branching_neighbor(l);
-      if(check(a, b) || check(b, a)) {
-        if(check(b, a)) std::swap(a, b);
+      if (check(a, b) || check(b, a)) {
+        if (check(b, a)) std::swap(a, b);
         auto bl = info.branching(l);
         auto bln = info.branching_neighbor(l);
         add_edge(a, x, T);
@@ -451,7 +453,7 @@ bool rule6extended(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Tree, class LeafInfo>
+template<class Tree, class LeafInfo>
 void rule7action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   auto bl = i.branching(l1);
   auto bln = i.branching_neighbor(l1);
@@ -460,46 +462,48 @@ void rule7action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   i.update();
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule7(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto l1 : info.leaves())
-    for(auto l2 : info.leaves())
-      if(l1 != l2 && edge(info.branching_neighbor(l1), l2, G).second) {
+  for (auto l1 : info.leaves())
+    for (auto l2 : info.leaves())
+      if (l1 != l2 && edge(info.branching_neighbor(l1), l2, G).second) {
         rule7action(l1, l2, T, info);
         return true;
       }
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo, class Condition>
+template<class Graph, class Tree, class LeafInfo, class Condition>
 bool double_relocation(Graph& G, Tree& T, LeafInfo& info, Condition condition) {
   std::vector<unsigned> lg;
   for (auto l : info.leaves()) if (info.is_long(l)) lg.push_back(l);
   unsigned n = lg.size();
-  std::vector<bool> m(n*n, false);
-  for (unsigned i = 0; i < n*n; ++i) m[i] = condition(lg[i/n], lg[i%n]);
+  std::vector<bool> m(n * n, false);
+  for (unsigned i = 0; i < n * n; ++i) m[i] = condition(lg[i / n], lg[i % n]);
 
   for (unsigned i = 0; i < n; ++i) {
     auto l1 = lg[i];
     auto xs = info.support(l1);
     if (boost::empty(xs)) {
-      for (unsigned j = 0; j < n; ++j) m[i*n + j] = false;
+      for (unsigned j = 0; j < n; ++j) m[i * n + j] = false;
     } else {
-      auto outside = [&](unsigned x){ return out_degree(x, T) > 2 || info.on_trunk(x); };
+      auto outside =
+          [&](unsigned x) {return out_degree(x, T) > 2 || info.on_trunk(x);};
       if (boost::algorithm::any_of(xs, outside)) continue;
       auto l2 = info.branch(*xs.begin());
       if (info.is_short(l2)) continue;
-      auto on_one_branch = [&](unsigned x){ return info.on_branch(l2, x); };
-      if (boost::algorithm::all_of(xs, on_one_branch)) m[i*n + find_index(lg, l2)] = false;
+      auto on_one_branch = [&](unsigned x) {return info.on_branch(l2, x);};
+      if (boost::algorithm::all_of(xs, on_one_branch))
+        m[i * n + find_index(lg, l2)] = false;
     }
   }
 
-  for(unsigned i = 0; i < n; ++i)
-    for(unsigned j = 0; j < n; ++j)
-      if(m[i*n + j]) {
+  for (unsigned i = 0; i < n; ++i)
+    for (unsigned j = 0; j < n; ++j)
+      if (m[i * n + j]) {
         unsigned l1 = lg[i], l2 = lg[j];
-        for(auto x : info.support(l1))
-          if(out_degree(x, T) > 2 || !info.on_branch(l2, x)) {
+        for (auto x : info.support(l1))
+          if (out_degree(x, T) > 2 || !info.on_branch(l2, x)) {
             auto b1 = info.branching(l1), bn1 = info.branching_neighbor(l1);
             auto b2 = info.branching(l2), bn2 = info.branching_neighbor(l2);
             add_edge(l1, x, T);
@@ -514,9 +518,9 @@ bool double_relocation(Graph& G, Tree& T, LeafInfo& info, Condition condition) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule8(Graph& G, Tree& T, LeafInfo& info) {
-  return double_relocation(G, T, info, [&](auto l1, auto l2){
+  return double_relocation(G, T, info, [&](auto l1, auto l2) {
     return info.branching(l1) != info.branching(l2)
         && edge(info.branching_neighbor(l1),
                 info.branching_neighbor(l2),
@@ -524,9 +528,9 @@ bool rule8(Graph& G, Tree& T, LeafInfo& info) {
   });
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule9(Graph& G, Tree& T, LeafInfo& info) {
-  return double_relocation(G, T, info, [&](auto l1, auto l2){
+  return double_relocation(G, T, info, [&](auto l1, auto l2) {
     return info.branching(l1) == info.branching(l2)
         && out_degree(info.branching(l1), T) >= 4
         && edge(info.branching_neighbor(l1),
@@ -535,7 +539,7 @@ bool rule9(Graph& G, Tree& T, LeafInfo& info) {
   });
 }
 
-template <class Tree, class LeafInfo>
+template<class Tree, class LeafInfo>
 void ruleA(unsigned u, Tree& T, LeafInfo& i) {
   auto l = i.branch(u);
   auto x = i.base(u);
@@ -544,7 +548,7 @@ void ruleA(unsigned u, Tree& T, LeafInfo& i) {
   i.update();
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule10(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l : info.leaves())
     for (auto u : info.leafish())
@@ -556,11 +560,11 @@ bool rule10(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule11(Graph& G, Tree& T, LeafInfo& info) {
-  for(auto u : info.leafish())
-    for(auto v : info.leafish())
-      if(edge(u, v, G).second && info.branch(u) != info.branch(v)) {
+  for (auto u : info.leafish())
+    for (auto v : info.leafish())
+      if (edge(u, v, G).second && info.branch(u) != info.branch(v)) {
         ruleA(u, T, info);
         ruleA(v, T, info);
         rule1action(u, v, T, info);
@@ -569,7 +573,7 @@ bool rule11(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule12(Graph& G, Tree& T, LeafInfo& i) {
   for (auto l : i.leaves())
     for (auto u : i.leafish())
@@ -581,17 +585,17 @@ bool rule12(Graph& G, Tree& T, LeafInfo& i) {
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
+template<class Graph, class Tree, class LeafInfo>
 bool rule13(Graph& G, Tree& T, LeafInfo& info) {
   auto const & lp = info.leafish_free();
   unsigned n = lp.size();
   std::vector<int> m(n * n, -1);
-  for(unsigned i = 0; i < n; ++i)
-    for(unsigned j = 0; j < n; ++j)
-      if(i != j)
-        for(auto x : range(adjacent_vertices(lp[i], G)))
-          if(out_degree(x, T) == 2 && info.on_branch(lp[j], x))
-              m[i*n + j] = x;
+  for (unsigned i = 0; i < n; ++i)
+    for (unsigned j = 0; j < n; ++j)
+      if (i != j)
+        for (auto x : range(adjacent_vertices(lp[i], G)))
+          if (out_degree(x, T) == 2 && info.on_branch(lp[j], x))
+            m[i * n + j] = x;
   for (unsigned i = 0; i < n; ++i) {
     for (unsigned j = 0; j < n; ++j) {
       if (m[i * n + j] >= 0 && m[j * n + i] >= 0) {
