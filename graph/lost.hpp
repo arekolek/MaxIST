@@ -96,7 +96,7 @@ class leaf_info {
 
   auto support(unsigned l) {
     auto neighbors = adjacent_vertices(l, graph_);
-    auto supports = [&](unsigned x) {return !on_branch(l, x);};
+    auto supports = [=](unsigned x) {return !on_branch(l, x);};
     auto start = filter(supports, neighbors.first, neighbors.second);
     auto end = filter(supports, neighbors.second, neighbors.second);
     return range(start, end);
