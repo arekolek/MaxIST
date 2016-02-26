@@ -612,28 +612,28 @@ bool rule14(Graph& G, Tree& T, LeafInfo& i) {
 }
 
 template<class Graph, class Tree>
-std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string name) {
-  std::vector<std::function<bool(Graph&,Tree&,leaf_info<Graph,Tree>&)>> typedef Rules;
+std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name) {
+  std::vector<std::function<bool(Graph&, Tree&, leaf_info<Graph, Tree>&)>> typedef Rules;
   Rules rules = {
-          rule0<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule1<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule2<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule3<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule4<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule5<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule6<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule7<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule8<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule9<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule10<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule11<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule12<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule13<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule14<Graph,Tree,leaf_info<Graph,Tree>>,
-          ruleCycleElimination1<Graph,Tree,leaf_info<Graph,Tree>>,
-          ruleCycleElimination2<Graph,Tree,leaf_info<Graph,Tree>>,
-          rule6extended<Graph,Tree,leaf_info<Graph,Tree>>,
-        };
+      rule0<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule1<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule2<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule3<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule4<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule5<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule6<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule7<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule8<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule9<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule10<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule11<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule12<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule13<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule14<Graph, Tree, leaf_info<Graph, Tree>>,
+      ruleCycleElimination1<Graph, Tree, leaf_info<Graph, Tree>>,
+      ruleCycleElimination2<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule6extended<Graph, Tree, leaf_info<Graph, Tree>> ,
+  };
 
   std::vector<unsigned> active;
   bool lazy = name.find("lazy") != std::string::npos;
@@ -671,8 +671,8 @@ std::function<std::vector<unsigned>(Graph&,Tree&)> make_improvement(std::string 
   }
 
   bool leafish = false;
-  for(auto rule : active)
-    if(9 > rule && rule < 15) leafish = true;
+  for (auto rule : active)
+    if (9 > rule && rule < 15) leafish = true;
 
   return [=](Graph& G, Tree& T) mutable {
     leaf_info<Graph,Tree> info(G, T, leafish, lazy);
