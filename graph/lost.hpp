@@ -574,13 +574,13 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
   unsigned n = lp.size();
   std::vector<int> m(n * n, -1);
   for (unsigned i = 0; i < n; ++i)
+    for (auto x : info.support(lp[i])) {
+      if (out_degree(x, T) != 2 || info.on_trunk(x)) continue;
+      auto j = find_index(lp, info.branch(x));
+      if (j < n) m[i * n + j] = x;
+    }
+  for (unsigned i = 0; i < n; ++i)
     for (unsigned j = 0; j < n; ++j)
-      if (i != j)
-        for (auto x : range(adjacent_vertices(lp[i], G)))
-          if (out_degree(x, T) == 2 && info.on_branch(lp[j], x))
-            m[i * n + j] = x;
-  for (unsigned i = 0; i < n; ++i) {
-    for (unsigned j = 0; j < n; ++j) {
       if (m[i * n + j] >= 0 && m[j * n + i] >= 0) {
         auto l1 = lp[i];
         auto x = m[i * n + j];
@@ -590,28 +590,24 @@ bool rule13(Graph& G, Tree& T, LeafInfo& info) {
         info.update();
         return true;
       }
-    }
-  }
   return false;
 }
 
-template <class Graph, class Tree, class LeafInfo>
-bool rule14(Graph& G, Tree& T, LeafInfo& info) {
-  if(info.leaves().size() > 3)
-    for(auto l1 : info.leafish_free())
-      for(auto l2 : info.leafish_free())
-        if(l1 != l2
-            && info.branching(l1) == info.branching(l2)
-            && out_degree(info.branching(l1), T) == 3
-            && edge(info.branching_neighbor(l1), info.branching_neighbor(l2), G).second) {
-          auto bn1 = info.branching_neighbor(l1);
-          auto bn2 = info.branching_neighbor(l2);
-          auto b2 = info.branching(l2);
-          add_edge(bn1, bn2, T);
-          remove_edge(b2, bn2, T);
-          info.update();
-          return true;
-        }
+template<class Graph, class Tree, class LeafInfo>
+bool rule14(Graph& G, Tree& T, LeafInfo& i) {
+  if (i.leaves().size() < 4) return false;
+  for (auto l1 : i.leafish_free())
+    for (auto l2 : i.leafish_free()) {
+      auto b = i.branching(l1);
+      auto bn1 = i.branching_neighbor(l1), bn2 = i.branching_neighbor(l2);
+      if (l1 != l2 && b == i.branching(l2) && out_degree(b, T) == 3
+          && edge(bn1, bn2, G).second) {
+        add_edge(bn1, bn2, T);
+        remove_edge(b, bn2, T);
+        i.update();
+        return true;
+      }
+    }
   return false;
 }
 
