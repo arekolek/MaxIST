@@ -344,22 +344,19 @@ bool ruleCycleElimination1(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree, class LeafInfo>
 bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
-  int n = num_vertices(G);
-  std::vector<std::vector<uint>> supported(n);
+  std::vector<uint> supported[num_vertices(G)];
   for (auto l : info.leaves())
     for (auto x : info.support(l))
       supported[x].push_back(l);
 
-  auto supports_other = [supported](uint x, uint l){
+  auto supports_other = [&](uint x, uint l){
     return supported[x].size() > 1 || (supported[x].size() == 1 && *supported[x].begin() != l);
   };
 
-  auto supported_other = [supported](uint x, uint l){
+  auto supported_other = [&](uint x, uint l){
     auto it = supported[x].begin();
     return *it == l ? *(it+1) : *it;
   };
-
-  // TODO this preprocessing is not needed
 
   for (auto l : info.leaves())
     for (auto x : info.support(l)) {
@@ -656,7 +653,7 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
     active = {1,2,3,4,5,15,16,6,17,7,8,9,10,11,12,13,14};
   }
   else if (name == "none") {
-    return [active](Graph& G, Tree& T) {
+    return [](Graph& G, Tree& T) {
       return std::vector<unsigned>(1, 0);
     };
   }
@@ -675,7 +672,7 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
     if (9 > rule && rule < 15) leafish = true;
 
   return [=](Graph& G, Tree& T) mutable {
-    leaf_info<Graph,Tree> info(G, T, leafish, lazy);
+    leaf_info<Graph, Tree> info(G, T, leafish, lazy);
     bool applied = true;
     std::vector<unsigned> counter(active.size(), 0);
     auto order = active;
@@ -683,14 +680,14 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
     unsigned steps = 0;
     //show("tree-" + std::to_string(steps) + ".dot", G, T);
 #endif
-    while(applied && !info.is_path()) {
+    while (applied && !info.is_path()) {
       assert(++steps < num_vertices(G));
-      assert(num_edges(T) == num_vertices(T)-1);
+      assert(num_edges(T) == num_vertices(T) - 1);
       assert(is_connected(T));
       applied = false;
-      if(rand) std::random_shuffle(order.begin(), order.end());
-      for(unsigned i : order) {
-        if(rules[i](G, T, info)) {
+      if (rand) std::random_shuffle(order.begin(), order.end());
+      for (unsigned i : order) {
+        if (rules[i](G, T, info)) {
           applied = true;
           ++counter[find_index(active, i)];
 #ifndef NDEBUG
