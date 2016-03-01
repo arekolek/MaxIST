@@ -320,7 +320,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
 
 
 template<class Graph, class Tree, class LeafInfo>
-bool ruleCycleElimination1(Graph& G, Tree& T, LeafInfo& info) {
+bool rule15(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l : info.leaves())
     for (auto x : info.support(l)) {
       auto a = info.parent(x, l);
@@ -343,7 +343,7 @@ bool ruleCycleElimination1(Graph& G, Tree& T, LeafInfo& info) {
 
 
 template<class Graph, class Tree, class LeafInfo>
-bool ruleCycleElimination2(Graph& G, Tree& T, LeafInfo& info) {
+bool rule16(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<uint> supported[num_vertices(G)];
   for (auto l : info.leaves())
     for (auto x : info.support(l))
@@ -404,7 +404,7 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree, class LeafInfo>
-bool rule6extended(Graph& G, Tree& T, LeafInfo& info) {
+bool rule17(Graph& G, Tree& T, LeafInfo& info) {
   for (auto e : range(edges(T))) {
     auto x = source(e, T);
     auto y = target(e, T);
@@ -627,9 +627,9 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
       rule12<Graph, Tree, leaf_info<Graph, Tree>>,
       rule13<Graph, Tree, leaf_info<Graph, Tree>>,
       rule14<Graph, Tree, leaf_info<Graph, Tree>>,
-      ruleCycleElimination1<Graph, Tree, leaf_info<Graph, Tree>>,
-      ruleCycleElimination2<Graph, Tree, leaf_info<Graph, Tree>>,
-      rule6extended<Graph, Tree, leaf_info<Graph, Tree>> ,
+      rule15<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule16<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule17<Graph, Tree, leaf_info<Graph, Tree>> ,
   };
 
   std::vector<unsigned> active;
