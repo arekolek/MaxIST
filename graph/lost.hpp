@@ -318,70 +318,6 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-
-template<class Graph, class Tree, class LeafInfo>
-bool rule15(Graph& G, Tree& T, LeafInfo& info) {
-  for (auto l : info.leaves())
-    for (auto x : info.support(l)) {
-      auto a = info.parent(x, l);
-      auto b = info.parent(a, l);
-      auto bl = info.branching(l);
-      if (a == bl) continue;
-      while (b != bl) {
-        if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
-          add_edge(l, x, T);
-          remove_edge(a, b, T);
-          info.update();
-          return true;
-        }
-        a = b;
-        b = info.parent(b, l);
-      }
-    }
-  return false;
-}
-
-
-template<class Graph, class Tree, class LeafInfo>
-bool rule16(Graph& G, Tree& T, LeafInfo& info) {
-  std::vector<uint> supported[num_vertices(G)];
-  for (auto l : info.leaves())
-    for (auto x : info.support(l))
-      supported[x].push_back(l);
-
-  auto supports_other = [&](uint x, uint l){
-    return supported[x].size() > 1 || (supported[x].size() == 1 && *supported[x].begin() != l);
-  };
-
-  auto supported_other = [&](uint x, uint l){
-    auto it = supported[x].begin();
-    return *it == l ? *(it+1) : *it;
-  };
-
-  for (auto l : info.leaves())
-    for (auto x : info.support(l)) {
-      auto a = info.parent(x, l);
-      auto b = info.parent(a, l);
-      auto bl = info.branching(l);
-      if (a == bl) continue;
-      while (b != bl) {
-        if (out_degree(a, T) == 2 && out_degree(b, T) > 2
-            && supports_other(a, l)) std::swap(a, b);
-        if (out_degree(a, T) > 2 && out_degree(b, T) == 2
-            && supports_other(b, l)) {
-          add_edge(l, x, T);
-          remove_edge(a, b, T);
-          info.update();
-          rule1action(b, supported_other(b, l), T, info);
-          return true;
-        }
-        a = b;
-        b = info.parent(b, l);
-      }
-    }
-  return false;
-}
-
 template<class Graph, class Tree, class LeafInfo>
 bool rule6(Graph& G, Tree& T, LeafInfo& info) {
   for (auto e : range(edges(T))) {
@@ -395,36 +331,6 @@ bool rule6(Graph& G, Tree& T, LeafInfo& info) {
         add_edge(l, y, T);
         remove_edge(x, y, T);
         remove_edge(l, bl, T);
-        info.update();
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-template<class Graph, class Tree, class LeafInfo>
-bool rule17(Graph& G, Tree& T, LeafInfo& info) {
-  for (auto e : range(edges(T))) {
-    auto x = source(e, T);
-    auto y = target(e, T);
-    auto check = [&](uint a, uint b) {
-      return !edge(a, x, T).second && !edge(b, y, T).second
-          &&  edge(a, x, G).second &&  edge(b, y, G).second;
-    };
-    for (auto l : info.leaves()) {
-      if (info.on_branch(l, x) && x != info.branching(l)) continue;
-      if (info.on_branch(l, y) && y != info.branching(l)) continue;
-      auto a = l;
-      auto b = info.branching_neighbor(l);
-      if (check(a, b) || check(b, a)) {
-        if (check(b, a)) std::swap(a, b);
-        auto bl = info.branching(l);
-        auto bln = info.branching_neighbor(l);
-        add_edge(a, x, T);
-        add_edge(b, y, T);
-        remove_edge(x, y, T);
-        remove_edge(bl, bln, T);
         info.update();
         return true;
       }
@@ -605,6 +511,98 @@ bool rule14(Graph& G, Tree& T, LeafInfo& i) {
         return true;
       }
     }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule15(Graph& G, Tree& T, LeafInfo& info) {
+  for (auto l : info.leaves())
+    for (auto x : info.support(l)) {
+      auto a = info.parent(x, l);
+      auto b = info.parent(a, l);
+      auto bl = info.branching(l);
+      if (a == bl) continue;
+      while (b != bl) {
+        if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
+          add_edge(l, x, T);
+          remove_edge(a, b, T);
+          info.update();
+          return true;
+        }
+        a = b;
+        b = info.parent(b, l);
+      }
+    }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule16(Graph& G, Tree& T, LeafInfo& info) {
+  std::vector<uint> supported[num_vertices(G)];
+  for (auto l : info.leaves())
+    for (auto x : info.support(l))
+      supported[x].push_back(l);
+
+  auto supports_other = [&](uint x, uint l){
+    return supported[x].size() > 1 || (supported[x].size() == 1 && *supported[x].begin() != l);
+  };
+
+  auto supported_other = [&](uint x, uint l){
+    auto it = supported[x].begin();
+    return *it == l ? *(it+1) : *it;
+  };
+
+  for (auto l : info.leaves())
+    for (auto x : info.support(l)) {
+      auto a = info.parent(x, l);
+      auto b = info.parent(a, l);
+      auto bl = info.branching(l);
+      if (a == bl) continue;
+      while (b != bl) {
+        if (out_degree(a, T) == 2 && out_degree(b, T) > 2
+            && supports_other(a, l)) std::swap(a, b);
+        if (out_degree(a, T) > 2 && out_degree(b, T) == 2
+            && supports_other(b, l)) {
+          add_edge(l, x, T);
+          remove_edge(a, b, T);
+          info.update();
+          rule1action(b, supported_other(b, l), T, info);
+          return true;
+        }
+        a = b;
+        b = info.parent(b, l);
+      }
+    }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule17(Graph& G, Tree& T, LeafInfo& info) {
+  for (auto e : range(edges(T))) {
+    auto x = source(e, T);
+    auto y = target(e, T);
+    auto check = [&](uint a, uint b) {
+      return !edge(a, x, T).second && !edge(b, y, T).second
+          &&  edge(a, x, G).second &&  edge(b, y, G).second;
+    };
+    for (auto l : info.leaves()) {
+      if (info.on_branch(l, x) && x != info.branching(l)) continue;
+      if (info.on_branch(l, y) && y != info.branching(l)) continue;
+      auto a = l;
+      auto b = info.branching_neighbor(l);
+      if (check(a, b) || check(b, a)) {
+        if (check(b, a)) std::swap(a, b);
+        auto bl = info.branching(l);
+        auto bln = info.branching_neighbor(l);
+        add_edge(a, x, T);
+        add_edge(b, y, T);
+        remove_edge(x, y, T);
+        remove_edge(bl, bln, T);
+        info.update();
+        return true;
+      }
+    }
+  }
   return false;
 }
 
