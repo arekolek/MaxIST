@@ -262,7 +262,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
 
   for (auto l2 : info.leaves())
     for (auto xl : range(adjacent_vertices(l2, G)))
-      if (!extra[xl].empty() && !edge(l2, xl, T).second) {
+      if (!edge(l2, xl, T).second) {
         auto e = boost::find_if(extra[xl], [=](Edge e) {return e.first != l2;});
         if (e == extra[xl].end()) continue;
         auto l1 = e->first, x = e->second;
@@ -302,7 +302,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
 
   for (auto l2 : info.leaves())
     for (auto blx : range(adjacent_vertices(l2, G)))
-      if (!extra[blx].empty() && !edge(l2, blx, T).second) {
+      if (!edge(l2, blx, T).second) {
         auto e = boost::find_if(extra[blx], [=](Edge e) {
           return e.first != l2 && e.second != l2 && e.second != blx;
         });
