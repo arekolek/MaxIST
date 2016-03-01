@@ -633,7 +633,7 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
   };
 
   std::vector<unsigned> active;
-  bool lazy = name.find("lazy") != std::string::npos;
+  bool lazy = name.find("eager") == std::string::npos;
   bool rand = name.find("rand") != std::string::npos;
   name = name.substr(0, name.find("/"));
 
