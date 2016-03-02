@@ -2,9 +2,10 @@
 
 #include <functional>
 
-#include <boost/functional/hash.hpp>
 #include <boost/algorithm/cxx11/all_of.hpp>
 #include <boost/algorithm/cxx11/any_of.hpp>
+#include <boost/functional/hash.hpp>
+#include <boost/optional.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 
 #include "algorithm.hpp"
@@ -606,6 +607,77 @@ bool rule17(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+template<class Graph, class Tree, class LeafInfo>
+bool rule18(Graph& G, Tree& T, LeafInfo& i) {
+  for (auto l : i.leaves()) {
+    auto bl = i.branching(l);
+    for (auto x : i.support(l))
+      for (auto a = x, b = i.parent(a, l); a != bl; a = b, b = i.parent(b, l))
+        if ((a == x || out_degree(a, T) > 2) && out_degree(b, T) > 2) {
+          add_edge(l, x, T);
+          remove_edge(a, b, T);
+          i.update();
+          return true;
+        }
+  }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule19(Graph& G, Tree& T, LeafInfo& info) {
+  auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
+  auto supported_other = [&](uint x, uint l) -> boost::optional<uint> {
+    for(uint v : range(adjacent_vertices(x, G)))
+      if(v != l && out_degree(v, T) == 1 && !info.on_branch(v, x))
+        return v;
+    return boost::none;
+  };
+
+  for (auto l : info.leaves()) {
+    auto next = [&](uint x) {return info.parent(x, l);};
+    auto bl = info.branching(l);
+    for (auto x : info.support(l))
+      for (auto a = x, b = next(a), c = next(b); a != bl; a = b, b = c, c = next(c))
+        if (!is_branching(b) && (a == x || is_branching(a) || is_branching(c)))
+          if (auto l2 = supported_other(b, l)) {
+            add_edge(l, x, T);
+            remove_edge(a == x || is_branching(a) ? a : c, b, T);
+            info.update();
+            rule1action(b, *l2, T, info);
+            return true;
+          }
+  }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule20(Graph& G, Tree& T, LeafInfo& info) {
+  auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
+  auto supported_other = [&](uint x, uint l) -> boost::optional<uint> {
+    for(uint v : range(adjacent_vertices(x, G)))
+      if(v != l && out_degree(v, T) == 1 && !info.on_branch(v, x))
+        return v;
+    return boost::none;
+  };
+
+  bool a_ok, b_ok;
+  for (auto l : info.leaves()) {
+    auto next = [&](uint x) {return info.parent(x, l);};
+    auto bl = info.branching(l);
+    for (auto x : info.support(l))
+      for (auto a = x, b = next(a), c = next(b); a != bl; a = b, b = c, c = next(c))
+        if ((a_ok = a == x || is_branching(a)) || is_branching(c))
+          if ((b_ok = is_branching(b)) || supported_other(b, l)) {
+            add_edge(l, x, T);
+            remove_edge(a_ok ? a : c, b, T);
+            info.update();
+            if (!b_ok) rule1action(b, *supported_other(b, l), T, info);
+            return true;
+          }
+  }
+  return false;
+}
+
 template<class Graph, class Tree>
 std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&, Tree&, leaf_info<Graph, Tree>&)>> typedef Rules;
@@ -627,7 +699,10 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
       rule14<Graph, Tree, leaf_info<Graph, Tree>>,
       rule15<Graph, Tree, leaf_info<Graph, Tree>>,
       rule16<Graph, Tree, leaf_info<Graph, Tree>>,
-      rule17<Graph, Tree, leaf_info<Graph, Tree>> ,
+      rule17<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule18<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule19<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule20<Graph, Tree, leaf_info<Graph, Tree>>,
   };
 
   std::vector<unsigned> active;
