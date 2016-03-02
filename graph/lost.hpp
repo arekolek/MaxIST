@@ -517,23 +517,18 @@ bool rule14(Graph& G, Tree& T, LeafInfo& i) {
 
 template<class Graph, class Tree, class LeafInfo>
 bool rule15(Graph& G, Tree& T, LeafInfo& info) {
-  for (auto l : info.leaves())
-    for (auto x : info.support(l)) {
-      auto a = info.parent(x, l);
-      auto b = info.parent(a, l);
-      auto bl = info.branching(l);
-      if (a == bl) continue;
-      while (b != bl) {
+  for (auto l : info.leaves()) {
+    auto next = [&](uint x) {return info.parent(x, l);};
+    auto bl = info.branching(l);
+    for (auto x : info.support(l))
+      for (auto a = next(x), b = next(a); a != bl && b != bl; a = b, b = next(b))
         if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
           add_edge(l, x, T);
           remove_edge(a, b, T);
           info.update();
           return true;
         }
-        a = b;
-        b = info.parent(b, l);
-      }
-    }
+  }
   return false;
 }
 
