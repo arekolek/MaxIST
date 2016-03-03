@@ -219,6 +219,9 @@ bool rule0(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Tree, class LeafInfo>
 void rule1action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
+  assert(out_degree(l1, T) == 1);
+  assert(out_degree(l2, T) == 1);
+  if (i.is_path()) return;
   auto x = i.branching(l1);
   auto y = i.branching_neighbor(l1);
   add_edge(l1, l2, T);
@@ -621,9 +624,9 @@ bool rule18(Graph& G, Tree& T, LeafInfo& i) {
 template<class Graph, class Tree, class LeafInfo>
 bool rule19(Graph& G, Tree& T, LeafInfo& info) {
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
-  auto supported_other = [&](uint x, uint l) -> boost::optional<uint> {
-    for(uint v : range(adjacent_vertices(x, G)))
-      if(v != l && out_degree(v, T) == 1 && !info.on_branch(v, x))
+  auto supported_other = [&](uint b, uint l, uint x) -> boost::optional<uint> {
+    for(uint v : range(adjacent_vertices(b, G)))
+      if(v != l && v != x && out_degree(v, T) == 1)
         return v;
     return boost::none;
   };
@@ -634,7 +637,7 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
     for (auto x : info.support(l))
       for (auto a = x, b = next(a), c = next(b); a != bl; a = b, b = c, c = next(c))
         if (!is_branching(b) && (a == x || is_branching(a) || is_branching(c)))
-          if (auto l2 = supported_other(b, l)) {
+          if (auto l2 = supported_other(b, l, x)) {
             add_edge(l, x, T);
             remove_edge(a == x || is_branching(a) ? a : c, b, T);
             info.update();
@@ -648,9 +651,9 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
 template<class Graph, class Tree, class LeafInfo>
 bool rule20(Graph& G, Tree& T, LeafInfo& info) {
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
-  auto supported_other = [&](uint x, uint l) -> boost::optional<uint> {
-    for(uint v : range(adjacent_vertices(x, G)))
-      if(v != l && out_degree(v, T) == 1 && !info.on_branch(v, x))
+  auto supported_other = [&](uint b, uint l, uint x) -> boost::optional<uint> {
+    for(uint v : range(adjacent_vertices(b, G)))
+      if(v != l && v != x && out_degree(v, T) == 1)
         return v;
     return boost::none;
   };
@@ -662,11 +665,11 @@ bool rule20(Graph& G, Tree& T, LeafInfo& info) {
     for (auto x : info.support(l))
       for (auto a = x, b = next(a), c = next(b); a != bl; a = b, b = c, c = next(c))
         if ((a_ok = a == x || is_branching(a)) || is_branching(c))
-          if ((b_ok = is_branching(b)) || supported_other(b, l)) {
+          if ((b_ok = is_branching(b)) || supported_other(b, l, x)) {
             add_edge(l, x, T);
             remove_edge(a_ok ? a : c, b, T);
             info.update();
-            if (!b_ok) rule1action(b, *supported_other(b, l), T, info);
+            if (!b_ok) rule1action(b, *supported_other(b, l, x), T, info);
             return true;
           }
   }
