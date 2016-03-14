@@ -43,7 +43,7 @@ public:
     auto d = expected_degree;
     auto tree_degree = 2.*(n-1)/n;
     bool mst = t.find("mst") != std::string::npos;
-    Graph G(n);
+    Graph G(n), G_shuffled(n);
 
     if(t.find("path") != std::string::npos) {
       add_spider(G, 1, generator);
@@ -53,6 +53,7 @@ public:
       // so we must subtract this:
       d -= 2./(2.-n) * d + 1. + n/(n-2.);
     }
+
     double parameter;
     if(t.find("rgg") != std::string::npos) {
       if(mst) d -= d<2 ? tree_degree : 1/sinh(d-sqrt(2.)); // approximate fit
@@ -65,7 +66,9 @@ public:
       parameter = d<0 ? 0 : d/(n-1);
       add_edges_uniform(G, parameter, generator, mst);
     }
-    return std::make_tuple(G, run, expected_degree, parameter);
+
+    copy_edges_shuffled(G, G_shuffled, generator);
+    return std::make_tuple(G_shuffled, run, expected_degree, parameter);
   }
 
   template<class Sizes, class Degrees>

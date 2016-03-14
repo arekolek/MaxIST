@@ -70,9 +70,8 @@ template<class Graph, class Generator>
 void add_spider(Graph& G, unsigned legs, Generator generator) {
   unsigned n = num_vertices(G);
   unsigned cutoff = ceil((double)n / legs);
-  auto path = shuffled(range_iterator(0, n), generator);
   for (unsigned i = 0; i < n - 1; ++i)
-    add_edge_no_dup(path[i % cutoff == 0 ? 0 : i], path[i + 1], G);
+    add_edge_no_dup(i % cutoff == 0 ? 0 : i, i + 1, G);
 }
 
 template<class Graph, class Generator>
