@@ -122,11 +122,9 @@ public:
 
   std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
     std::default_random_engine generator(seeds[i]);
-    auto p = shuffled(vertices(G), generator);
     Graph g(num_vertices(G));
-    for(auto e : range(edges(G)))
-      add_edge(p[source(e, G)], p[target(e, G)], g);
-    return std::make_tuple(G, i, 0, 0);
+    copy_edges_shuffled(G, g, generator);
+    return std::make_tuple(g, i, 0, 0);
   }
 
   real_suite(std::string f, unsigned size) : G(0), t(f.substr(0, f.find('.'))), seeds(size) {
