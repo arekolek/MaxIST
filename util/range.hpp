@@ -3,6 +3,7 @@
 #pragma once
 
 #include <boost/algorithm/string/join.hpp>
+#include <boost/iterator/filter_iterator.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 
 #include <algorithm>
