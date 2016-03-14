@@ -3,6 +3,7 @@
 #pragma once
 
 #include <boost/algorithm/string/join.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 
@@ -21,9 +22,14 @@ auto filter(Args&& ... args) {
    return boost::make_filter_iterator(std::forward<Args>(args)...);
 }
 
+auto range_iterator(int a, int b) {
+  return std::make_pair(boost::make_counting_iterator<int>(a),
+                        boost::make_counting_iterator<int>(b));
+}
+
 template <class Iterator, class Generator = std::default_random_engine>
-auto shuffled(std::pair<Iterator, Iterator> p, Generator generator = Generator()) -> std::vector<decltype(*p.first)> {
-  std::vector<decltype(*p.first)> R(p.first, p.second);
+auto shuffled(std::pair<Iterator, Iterator> p, Generator generator = Generator()) {
+  std::vector<typename std::iterator_traits<Iterator>::value_type> R(p.first, p.second);
   std::shuffle(R.begin(), R.end(), generator);
   return R;
 }

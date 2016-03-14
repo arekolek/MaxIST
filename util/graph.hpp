@@ -7,7 +7,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/function_input_iterator.hpp>
 #include <boost/function_output_iterator.hpp>
 
@@ -60,13 +59,18 @@ void copy_edges(const Input& in, Output& out) {
     add_edge(source(e, in), target(e, in), out);
 }
 
+template<class Input, class Output, class Generator>
+void copy_edges_shuffled(const Input& in, Output& out, Generator generator) {
+  auto p = shuffled(range_iterator(0, num_vertices(in)), generator);
+  for (auto e : shuffled(edges(in)))
+    add_edge(p[source(e, in)], p[target(e, in)], out);
+}
+
 template<class Graph, class Generator>
 void add_spider(Graph& G, unsigned legs, Generator generator) {
   unsigned n = num_vertices(G);
   unsigned cutoff = ceil((double)n / legs);
-  auto range_iterator = boost::make_counting_iterator<int>;
-  std::vector<int> path(range_iterator(0), range_iterator(n));
-  std::shuffle(path.begin(), path.end(), generator);
+  auto path = shuffled(range_iterator(0, n), generator);
   for (unsigned i = 0; i < n - 1; ++i)
     add_edge_no_dup(path[i % cutoff == 0 ? 0 : i], path[i + 1], G);
 }
