@@ -143,9 +143,11 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             << join(rules, "-")
             << std::endl;
             ;
-          //show("graph" + std::to_string(i) + ".dot", G, T);
+#ifndef NDEBUG
+          if(suite.size() < 10) show("graph" + std::to_string(i) + graph_type + ".dot", G, T);
 
           //if(rules[rules.size()-2] > 10) show("graph" + std::to_string(i) + ".dot", G, T);
+#endif
 
           if(!scratch) elapsed_c += elapsed_i;
         }
