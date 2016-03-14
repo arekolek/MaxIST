@@ -38,10 +38,10 @@ public:
   std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
     auto run = i % seeds.size();
     std::default_random_engine generator(seeds[run]);
-    auto Ed = degrees[(i / seeds.size()) % degrees.size()];
+    auto expected_degree = degrees[(i / seeds.size()) % degrees.size()];
     auto n = sizes[i / seeds.size() / degrees.size()];
-    auto d = Ed;
-    auto td = 2.*(n-1)/n;
+    auto d = expected_degree;
+    auto tree_degree = 2.*(n-1)/n;
     bool mst = t.find("mst") != std::string::npos;
     Graph G(n);
 
@@ -53,19 +53,19 @@ public:
       // so we must subtract this:
       d -= 2./(2.-n) * d + 1. + n/(n-2.);
     }
+    double parameter;
     if(t.find("rgg") != std::string::npos) {
-      if(mst) d -= d<2 ? td : 1/sinh(d-sqrt(2.)); // approximate fit
-      auto r = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
+      if(mst) d -= d<2 ? tree_degree : 1/sinh(d-sqrt(2.)); // approximate fit
+      parameter = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
       Geometric points(n, generator);
-      points.add_random_geometric(G, r);
+      points.add_random_geometric(G, parameter);
       if(mst) points.add_mst(G);
-      return std::make_tuple(G, run, Ed, r);
     } else {
-      if(mst) d -= d<2 ? td : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
-      auto p = d<0 ? 0 : d/(n-1);
-      add_edges_uniform(G, p, generator, mst);
-      return std::make_tuple(G, run, Ed, p);
+      if(mst) d -= d<2 ? tree_degree : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
+      parameter = d<0 ? 0 : d/(n-1);
+      add_edges_uniform(G, parameter, generator, mst);
     }
+    return std::make_tuple(G, run, expected_degree, parameter);
   }
 
   template<class Sizes, class Degrees>
