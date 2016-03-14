@@ -63,7 +63,7 @@ void copy_edges(const Input& in, Output& out) {
 template<class Graph, class Generator>
 void add_spider(Graph& G, unsigned legs, Generator generator) {
   unsigned n = num_vertices(G);
-  unsigned cutoff = n / legs;
+  unsigned cutoff = ceil((double)n / legs);
   auto range_iterator = boost::make_counting_iterator<int>;
   std::vector<int> path(range_iterator(0), range_iterator(n));
   std::shuffle(path.begin(), path.end(), generator);
