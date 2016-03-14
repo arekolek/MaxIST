@@ -6,7 +6,6 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-
 template <class Graph, class Tree>
 void visit(Graph const & G, unsigned v, std::vector<bool>& discovered, Tree& T) {
   discovered[v] = true;
@@ -18,7 +17,6 @@ void visit(Graph const & G, unsigned v, std::vector<bool>& discovered, Tree& T) 
   }
 }
 
-
 template <class Graph, class Tree>
 Tree dfs_tree(Graph const & G) {
   std::vector<bool> visited(num_vertices(G));
@@ -26,5 +24,3 @@ Tree dfs_tree(Graph const & G) {
   visit(G, 0, visited, tree);
   return tree;
 }
-
-
