@@ -84,6 +84,6 @@ template<class Graph>
 void show(std::string file, Graph const & g) {
   std::ofstream f(file);
   write_graphviz(f, g, boost::default_writer(), boost::default_writer(),
-                 graph_writer(false));
+                 graph_writer(num_vertices(g) < 30));
   f.close();
 }
