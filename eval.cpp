@@ -111,6 +111,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
         elapsed_c = timer.stop();
 
         assert(num_edges(T) == num_vertices(T)-1);
+        assert(is_connected(T));
 
         const auto tree(T);
 
@@ -179,7 +180,7 @@ void run(std::string t, unsigned z, Sizes sizes, Params params,
 template <class Graph, class Sizes, class Degrees, class Strings>
 void run(std::string tree, std::string t, unsigned z, Sizes sizes, Degrees degrees,
          Strings const & constructions, Strings const & improvements, bool scratch) {
-#ifdef GRAPH_REPR
+#ifdef TREE_REPR
   if(tree == "matrix") run<Graph, amatrix>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "hash") run<Graph, ahash>(t, z, sizes, degrees, constructions, improvements, scratch);
   if(tree == "set") run<Graph, aset>(t, z, sizes, degrees, constructions, improvements, scratch);
