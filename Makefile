@@ -26,7 +26,12 @@ else
 	ifeq ($(GDB), on)
 		MODE = -O0 -g -ggdb
 	else
-		MODE = -O2 -g
+		ifeq ($(GDB), prof)
+			MODE = -O2 -g -fno-omit-frame-pointer -DNDEBUG -fno-inline-functions\
+			-fno-inline-functions-called-once -fno-optimize-sibling-calls
+		else
+			MODE = -O2 -g
+		endif
 	endif
 endif
 
