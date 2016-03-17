@@ -91,6 +91,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
   total.start();
   auto graph_type = type(Graph(0));
   auto tree_type = type(Tree(0));
+  bool vanilla = suite.type().find('+') == std::string::npos;
   #pragma omp parallel
   {
     auto id = omp_get_thread_num();
@@ -101,7 +102,7 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
       std::stringstream buffer;
       auto trial = suite.get(i);
       auto G = std::get<0>(trial);
-      if(!is_connected(G)) continue;
+      if(vanilla && !is_connected(G)) continue;
 
       for(auto cname : constructions) {
         auto construct = make_construction<Graph, Tree>(cname, suite.size(), i);
