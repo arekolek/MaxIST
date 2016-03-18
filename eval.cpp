@@ -96,10 +96,10 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
   {
     auto id = omp_get_thread_num();
     double elapsed_c, elapsed_i;
+    std::stringstream buffer;
     timing timer;
     #pragma omp for schedule(dynamic) nowait
     for(uint i = 0; i < suite.size(); ++i) {
-      std::stringstream buffer;
       auto trial = suite.get(i);
       auto G = std::get<0>(trial);
       if(vanilla && !is_connected(G)) continue;
@@ -146,21 +146,19 @@ void run(Suite& suite, Strings const & constructions, Strings const & improvemen
             ;
 #ifndef NDEBUG
           if(suite.size() < 10) show("graph" + std::to_string(i) + graph_type + ".dot", G, T);
-
           //if(rules[rules.size()-2] > 10) show("graph" + std::to_string(i) + ".dot", G, T);
 #endif
-
           if(!scratch) elapsed_c += elapsed_i;
         }
       }
-      #pragma omp critical
-      std::cout << buffer.str() << std::flush;
 
       if(id == 0 || i+1 == suite.size()) {
         std::cerr << '\t' << 100*(i+1)/suite.size() << "% of " << suite.size();
         std::cerr << '\t' << readable(total.stop()) << " elapsed    \r";
       }
     }
+    #pragma omp critical
+    std::cout << buffer.str() << std::flush;
   }
   std::cerr << std::endl;
 }
