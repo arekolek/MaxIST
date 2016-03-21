@@ -10,7 +10,7 @@ fi
 echo -n 'Question prompting the experiment: '
 RATIONALE=$(head -n 1 | awk '{print "# " $0}')
 
-JOB_ID=$(env TS_ONFINISH=./run_after.sh ts -E -N $OMP_NUM_THREADS ./eval.exe $@)
+JOB_ID=$(env TS_ONFINISH=./run_after ts -E -N $OMP_NUM_THREADS ./eval.exe $@)
 
 FILE=output/ts_$JOB_ID.txt
 
