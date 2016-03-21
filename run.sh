@@ -12,7 +12,11 @@ RATIONALE=$(head -n 1 | awk '{print "# " $0}')
 
 JOB_ID=$(env TS_ONFINISH=./run_after.sh ts -E -N $OMP_NUM_THREADS ./eval.exe $@)
 
+FILE=output/ts_$JOB_ID.txt
+
 echo "$RATIONALE
 # 
-# Commit: $(git rev-parse HEAD)" > output/ts_$JOB_ID.txt
+# Commit: $(git rev-parse HEAD)" > $FILE
+
+echo "Results: output/ts_$JOB_ID.txt"
 
