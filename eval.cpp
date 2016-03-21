@@ -213,14 +213,14 @@ int main(int argc, char** argv){
   std::ios_base::sync_with_stdio(0);
 
   options opt(argc, argv);
-  auto z = opt.get<int>("-z", 1);
+  auto z = opt.get<int>("-z", 100);
   auto graphs = opt.getList<string>("-g", {"set"});
   auto trees = opt.getList<string>("-t", {"slist"});
-  auto sizes = opt.getList<unsigned>("-n", {100});
+  auto sizes = opt.getList<unsigned>("-n", {1000});
   auto tests = opt.getList<string>("-m", {"gnp+mst"});
   auto degrees = opt.getList<double>("-d", { 3. });
-  auto constructions = opt.getList<string>("-c", {"bfs", "dfs", "rdfs", "fifo", "rdfs50", "ilst", "random"});
-  auto improvements = opt.getList<string>("-i", {"none", "prieto", "lost-light", "lost", "lost-ex"});
+  auto constructions = opt.getList<string>("-c", {"wilson"});
+  auto improvements = opt.getList<string>("-i", {"none"});
   auto scratch = opt.has("--scratch");
 
   std::cout
