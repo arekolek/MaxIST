@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# TODO save random seed
-
 if [ -z $OMP_NUM_THREADS ]
 then
   OMP_NUM_THREADS=12

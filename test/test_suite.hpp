@@ -11,14 +11,10 @@
 #include "algorithm.hpp"
 #include "graph.hpp"
 
-unsigned time_seed() {
-  return std::chrono::system_clock::now().time_since_epoch().count();
-}
-
 template <class Iterator>
-void generate_seeds(Iterator begin, Iterator end) {
-  static std::string seed = std::to_string(time_seed());
-  std::seed_seq seq(seed.begin(), seed.end());
+void generate_seeds(Iterator begin, Iterator end, unsigned seed) {
+  std::string s = std::to_string(seed);
+  std::seed_seq seq(s.begin(), s.end());
   seq.generate(begin, end);
 }
 
@@ -72,9 +68,10 @@ public:
   }
 
   template<class Sizes, class Degrees>
-  test_suite(std::string t, unsigned z, Sizes ns, Degrees ds) : t(t), sizes(ns), degrees(ds) {
+  test_suite(std::string t, unsigned z, Sizes ns, Degrees ds, unsigned seed)
+      : t(t), sizes(ns), degrees(ds) {
     seeds.resize(z);
-    generate_seeds(seeds.begin(), seeds.end());
+    generate_seeds(seeds.begin(), seeds.end(), seed);
   }
 private:
   std::string t;
@@ -130,14 +127,17 @@ public:
     return std::make_tuple(g, i, 0, 0);
   }
 
-  real_suite(std::string f, unsigned size) : G(0), t(f.substr(0, f.find('.'))), seeds(size) {
+  real_suite(std::string f, unsigned size, unsigned seed)
+      : G(0),
+        t(f.substr(0, f.find('.'))),
+        seeds(size) {
     std::ifstream file(f);
-    if(!file.good()) {
+    if (!file.good()) {
       throw std::invalid_argument("File does not exist: " + f);
     }
     boost::dynamic_properties dp;
     read_graphml(file, G, dp);
-    generate_seeds(seeds.begin(), seeds.end());
+    generate_seeds(seeds.begin(), seeds.end(), seed);
   }
   std::string type() const {
     return t;
