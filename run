@@ -2,7 +2,7 @@
 
 if [ -z $OMP_NUM_THREADS ]
 then
-  OMP_NUM_THREADS=12
+  export OMP_NUM_THREADS=12
 fi
 
 echo -n 'Question prompting the experiment: '
