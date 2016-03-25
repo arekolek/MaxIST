@@ -206,19 +206,19 @@ void run(std::string tree,
 #ifdef TREE_REPR
   if (tree == "matrix")
     run<Graph, amatrix>  (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-  if (tree == "hash")
+  if (tree == "unordered_set")
     run<Graph, ahash>    (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (tree == "multiset")
     run<Graph, amultiset>(model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (tree == "list")
     run<Graph, alist>    (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-  if (tree == "vec")
-    run<Graph, avec>     (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (tree == "set")
     run<Graph, aset>     (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-#endif
   if (tree == "slist")
     run<Graph, aslist>   (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
+#endif
+  if (tree == "vector")
+    run<Graph, avec>     (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
 }
 
 template <class Sizes, class Degrees, class Strings>
@@ -235,13 +235,13 @@ void run(std::string graph,
 #ifdef GRAPH_REPR
   if (graph == "matrix")
     run<amatrix>  (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-  if (graph == "hash")
+  if (graph == "unordered_set")
     run<ahash>    (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (graph == "multiset")
     run<amultiset>(tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (graph == "slist")
     run<aslist>   (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-  if (graph == "vec")
+  if (graph == "vector")
     run<avec>     (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (graph == "list")
     run<alist>    (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
@@ -263,7 +263,7 @@ int main(int argc, char** argv){
   options opt(argc, argv);
   auto z = opt.get<int>("-z", 100);
   auto graphs = opt.getList<string>("-g", {"set"});
-  auto trees = opt.getList<string>("-t", {"slist"});
+  auto trees = opt.getList<string>("-t", {"vector"});
   auto sizes = opt.getList<unsigned>("-n", {1000});
   auto tests = opt.getList<string>("-m", {"gnp+mst"});
   auto degrees = opt.getList<double>("-d", { 3. });
