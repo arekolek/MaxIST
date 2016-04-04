@@ -214,11 +214,11 @@ void run(std::string tree,
     run<Graph, alist>    (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
   if (tree == "set")
     run<Graph, aset>     (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-  if (tree == "slist")
-    run<Graph, aslist>   (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
-#endif
   if (tree == "vector")
     run<Graph, avec>     (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
+#endif
+  if (tree == "slist")
+    run<Graph, aslist>   (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
 }
 
 template <class Sizes, class Degrees, class Strings>
@@ -263,7 +263,7 @@ int main(int argc, char** argv){
   options opt(argc, argv);
   auto z = opt.get<int>("-z", 100);
   auto graphs = opt.getList<string>("-g", {"set"});
-  auto trees = opt.getList<string>("-t", {"vector"});
+  auto trees = opt.getList<string>("-t", {"slist"});
   auto sizes = opt.getList<unsigned>("-n", {1000});
   auto tests = opt.getList<string>("-m", {"gnp+mst"});
   auto degrees = opt.getList<double>("-d", { 3. });
