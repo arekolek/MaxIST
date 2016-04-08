@@ -61,7 +61,7 @@ std::function<Tree(Graph&)> make_construction(std::string name,
     return ilst<Graph, Tree> ;
   if (name == "5/3")
     return five_three_tree<Graph, Tree> ;
-  if (name.find(".xml") != std::string::npos) {
+  if (found(".xml", name)) {
     return [=](const Graph& G) {
       real_suite<Tree> suite(name, size, seed);
       return std::get<0>(suite.get(index));
@@ -181,10 +181,10 @@ void run(std::string t,
          Strings const & improvements,
          bool scratch,
          unsigned seed) {
-  if (t.find(".xml") != std::string::npos) {
+  if (found(".xml", t)) {
     real_suite<Graph> suite(t, z, seed);
     run<Graph, Tree>(suite, constructions, improvements, scratch, seed);
-  } else if (t.find('.') != std::string::npos) {
+  } else if (found(".", t)) {
     file_suite<Graph> suite(t);
     run<Graph, Tree>(suite, constructions, improvements, scratch, seed);
   } else {

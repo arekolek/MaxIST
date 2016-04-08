@@ -28,3 +28,7 @@ template <class Container, class Value>
 inline unsigned find_index(Container const & container, Value const & value) {
   return std::distance(container.begin(), std::find(container.begin(), container.end(), value));
 }
+
+inline bool found(std::string pat, std::string txt) {
+  return txt.find(pat) != std::string::npos;
+}

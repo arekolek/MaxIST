@@ -38,10 +38,10 @@ public:
     auto n = sizes[i / seeds.size() / degrees.size()];
     auto d = expected_degree;
     auto tree_degree = 2.*(n-1)/n;
-    bool mst = t.find("mst") != std::string::npos;
+    bool mst = found("mst", t);
     Graph G(n), G_shuffled(n);
 
-    if(t.find("path") != std::string::npos) {
+    if(found("path", t)) {
       add_spider(G, 1, generator);
       // the overlap satisfies    y     = a    x     + b
       // full graph satisfies:    0     = a  (n-1)   + b
@@ -51,7 +51,7 @@ public:
     }
 
     double parameter;
-    if(t.find("rgg") != std::string::npos) {
+    if(found("rgg", t)) {
       if(mst) d -= d<2 ? tree_degree : 1/sinh(d-sqrt(2.)); // approximate fit
       parameter = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
       Geometric points(n, generator);
