@@ -12,9 +12,8 @@
 #include "graph.hpp"
 
 template <class Iterator>
-void generate_seeds(Iterator begin, Iterator end, unsigned seed) {
-  std::string s = std::to_string(seed);
-  std::seed_seq seq(s.begin(), s.end());
+void generate_seeds(Iterator begin, Iterator end, std::string seed) {
+  std::seed_seq seq(seed.begin(), seed.end());
   seq.generate(begin, end);
 }
 
@@ -70,7 +69,7 @@ public:
   }
 
   template<class Sizes, class Degrees>
-  test_suite(std::string t, unsigned z, Sizes ns, Degrees ds, unsigned seed)
+  test_suite(std::string t, unsigned z, Sizes ns, Degrees ds, std::string seed)
       : t(t), sizes(ns), degrees(ds) {
     seeds.resize(z);
     generate_seeds(seeds.begin(), seeds.end(), seed);
@@ -129,7 +128,7 @@ public:
     return std::make_tuple(g, i, 0, 0);
   }
 
-  real_suite(std::string f, unsigned size, unsigned seed)
+  real_suite(std::string f, unsigned size, std::string seed)
       : G(0),
         t(f.substr(0, f.find('.'))),
         seeds(size) {

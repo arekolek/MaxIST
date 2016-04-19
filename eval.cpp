@@ -40,7 +40,7 @@ template<class Graph, class Tree>
 std::function<Tree(Graph&)> make_construction(std::string name,
                                               unsigned size,
                                               unsigned index,
-                                              unsigned seed) {
+                                              std::string seed) {
   if (name == "bfs")
     return bfs_tree<Graph, Tree> ;
   if (name == "dfs")
@@ -93,7 +93,7 @@ void run(Suite& suite,
          Strings const & constructions,
          Strings const & improvements,
          bool scratch,
-         unsigned seed) {
+         std::string seed) {
   timing total(CLOCK_REALTIME);
   total.start();
   auto graph_type = type(Graph(0));
@@ -180,7 +180,7 @@ void run(std::string t,
          Strings const & constructions,
          Strings const & improvements,
          bool scratch,
-         unsigned seed) {
+         std::string seed) {
   if (found(".xml", t)) {
     real_suite<Graph> suite(t, z, seed);
     run<Graph, Tree>(suite, constructions, improvements, scratch, seed);
@@ -202,7 +202,7 @@ void run(std::string tree,
          Strings const & constructions,
          Strings const & improvements,
          bool scratch,
-         unsigned seed) {
+         std::string seed) {
 #ifdef TREE_REPR
   if (tree == "matrix")
     run<Graph, amatrix>  (model, sample, sizes, degrees, constructions, improvements, scratch, seed);
@@ -231,7 +231,7 @@ void run(std::string graph,
          Strings const & constructions,
          Strings const & improvements,
          bool scratch,
-         unsigned seed) {
+         std::string seed) {
 #ifdef GRAPH_REPR
   if (graph == "matrix")
     run<amatrix>  (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
@@ -250,8 +250,8 @@ void run(std::string graph,
     run<aset>     (tree, model, sample, sizes, degrees, constructions, improvements, scratch, seed);
 }
 
-unsigned time_seed() {
-  return std::chrono::system_clock::now().time_since_epoch().count();
+std::string time_seed() {
+  return std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
 }
 
 int main(int argc, char** argv){
@@ -270,7 +270,7 @@ int main(int argc, char** argv){
   auto constructions = opt.getList<string>("-c", {"wilson"});
   auto improvements = opt.getList<string>("-i", {"none"});
   auto scratch = opt.has("--scratch");
-  auto seed = opt.get<unsigned>("-s", time_seed());
+  auto seed = opt.get<string>("-s", time_seed());
 
   std::cout << "# Seed: " << seed << std::endl;
 
