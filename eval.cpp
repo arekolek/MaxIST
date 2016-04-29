@@ -125,8 +125,9 @@ void run(Suite& suite,
 
         for (auto iname : improvements) {
           if (scratch) T = tree;
-
+          auto num_internal_before = num_internal(T);
           auto improve = make_improvement<Graph, Tree>(iname);
+
           timer.start();
           auto rules = improve(G, T);
           elapsed_i = timer.stop();
@@ -144,6 +145,7 @@ void run(Suite& suite,
             << upper(G) << '\t'
             << cname << '\t'
             << iname << '\t'
+            << num_internal_before << '\t'
             << num_internal(T) << '\t'
             << elapsed_c << '\t'
             << elapsed_i << '\t'
@@ -287,6 +289,7 @@ int main(int argc, char** argv){
     << "upper\t"
     << "construction\t"
     << "improvement\t"
+    << "inter_before\t"
     << "internal\t"
     << "ctime\t"
     << "itime\t"
