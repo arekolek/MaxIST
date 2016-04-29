@@ -41,6 +41,9 @@ public:
     bool unite = !found("++", t);
     Graph G(n), G_shuffled(n);
 
+    // use d in [0,1] to mean density (since connected graphs have d > 1 anyway)
+    if(unite && d <= 1) d *= n-1;
+
     if(found("path", t)) {
       add_spider(G, 1, generator);
       // the overlap satisfies    y     = a    x     + b
