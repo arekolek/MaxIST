@@ -289,7 +289,7 @@ int main(int argc, char** argv){
     << "upper\t"
     << "construction\t"
     << "improvement\t"
-    << "inter_before\t"
+    << "before\t"
     << "internal\t"
     << "ctime\t"
     << "itime\t"
