@@ -13,4 +13,6 @@
 __pycache__
 build
 .settings
-
+.Rhistory
+input
+output
