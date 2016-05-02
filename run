@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if ! git diff --quiet HEAD
+then
+  echo "There are uncommited changes. Abort..."
+  exit 1
+fi
+
+make CXXFLAGS="-DGRAPH_REPR -DTREE_REPR" GDB=off eval.exe || exit 1
+
 if [ -z $OMP_NUM_THREADS ]
 then
   export OMP_NUM_THREADS=12
@@ -12,9 +20,9 @@ JOB_ID=$(env TS_ONFINISH=./run_after ts -E -N $OMP_NUM_THREADS ./eval.exe $@)
 
 FILE=output/ts.$JOB_ID.txt
 
+echo "Results: $FILE"
+
 echo "$RATIONALE
 # 
 # Commit: $(git rev-parse HEAD)" > $FILE
-
-echo "Results: $FILE"
 
