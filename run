@@ -16,5 +16,5 @@ echo "$RATIONALE
 # 
 # Commit: $(git rev-parse HEAD)" > $FILE
 
-echo "Results: output/ts_$JOB_ID.txt"
+echo "Results: $FILE"
 
