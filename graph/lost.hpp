@@ -198,22 +198,17 @@ class leaf_info {
 
 template<class Graph, class Tree, class LeafInfo>
 bool rule0(Graph& G, Tree& T, LeafInfo& info) {
+  auto next = [&](uint x, uint l) {return info.parent(x, l);};
   for (auto l1 : info.leaves())
     for (auto l2 : info.leaves())
-      if (edge(l1, l2, G).second) {
-        auto x = l1;
-        auto y = *adjacent_vertices(l1, T).first;
-        while (y != l2) {
-          x = y;
-          y = info.parent(y, l2);
+      if (edge(l1, l2, G).second)
+        for (auto x = l1, y = next(x, l2); y != l2; x = y, y = next(y, l2))
           if (out_degree(x, T) > 2 && out_degree(y, T) > 2) {
             add_edge(l1, l2, T);
             remove_edge(x, y, T);
             info.update();
             return true;
           }
-        }
-      }
   return false;
 }
 
