@@ -133,7 +133,7 @@ public:
 
   real_suite(std::string f, unsigned size, std::string seed)
       : G(0),
-        t(f.substr(0, f.find('.'))),
+        t(f.substr(f.rfind('/')+1, f.rfind('.')-f.rfind('/')-1)),
         seeds(size) {
     std::ifstream file(f);
     if (!file.good()) {
