@@ -519,8 +519,8 @@ bool rule15(Graph& G, Tree& T, LeafInfo& info) {
     auto next = [&](uint x) {return info.parent(x, l);};
     auto bl = info.branching(l);
     for (auto x : info.support(l))
-      for (auto a = next(x), b = next(a); a != bl; a = b, b = next(b))
-        if (out_degree(a, T) > 2 && out_degree(b, T) > 2) {
+      for (auto a = x, b = next(a); a != bl; a = b, b = next(b))
+        if ((a == x || out_degree(a, T) > 2) && out_degree(b, T) > 2) {
           add_edge(l, x, T);
           remove_edge(a, b, T);
           info.update();
@@ -544,11 +544,11 @@ bool rule16(Graph& G, Tree& T, LeafInfo& info) {
     auto next = [&](uint x) {return info.parent(x, l);};
     auto bl = info.branching(l);
     for (auto x : info.support(l))
-      for (auto a = next(x), b = next(a), c = next(b); a != bl; a = b, b = c, c = next(c))
-        if (!is_branching(b) && (is_branching(a) || is_branching(c)))
+      for (auto a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c))
+        if (!is_branching(b) && (x == a || is_branching(a) || is_branching(c)))
           if (auto l2 = supported_other(b, l, x)) {
             add_edge(l, x, T);
-            remove_edge(is_branching(a) ? a : c, b, T);
+            remove_edge(x == a || is_branching(a) ? a : c, b, T);
             info.update();
             rule1action(b, *l2, T, info);
             return true;
