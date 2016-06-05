@@ -93,7 +93,8 @@ public:
 
   unsigned size() const { return graphs.size(); }
 
-  file_suite(std::string f) : t(f.substr(0, f.find('.'))) {
+  file_suite(std::string f)
+      : t(f.substr(f.rfind('/')+1, f.rfind('.')-f.rfind('/')-1)) {
     std::ifstream file(f);
     if(!file.good()) {
       throw std::invalid_argument("File does not exist: " + f);
