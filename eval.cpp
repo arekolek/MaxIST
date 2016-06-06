@@ -59,8 +59,18 @@ std::function<Tree(Graph&)> make_construction(std::string name,
     return greedy_tree<Graph, Tree> ;
   if (name == "ilst")
     return ilst<Graph, Tree> ;
-  if (name == "5/3")
-    return five_three_tree<Graph, Tree> ;
+  if (name == "5/3") {
+    return [=](const Graph& G) {
+      auto n = size / 10;
+      auto i = index % n;
+      std::vector<unsigned> seeds(n);
+      generate_seeds(seeds.begin(), seeds.end(), seed);
+      std::default_random_engine generator(seeds[i]);
+      Tree g(num_vertices(G));
+      copy_edges_shuffled(five_three_tree<Graph, Tree>(G), g, generator);
+      return g;
+    };
+  }
   if (found(".xml", name)) {
     return [=](const Graph& G) {
       real_suite<Tree> suite(name, size, seed);
