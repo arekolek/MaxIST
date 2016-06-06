@@ -72,7 +72,7 @@ std::function<Tree(Graph&)> make_construction(std::string name,
 
 template<class Graph>
 std::function<unsigned(Graph&)> make_upper(std::string name) {
-  if (name == "5/3") {
+  if (name == "53") {
     return [](const Graph& G) {
       return 5*(num_vertices(G)-3)/6;
     };
@@ -113,7 +113,7 @@ void run(Suite& suite,
 
       for (auto cname : constructions) {
         auto construct = make_construction<Graph, Tree>(cname, suite.size(), i, seed);
-        auto upper = make_upper<Graph>(cname);
+        auto upper = make_upper<Graph>(suite.type());
         timer.start();
         auto T = construct(G);
         elapsed_c = timer.stop();
