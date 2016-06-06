@@ -71,6 +71,10 @@ public:
     return std::make_tuple(G_shuffled, run, expected_degree, parameter);
   }
 
+  unsigned get_seed(unsigned i) {
+    return 0;
+  }
+
   template<class Sizes, class Degrees>
   test_suite(std::string t, unsigned z, Sizes ns, Degrees ds, std::string seed)
       : t(t), sizes(ns), degrees(ds) {
@@ -94,6 +98,10 @@ public:
     Graph g(num_vertices(graphs[i]));
     copy_edges_shuffled(graphs[i], g, generator);
     return std::make_tuple(g, run, 0, 0);
+  }
+
+  unsigned get_seed(unsigned i) const {
+    return seeds[i % seeds.size()];
   }
 
   unsigned size() const { return graphs.size() * seeds.size(); }
@@ -138,6 +146,10 @@ public:
     Graph g(num_vertices(G));
     copy_edges_shuffled(G, g, generator);
     return std::make_tuple(g, i, 0, 0);
+  }
+
+  unsigned get_seed(unsigned i) const {
+    return i;
   }
 
   real_suite(std::string f, unsigned size, std::string seed)

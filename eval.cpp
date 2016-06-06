@@ -61,11 +61,7 @@ std::function<Tree(Graph&)> make_construction(std::string name,
     return ilst<Graph, Tree> ;
   if (name == "5/3") {
     return [=](const Graph& G) {
-      auto n = size / 10;
-      auto i = index % n;
-      std::vector<unsigned> seeds(n);
-      generate_seeds(seeds.begin(), seeds.end(), seed);
-      std::default_random_engine generator(seeds[i]);
+      std::default_random_engine generator(index);
       Tree g(num_vertices(G));
       copy_edges_shuffled(five_three_tree<Graph, Tree>(G), g, generator);
       return g;
@@ -122,7 +118,7 @@ void run(Suite& suite,
       if (vanilla && !is_connected(G)) continue;
 
       for (auto cname : constructions) {
-        auto construct = make_construction<Graph, Tree>(cname, suite.size(), i, seed);
+        auto construct = make_construction<Graph, Tree>(cname, suite.size(), suite.get_seed(i), seed);
         auto upper = make_upper<Graph>(suite.type());
         timer.start();
         auto T = construct(G);
