@@ -187,7 +187,7 @@ void run(std::string t,
     real_suite<Graph> suite(t, z, seed);
     run<Graph, Tree>(suite, constructions, improvements, scratch, seed);
   } else if (found(".", t)) {
-    file_suite<Graph> suite(t);
+    file_suite<Graph> suite(t, z, seed);
     run<Graph, Tree>(suite, constructions, improvements, scratch, seed);
   } else {
     test_suite<Graph> suite(t, z, sizes, params, seed);

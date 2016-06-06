@@ -88,13 +88,19 @@ template <class Graph>
 class file_suite {
 public:
   std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
-    return std::make_tuple(graphs[i], i, 0, 0);
+    auto run = i % seeds.size();
+    i /= seeds.size();
+    std::default_random_engine generator(seeds[run]);
+    Graph g(num_vertices(graphs[i]));
+    copy_edges_shuffled(graphs[i], g, generator);
+    return std::make_tuple(g, run, 0, 0);
   }
 
-  unsigned size() const { return graphs.size(); }
+  unsigned size() const { return graphs.size() * seeds.size(); }
 
-  file_suite(std::string f)
-      : t(f.substr(f.rfind('/')+1, f.rfind('.')-f.rfind('/')-1)) {
+  file_suite(std::string f, unsigned size, std::string seed)
+      : t(f.substr(f.rfind('/')+1, f.rfind('.')-f.rfind('/')-1)),
+        seeds(size)  {
     std::ifstream file(f);
     if(!file.good()) {
       throw std::invalid_argument("File does not exist: " + f);
@@ -111,6 +117,7 @@ public:
       graphs.push_back(G);
     }
     file.close();
+    generate_seeds(seeds.begin(), seeds.end(), seed);
   }
   std::string type() const {
     return t;
@@ -118,6 +125,7 @@ public:
 private:
   std::string t;
   std::vector<Graph> graphs;
+  std::vector<unsigned> seeds;
 };
 
 template <class Graph>
