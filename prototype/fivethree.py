@@ -28,14 +28,11 @@ def five_three(k):
       print(*(6*i + 1, 6*(i+1) + 4))
       print(*(6*i + 5, 6*(i+1) + 5))
 
-print(10)
-for k in range(2, 100, 10):
+from sys import argv
+ks = list(range(*map(int, argv[1:])))
+print(len(ks))
+for k in ks:
   five_three(k)
-
-'''
-print(1)
-five_three(4)
-'''
 
 def rank_same(*s):
   from itertools import chain
