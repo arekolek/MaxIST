@@ -120,6 +120,7 @@ void run(Suite& suite,
 
         assert(num_edges(T) == num_vertices(T) - 1);
         assert(is_connected(T));
+        assert(is_subgraph(T, G));
 
         const auto tree(T);
 

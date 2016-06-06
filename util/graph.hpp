@@ -46,6 +46,14 @@ bool is_connected(Graph const & G) {
   return connected_components(G, &component[0]) == 1;
 }
 
+template<class Tree, class Graph>
+bool is_subgraph(Tree const & T, Graph const & G) {
+  for (auto e : range(edges(T)))
+    if(!edge(source(e, T), target(e, T), G).second)
+      return false;
+  return true;
+}
+
 template<class G>
 void add_edge_no_dup(typename boost::graph_traits<G>::vertex_descriptor v,
                      typename boost::graph_traits<G>::vertex_descriptor u,
