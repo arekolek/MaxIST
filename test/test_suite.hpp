@@ -30,7 +30,7 @@ public:
 
   std::string type() const { return t; }
 
-  std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
+  std::tuple<Graph, uint, double, double, uint> get(uint i) const {
     auto run = i % seeds.size();
     std::default_random_engine generator(seeds[run]);
     auto expected_degree = degrees[(i / seeds.size()) % degrees.size()];
@@ -39,6 +39,7 @@ public:
     auto tree_degree = 2.*(n-1)/n;
     bool mst = found("mst", t);
     bool unite = !found("++", t);
+    uint lower = 0;
     Graph G(n), G_shuffled(n);
 
     // use d in [0,1] to mean density (since connected graphs have d > 1 anyway)
@@ -59,16 +60,18 @@ public:
       parameter = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
       Geometric points(n, generator);
       points.add_random_geometric(G, parameter);
-      if(mst) points.add_mst(G);
+      if(mst) lower = points.add_mst(G);
     }
     else if(found("gnp", t)) {
       if(mst && unite) d -= d<2 ? tree_degree : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
       parameter = d<0 ? 0 : d/(n-1);
-      add_edges_uniform(G, parameter, generator, mst);
+      lower = add_edges_uniform(G, parameter, generator, mst);
     }
 
+    if(found("path", t)) lower = n-2;
+
     copy_edges_shuffled(G, G_shuffled, generator);
-    return std::make_tuple(G_shuffled, run, expected_degree, parameter);
+    return std::make_tuple(G_shuffled, run, expected_degree, parameter, lower);
   }
 
   unsigned get_seed(unsigned i) {
@@ -91,13 +94,13 @@ private:
 template <class Graph>
 class file_suite {
 public:
-  std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
+  std::tuple<Graph, unsigned, double, double, uint> get(unsigned i) const {
     auto run = i % seeds.size();
     i /= seeds.size();
     std::default_random_engine generator(seeds[run]);
     Graph g(num_vertices(graphs[i]));
     copy_edges_shuffled(graphs[i], g, generator);
-    return std::make_tuple(g, run, 0, 0);
+    return std::make_tuple(g, run, 0, 0, 0);
   }
 
   unsigned get_seed(unsigned i) const {
@@ -141,11 +144,11 @@ class real_suite {
 public:
   unsigned size() const { return seeds.size(); }
 
-  std::tuple<Graph, unsigned, double, double> get(unsigned i) const {
+  std::tuple<Graph, unsigned, double, double, uint> get(unsigned i) const {
     std::default_random_engine generator(seeds[i]);
     Graph g(num_vertices(G));
     copy_edges_shuffled(G, g, generator);
-    return std::make_tuple(g, i, 0, 0);
+    return std::make_tuple(g, i, 0, 0, 0);
   }
 
   unsigned get_seed(unsigned i) const {

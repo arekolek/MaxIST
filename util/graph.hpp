@@ -35,6 +35,18 @@ unsigned num_internal(Graph const & G) {
   return internal;
 }
 
+template<class Graph, class Edge>
+unsigned num_internal(Graph const & G, std::vector<Edge> & T) {
+  std::vector<uint> degree(num_vertices(G), 0);
+  for (auto e : T) {
+    ++degree[source(e, G)];
+    ++degree[target(e, G)];
+  }
+  unsigned internal = 0;
+  for(auto d : degree) internal += d > 1;
+  return internal;
+}
+
 template<class Graph>
 unsigned upper_bound(Graph const & G) {
   return std::min(num_internal(G), (unsigned) num_vertices(G) - 2);
@@ -83,7 +95,7 @@ void add_spider(Graph& G, unsigned legs, Generator generator) {
 }
 
 template<class Graph, class Generator>
-void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
+uint add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
   unsigned n = num_vertices(G);
   double connectedness = 20.0 / n;
   if (mst && p < connectedness) {
@@ -104,6 +116,7 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
     kruskal_minimum_spanning_tree(g, std::back_inserter(t));
     for (auto e : t)
       add_edge_no_dup(source(e, g), target(e, g), G);
+    return num_internal(g, t);
   } else {
     std::bernoulli_distribution distribution(p);
     auto trial = std::bind(distribution, generator);
@@ -112,6 +125,7 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
         if (trial()) add_edge_no_dup(i, j, G);
       }
     }
+    return 0;
   }
 }
 
@@ -149,7 +163,7 @@ class Geometric {
   }
 
   template<class Graph>
-  void add_mst(Graph& G) {
+  uint add_mst(Graph& G) {
     typedef boost::property<boost::edge_weight_t, Kernel::FT> Weight;
     typedef boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS, boost::no_property, Weight> WeightedGraph;
     typedef boost::graph_traits<WeightedGraph>::edge_descriptor WeightedEdge;
@@ -173,6 +187,7 @@ class Geometric {
     kruskal_minimum_spanning_tree(g, std::back_inserter(mst));
     for (auto e : mst)
       add_edge_no_dup(source(e, g), target(e, g), G);
+    return num_internal(g, mst);
   }
 };
 

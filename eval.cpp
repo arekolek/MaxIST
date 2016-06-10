@@ -150,6 +150,7 @@ void run(Suite& suite,
             << num_vertices(G) << '\t'
             << num_edges(G) << '\t'
             << upper(G) << '\t'
+            << std::get<4>(trial) << '\t'
             << cname << '\t'
             << iname << '\t'
             << num_internal_before << '\t'
@@ -294,6 +295,7 @@ int main(int argc, char** argv){
     << "vertices\t"
     << "edges\t"
     << "upper\t"
+    << "lower\t"
     << "construction\t"
     << "improvement\t"
     << "before\t"
