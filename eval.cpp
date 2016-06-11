@@ -140,8 +140,12 @@ void run(Suite& suite,
           elapsed_i = timer.stop();
 
           buffer
+#ifdef GRAPH_REPR
             << graph_type << '\t'
+#endif
+#ifdef TREE_REPR
             << tree_type << '\t'
+#endif
             << std::get<1>(trial) << '\t'
             << id << '\t'
             << suite.type() << '\t'
@@ -284,8 +288,12 @@ int main(int argc, char** argv){
   std::cout << "# Seed: " << seed << std::endl;
 
   std::cout
+#ifdef GRAPH_REPR
     << "graph\t"
+#endif
+#ifdef TREE_REPR
     << "tree\t"
+#endif
     << "run\t"
     << "thread\t"
     << "model\t"
