@@ -68,14 +68,14 @@ void copy_edges(const Input& in, Output& out) {
 }
 
 template<class Input, class Output, class Generator>
-void copy_edges_shuffled(const Input& in, Output& out, Generator generator) {
+void copy_edges_shuffled(const Input& in, Output& out, Generator& generator) {
   auto p = shuffled(range_iterator(0, num_vertices(in)), generator);
   for (auto e : shuffled(edges(in)))
     add_edge(p[source(e, in)], p[target(e, in)], out);
 }
 
-template<class Graph, class Generator>
-void add_spider(Graph& G, unsigned legs, Generator generator) {
+template<class Graph>
+void add_spider(Graph& G, unsigned legs) {
   unsigned n = num_vertices(G);
   unsigned cutoff = ceil((double)n / legs);
   for (unsigned i = 0; i < n - 1; ++i)
@@ -83,7 +83,7 @@ void add_spider(Graph& G, unsigned legs, Generator generator) {
 }
 
 template<class Graph, class Generator>
-void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
+void add_edges_uniform(Graph& G, double p, Generator& generator, bool mst) {
   unsigned n = num_vertices(G);
   double connectedness = 20.0 / n;
   if (mst && p < connectedness) {
@@ -91,7 +91,7 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
     typedef boost::adjacency_list<boost::hash_setS, boost::vecS, boost::undirectedS, boost::no_property, Weight> WeightedGraph;
     typedef boost::graph_traits<WeightedGraph>::edge_descriptor WeightedEdge;
     std::uniform_real_distribution<> distribution(0, 1);
-    auto trial = std::bind(distribution, generator);
+    auto trial = std::bind(distribution, std::ref(generator));
     WeightedGraph g;
     for (unsigned i = 0; i < n; ++i) {
       for (unsigned j = i + 1; j < n; ++j) {
@@ -106,7 +106,7 @@ void add_edges_uniform(Graph& G, double p, Generator generator, bool mst) {
       add_edge_no_dup(source(e, g), target(e, g), G);
   } else {
     std::bernoulli_distribution distribution(p);
-    auto trial = std::bind(distribution, generator);
+    auto trial = std::bind(distribution, std::ref(generator));
     for (unsigned i = 0; i < n; ++i) {
       for (unsigned j = i + 1; j < n; ++j) {
         if (trial()) add_edge_no_dup(i, j, G);
@@ -126,10 +126,10 @@ class Geometric {
 
  public:
   template<class Generator>
-  Geometric(int n, Generator generator) {
+  Geometric(int n, Generator& generator) {
     // Choose random points in square [0, 1) x [0, 1)
     std::uniform_real_distribution<> distribution(0, 1);
-    auto r = std::bind(distribution, generator);
+    auto r = std::bind(distribution, std::ref(generator));
     // Generate index for every point
     int counter = 0;
     std::function<std::pair<Point, int>()> f = [&]() {return std::make_pair(Point(r(), r()), counter++);};

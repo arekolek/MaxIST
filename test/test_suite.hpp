@@ -39,33 +39,38 @@ public:
     auto tree_degree = 2.*(n-1)/n;
     bool mst = found("mst", t);
     bool unite = !found("++", t);
+    bool vanilla = !found("+", t);
     Graph G(n), G_shuffled(n);
+    double parameter;
 
     // use d in [0,1] to mean density (since connected graphs have d > 1 anyway)
     if(unite && d <= 1) d *= n-1;
 
-    if(found("path", t)) {
-      add_spider(G, 1, generator);
-      // the overlap satisfies    y     = a    x     + b
-      // full graph satisfies:    0     = a  (n-1)   + b
-      // tree graph satisfies: 2(n-1)/n = a 2(n-1)/n + b
-      // so we must subtract this:
-      if(unite) d -= 2./(2.-n) * d + 1. + n/(n-2.);
-    }
+    do {
+      G = Graph(n);
 
-    double parameter;
-    if(found("rgg", t)) {
-      if(mst && unite) d -= d<2 ? tree_degree : 1/sinh(d-sqrt(2.)); // approximate fit
-      parameter = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
-      Geometric points(n, generator);
-      points.add_random_geometric(G, parameter);
-      if(mst) points.add_mst(G);
-    }
-    else if(found("gnp", t)) {
-      if(mst && unite) d -= d<2 ? tree_degree : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
-      parameter = d<0 ? 0 : d/(n-1);
-      add_edges_uniform(G, parameter, generator, mst);
-    }
+      if(found("path", t)) {
+        add_spider(G, 1);
+        // the overlap satisfies    y     = a    x     + b
+        // full graph satisfies:    0     = a  (n-1)   + b
+        // tree graph satisfies: 2(n-1)/n = a 2(n-1)/n + b
+        // so we must subtract this:
+        if(unite) d -= 2./(2.-n) * d + 1. + n/(n-2.);
+      }
+
+      if(found("rgg", t)) {
+        if(mst && unite) d -= d<2 ? tree_degree : 1/sinh(d-sqrt(2.)); // approximate fit
+        parameter = find_argument(d/(n-1), pr_within, 0, sqrt(2.));
+        Geometric points(n, generator);
+        points.add_random_geometric(G, parameter);
+        if(mst) points.add_mst(G);
+      }
+      else if(found("gnp", t)) {
+        if(mst && unite) d -= d<2 ? tree_degree : 1/(2*M_PI*sinh(d-M_PI/sqrt(3.))); // approximate fit
+        parameter = d<0 ? 0 : d/(n-1);
+        add_edges_uniform(G, parameter, generator, mst);
+      }
+    } while(vanilla && !is_connected(G));
 
     copy_edges_shuffled(G, G_shuffled, generator);
     return std::make_tuple(G_shuffled, run, expected_degree, parameter);
