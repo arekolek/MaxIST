@@ -77,7 +77,7 @@ public:
   }
 
   unsigned get_seed(unsigned i) {
-    return 0;
+    return seeds[i % seeds.size()];
   }
 
   template<class Sizes, class Degrees>
@@ -154,7 +154,7 @@ public:
   }
 
   unsigned get_seed(unsigned i) const {
-    return i;
+    return seeds[i];
   }
 
   real_suite(std::string f, unsigned size, std::string seed)

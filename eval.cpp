@@ -38,9 +38,10 @@ boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> typedef avec
 
 template<class Graph, class Tree>
 std::function<Tree(Graph&)> make_construction(std::string name,
-                                              unsigned size,
                                               unsigned index,
-                                              std::string seed) {
+                                              unsigned size,
+                                              unsigned seed,
+                                              std::string sseed) {
   if (name == "bfs")
     return bfs_tree<Graph, Tree> ;
   if (name == "dfs")
@@ -52,16 +53,16 @@ std::function<Tree(Graph&)> make_construction(std::string name,
   if (name == "fifo")
     return fifo_dfs_tree<Graph, Tree> ;
   if (name == "random")
-    return random_tree<Graph, Tree> ;
+    return std::bind(random_tree<Graph, Tree>, std::placeholders::_1, seed);
   if (name == "wilson")
-    return wilson_tree<Graph, Tree> ;
+    return std::bind(wilson_tree<Graph, Tree>, std::placeholders::_1, seed);
   if (name == "greedy")
-    return greedy_tree<Graph, Tree> ;
+    return std::bind(greedy_tree<Graph, Tree>, std::placeholders::_1, seed);
   if (name == "ilst")
     return ilst<Graph, Tree> ;
   if (name == "5/3") {
     return [=](const Graph& G) {
-      std::default_random_engine generator(index);
+      std::default_random_engine generator(seed);
       Tree g(num_vertices(G));
       copy_edges_shuffled(five_three_tree<Graph, Tree>(G), g, generator);
       return g;
@@ -69,7 +70,7 @@ std::function<Tree(Graph&)> make_construction(std::string name,
   }
   if (found(".xml", name)) {
     return [=](const Graph& G) {
-      real_suite<Tree> suite(name, size, seed);
+      real_suite<Tree> suite(name, size, sseed);
       return std::get<0>(suite.get(index));
     };
   }
@@ -116,7 +117,7 @@ void run(Suite& suite,
       auto G = std::get<0>(trial);
 
       for (auto cname : constructions) {
-        auto construct = make_construction<Graph, Tree>(cname, suite.size(), suite.get_seed(i), seed);
+        auto construct = make_construction<Graph, Tree>(cname, i, suite.size(), suite.get_seed(i), seed);
         auto upper = make_upper<Graph>(suite.type());
         timer.start();
         auto T = construct(G);

@@ -27,17 +27,11 @@ auto range_iterator(int a, int b) {
                         boost::make_counting_iterator<int>(b));
 }
 
-template <class Iterator, class Generator = std::default_random_engine>
-auto shuffled(std::pair<Iterator, Iterator> p, Generator generator = Generator()) {
+template <class Iterator, class Generator>
+auto shuffled(std::pair<Iterator, Iterator> p, Generator& generator) {
   std::vector<typename std::iterator_traits<Iterator>::value_type> R(p.first, p.second);
   std::shuffle(R.begin(), R.end(), generator);
   return R;
-}
-
-template <class IntType = int, class Generator = std::default_random_engine>
-IntType random(IntType a = 0, IntType b = std::numeric_limits<IntType>::max()) {
-  static Generator generator;
-  return std::uniform_int_distribution<IntType>{a, b}(generator);
 }
 
 template<class Container>

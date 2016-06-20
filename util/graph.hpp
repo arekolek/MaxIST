@@ -70,7 +70,7 @@ void copy_edges(const Input& in, Output& out) {
 template<class Input, class Output, class Generator>
 void copy_edges_shuffled(const Input& in, Output& out, Generator& generator) {
   auto p = shuffled(range_iterator(0, num_vertices(in)), generator);
-  for (auto e : shuffled(edges(in)))
+  for (auto e : shuffled(edges(in), generator))
     add_edge(p[source(e, in)], p[target(e, in)], out);
 }
 
