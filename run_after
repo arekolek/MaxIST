@@ -1,8 +1,9 @@
 #!/bin/bash
 
-FILE=output/ts.$1.txt
+FILE=output/$1.txt
 
 ts -i $1 | awk '{print "# " $0}' >> $FILE
 cat $3 >> $FILE
 rm -f $3
+gzip $FILE
 
