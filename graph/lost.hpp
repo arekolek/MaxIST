@@ -277,6 +277,24 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree, class LeafInfo>
+bool rule20(Graph& G, Tree& T, LeafInfo& info) {
+  // AKA naive rule 3
+  uint xl;
+  for (auto l1 : info.leaves())
+    for (auto x : info.support(l1))
+      if (out_degree(xl = info.parent(x, l1), T) == 2)
+        for (auto l2 : range(adjacent_vertices(xl, G)))
+          if (l1 != l2 && out_degree(l2, T) == 1 && !edge(l2, xl, T).second) {
+            add_edge(l1, x, T);
+            remove_edge(x, xl, T);
+            info.update();
+            rule1action(l2, xl, T, info);
+            return true;
+          }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
 bool rule4(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l : info.leaves())
     for (auto x : info.support(l)) {
@@ -317,6 +335,26 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
         rule1action(l2, blx, T, info);
         return true;
       }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule21(Graph& G, Tree& T, LeafInfo& info) {
+  // AKA naive rule 5
+  for (auto l1 : info.leaves())
+    for (auto x : info.support(l1)) {
+      auto blx = info.branching_neighbor(l1, x);
+      if (x != blx && out_degree(blx, T) == 2)
+        for (auto l2 : range(adjacent_vertices(blx, G)))
+          if (l1 != l2 && x != l2 && out_degree(l2, T) == 1 && !edge(l2, blx, T).second) {
+            auto bl = info.branching(l1);
+            add_edge(l1, x, T);
+            remove_edge(bl, blx, T);
+            info.update();
+            rule1action(l2, blx, T, info);
+            return true;
+          }
+    }
   return false;
 }
 
@@ -682,6 +720,8 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
       rule17<Graph, Tree, leaf_info<Graph, Tree>>,
       rule18<Graph, Tree, leaf_info<Graph, Tree>>,
       rule19<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule20<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule21<Graph, Tree, leaf_info<Graph, Tree>>,
   };
 
   std::vector<unsigned> active;
