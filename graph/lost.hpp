@@ -296,14 +296,14 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l : info.leaves())
     for (auto x : info.support(l)) {
       auto blx = info.branching_neighbor(l, x);
-      if (out_degree(blx, T) == 2) extra[blx].emplace_back(l, x);
+      if (x != blx && out_degree(blx, T) == 2) extra[blx].emplace_back(l, x);
     }
 
   for (auto l2 : info.leaves())
     for (auto blx : range(adjacent_vertices(l2, G)))
       if (!edge(l2, blx, T).second) {
         auto e = boost::find_if(extra[blx], [=](Edge e) {
-          return e.first != l2 && e.second != l2 && e.second != blx;
+          return e.first != l2 && e.second != l2;
         });
         if (e == extra[blx].end()) continue;
         auto l1 = e->first, x = e->second;
