@@ -591,6 +591,7 @@ bool rule17(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree, class LeafInfo>
 bool rule18(Graph& G, Tree& T, LeafInfo& info) {
+  // AKA rules 15 and 16 in one
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
   auto supported_other = [&](uint b, uint l, uint x) -> boost::optional<uint> {
     for(uint v : range(adjacent_vertices(b, G)))
