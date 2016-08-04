@@ -260,7 +260,7 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<Edge> extra[num_vertices(G)];
-  for (auto l : info.leaves())
+  for (auto l : info.leaves()) {
     for (auto x : info.support(l)) {
       auto xl = info.parent(x, l);
       // Salamon didn't consider that l1 may be the only leaf neighbor of xl,
@@ -268,13 +268,14 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
       // to record which leaf is supported by x to compare it with l2 later.
       if (out_degree(xl, T) == 2) extra[xl].emplace_back(l, x);
     }
+  }
 
-  for (auto l2 : info.leaves())
+  for (auto l2 : info.leaves()) {
     // When using adjacency list, it's easier to just get neighbors of l2.
     // With an adjacency matrix it might be better to check adjacency
     // for each pair of leaf and forwarding vertex of xl kind (if a list
     // of such vertices can be built at all).
-    for (auto xl : range(adjacent_vertices(l2, G)))
+    for (auto xl : range(adjacent_vertices(l2, G))) {
       // (l2, xl) can be a tree edge if l2==x meaning rule 1 is applicable,
       // applying this rule in such case would actually have the same result.
       // It could also be a tree edge if l2!=x, but in such case xl would
@@ -292,6 +293,8 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
         rule1action(l2, xl, T, info);
         return true;
       }
+    }
+  }
   return false;
 }
 
@@ -299,10 +302,11 @@ template<class Graph, class Tree, class LeafInfo>
 bool rule20(Graph& G, Tree& T, LeafInfo& info) {
   // AKA naive rule 3
   uint xl;
-  for (auto l1 : info.leaves())
-    for (auto x : info.support(l1))
-      if (out_degree(xl = info.parent(x, l1), T) == 2)
-        for (auto l2 : range(adjacent_vertices(xl, G)))
+  for (auto l1 : info.leaves()) {
+    for (auto x : info.support(l1)) {
+      if (out_degree(xl = info.parent(x, l1), T) == 2) {
+        for (auto l2 : range(adjacent_vertices(xl, G))) {
+
           // No need to check x != l2, it's implied by (l2, xl) being non-tree.
           if (l1 != l2 && out_degree(l2, T) == 1 && !edge(l2, xl, T).second) {
             add_edge(l1, x, T);
@@ -311,6 +315,10 @@ bool rule20(Graph& G, Tree& T, LeafInfo& info) {
             rule1action(l2, xl, T, info);
             return true;
           }
+        }
+      }
+    }
+  }
   return false;
 }
 
