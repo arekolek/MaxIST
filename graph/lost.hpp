@@ -225,6 +225,7 @@ void rule1action(unsigned l1, unsigned l2, Tree& T, LeafInfo& i) {
   i.update();
 }
 
+// Eliminates a pair of conflicted leaves, attaching one branch to the other.
 template<class Graph, class Tree, class LeafInfo>
 bool rule1(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l1 : info.leaves())
@@ -236,6 +237,8 @@ bool rule1(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+// Connects a leaf l to a supporting vertex x that neighbors a branching xl.
+// Removes edge (x, xl) to delete the cycle.
 template<class Graph, class Tree, class LeafInfo>
 bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l : info.leaves())
@@ -251,18 +254,34 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+// Connects a leaf l1 to a supporting vertex x if its forwarding neighbor xl
+// has a nontree edge to another leaf l2. Removes edge (x, xl) thus creating
+// a pair of conflicted leaves l2, xl, to which rule1 is then applied.
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
   std::vector<Edge> extra[num_vertices(G)];
   for (auto l : info.leaves())
     for (auto x : info.support(l)) {
       auto xl = info.parent(x, l);
+      // Salamon didn't consider that l1 may be the only leaf neighbor of xl,
+      // in such case the rule can't be executed, so it's necessary
+      // to record which leaf is supported by x to compare it with l2 later.
       if (out_degree(xl, T) == 2) extra[xl].emplace_back(l, x);
     }
 
   for (auto l2 : info.leaves())
+    // When using adjacency list, it's easier to just get neighbors of l2.
+    // With an adjacency matrix it might be better to check adjacency
+    // for each pair of leaf and forwarding vertex of xl kind (if a list
+    // of such vertices can be built at all).
     for (auto xl : range(adjacent_vertices(l2, G)))
+      // (l2, xl) can be a tree edge if l2==x meaning rule 1 is applicable,
+      // applying this rule in such case would actually have the same result.
+      // It could also be a tree edge if l2!=x, but in such case xl would
+      // need to be a branching, so support_edges[xl] would be empty.
+      // Therefore checking !edge(l2, xl, T).second is not necessary.
       if (!edge(l2, xl, T).second) {
+      // Find edge associated with xl, supporting a leaf other than l2.
         auto e = boost::find_if(extra[xl], [=](Edge e) {return e.first != l2;});
         assert(std::distance(extra[xl].begin(), e) <= 1);
         if (e == extra[xl].end()) continue;
@@ -284,6 +303,7 @@ bool rule20(Graph& G, Tree& T, LeafInfo& info) {
     for (auto x : info.support(l1))
       if (out_degree(xl = info.parent(x, l1), T) == 2)
         for (auto l2 : range(adjacent_vertices(xl, G)))
+          // No need to check x != l2, it's implied by (l2, xl) being non-tree.
           if (l1 != l2 && out_degree(l2, T) == 1 && !edge(l2, xl, T).second) {
             add_edge(l1, x, T);
             remove_edge(x, xl, T);
