@@ -13,7 +13,11 @@
 #include "debug.hpp"
 #include "range.hpp"
 
+
+using boost::find_if;
+
 typedef std::pair<unsigned, unsigned> Edge;
+
 
 template<class Graph, class Tree>
 class leaf_info {
@@ -259,14 +263,14 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 // a pair of conflicted leaves l2, xl, to which rule1 is then applied.
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  std::vector<Edge> extra[num_vertices(G)];
-  for (auto l : info.leaves()) {
-    for (auto x : info.support(l)) {
-      auto xl = info.parent(x, l);
+  std::vector<Edge> support_edges[num_vertices(G)];
+  for (auto l1 : info.leaves()) {
+    for (auto x : info.support(l1)) {
+      auto xl = info.parent(x, l1);
       // Salamon didn't consider that l1 may be the only leaf neighbor of xl,
       // in such case the rule can't be executed, so it's necessary
       // to record which leaf is supported by x to compare it with l2 later.
-      if (out_degree(xl, T) == 2) extra[xl].emplace_back(l, x);
+      if (out_degree(xl, T) == 2) support_edges[xl].emplace_back(l1, x);
     }
   }
 
@@ -281,18 +285,18 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
       // It could also be a tree edge if l2!=x, but in such case xl would
       // need to be a branching, so support_edges[xl] would be empty.
       // Therefore checking !edge(l2, xl, T).second is not necessary.
-      if (!edge(l2, xl, T).second) {
+
       // Find edge associated with xl, supporting a leaf other than l2.
-        auto e = boost::find_if(extra[xl], [=](Edge e) {return e.first != l2;});
-        assert(std::distance(extra[xl].begin(), e) <= 1);
-        if (e == extra[xl].end()) continue;
-        auto l1 = e->first, x = e->second;
-        add_edge(l1, x, T);
-        remove_edge(x, xl, T);
-        info.update();
-        rule1action(l2, xl, T, info);
-        return true;
-      }
+      auto e = find_if(support_edges[xl], [=](Edge e) {return e.first != l2;});
+      assert(std::distance(support_edges[xl].begin(), e) <= 1);
+      if (e == support_edges[xl].end()) continue;
+      auto l1 = e->first, x = e->second;
+
+      add_edge(l1, x, T);
+      remove_edge(x, xl, T);
+      info.update();
+      rule1action(l2, xl, T, info);
+      return true;
     }
   }
   return false;
@@ -350,7 +354,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l2 : info.leaves())
     for (auto blx : range(adjacent_vertices(l2, G)))
       if (!edge(l2, blx, T).second) {
-        auto e = boost::find_if(extra[blx], [=](Edge e) {
+        auto e = find_if(extra[blx], [=](Edge e) {
           return e.first != l2 && e.second != l2;
         });
         assert(std::distance(extra[blx].begin(), e) == 0);
