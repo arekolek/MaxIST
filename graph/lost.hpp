@@ -16,6 +16,7 @@
 using std::vector;
 
 using boost::find_if;
+using boost::optional;
 
 typedef std::pair<unsigned, unsigned> Edge;
 
@@ -264,40 +265,37 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 // a pair of conflicted leaves l2, xl, to which rule1 is then applied.
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  vector<Edge> support_edges[num_vertices(G)];
+  vector<optional<Edge>> support_edge(num_vertices(G));
+  // Find candidate triples of vertices.
   for (auto l1 : info.leaves()) {
     for (auto x : info.support(l1)) {
       auto xl = info.parent(x, l1);
       // Salamon didn't consider that l1 may be the only leaf neighbor of xl,
       // in such case the rule can't be executed, so it's necessary
       // to record which leaf is supported by x to compare it with l2 later.
-      if (out_degree(xl, T) == 2) support_edges[xl].emplace_back(l1, x);
+      // To save on computation record x also.
+      if (out_degree(xl, T) == 2) support_edge[xl] = Edge(l1, x);
     }
   }
 
+  // Find second non-tree edge.
   for (auto l2 : info.leaves()) {
     // When using adjacency list, it's easier to just get neighbors of l2.
     // With an adjacency matrix it might be better to check adjacency
-    // for each pair of leaf and forwarding vertex of xl kind (if a list
-    // of such vertices can be built at all).
+    // for each pair of leaf and candidate vertex xl.
     for (auto xl : range(adjacent_vertices(l2, G))) {
-      // (l2, xl) can be a tree edge if l2==x meaning rule 1 is applicable,
-      // applying this rule in such case would actually have the same result.
-      // It could also be a tree edge if l2!=x, but in such case xl would
-      // need to be a branching, so support_edges[xl] would be empty.
-      // Therefore checking !edge(l2, xl, T).second is not necessary.
-
-      // Find edge associated with xl, supporting a leaf other than l2.
-      auto e = find_if(support_edges[xl], [=](Edge e) {return e.first != l2;});
-      assert(std::distance(support_edges[xl].begin(), e) <= 1);
-      if (e == support_edges[xl].end()) continue;
-      auto l1 = e->first, x = e->second;
-
-      add_edge(l1, x, T);
-      remove_edge(x, xl, T);
-      info.update();
-      rule1action(l2, xl, T, info);
-      return true;
+      // Checking !edge(l2, xl, T).second is not necessary:
+      // - if l2 != x, then xl is a branching, so there is no support_edge[xl],
+      // - if l2 == x, rule1 is applicable. This one will have the same effect.
+      auto e = support_edge[xl];
+      if (e && e->first != l2) {
+        auto l1 = e->first, x = e->second;
+        add_edge(l1, x, T);
+        remove_edge(x, xl, T);
+        info.update();
+        rule1action(l2, xl, T, info);
+        return true;
+      }
     }
   }
   return false;
@@ -311,7 +309,6 @@ bool rule20(Graph& G, Tree& T, LeafInfo& info) {
     for (auto x : info.support(l1)) {
       if (out_degree(xl = info.parent(x, l1), T) == 2) {
         for (auto l2 : range(adjacent_vertices(xl, G))) {
-
           // No need to check x != l2, it's implied by (l2, xl) being non-tree.
           if (l1 != l2 && out_degree(l2, T) == 1 && !edge(l2, xl, T).second) {
             add_edge(l1, x, T);
