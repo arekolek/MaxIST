@@ -692,29 +692,28 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
   // AKA rule16 v2
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
   std::tuple<uint, uint, uint> typedef Extra;
-  vector<Extra> extra[num_vertices(G)];
+  vector<optional<Extra>> extra(num_vertices(G));
 
   for (auto l : info.leaves()) {
     auto next = [&](uint x) {return info.parent(x, l);};
     auto bl = info.branching(l);
-    for (auto x : info.support(l))
-      for (uint a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c))
+    for (auto x : info.support(l)) {
+      for (uint a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
         if (!is_branching(b)) {
           if (x == a || is_branching(a)) {
-            extra[b].emplace_back(l, x, a);
+            extra[b] = Extra(l, x, a);
           } else if (is_branching(c)) {
-            extra[b].emplace_back(l, x, c);
+            extra[b] = Extra(l, x, c);
           }
         }
+      }
+    }
   }
 
-  for (auto l2 : info.leaves())
-    for (auto b : range(adjacent_vertices(l2, G)))
-      if (!edge(l2, b, T).second) {
-        auto e = boost::find_if(extra[b], [=](Extra e) {
-          return get<0>(e) != l2 && get<1>(e) != l2;
-        });
-        if (e == extra[b].end()) continue;
+  for (auto l2 : info.leaves()) {
+    for (auto b : range(adjacent_vertices(l2, G))) {
+      auto e = extra[b];
+      if(e && get<0>(*e) != l2 && get<1>(*e) != l2) {
         uint l1, x, a;
         std::tie(l1, x, a) = *e;
         add_edge(l1, x, T);
@@ -723,6 +722,8 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
         rule1action(b, l2, T, info);
         return true;
       }
+    }
+  }
   return false;
 }
 
