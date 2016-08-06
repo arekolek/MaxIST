@@ -13,7 +13,6 @@
 #include "debug.hpp"
 #include "range.hpp"
 
-using std::vector;
 
 using boost::find_if;
 using boost::optional;
@@ -93,14 +92,14 @@ class leaf_info {
   bool is_path() const {
     return leaves_.size() == 2;
   }
-  vector<unsigned> const & leaves() const {
+  std::vector<unsigned> const & leaves() const {
     return leaves_;
   }
-  vector<unsigned> const & leafish() {
+  std::vector<unsigned> const & leafish() {
     update_leafish();
     return leafish_;
   }
-  vector<unsigned> const & leafish_free() {
+  std::vector<unsigned> const & leafish_free() {
     update_leafish();
     return leafish_free_;
   }
@@ -184,7 +183,7 @@ class leaf_info {
  protected:
   void update_leafish() {
     if (leafish_.empty() && leafish_free_.empty()) {
-      vector<bool> lp(num_vertices_, false);
+      std::vector<bool> lp(num_vertices_, false);
       for (auto l : leaves()) lp[l] = is_long(l);
       for (auto l : leaves())
         if (is_long(l) && edge(l, branching(l), graph_).second) {
@@ -252,10 +251,10 @@ class leaf_info {
   bool needs_leafish_;
   bool lazy_;
   bool traversed_all_;
-  vector<bool> traversed_;
-  vector<unsigned> leaves_, leafish_, leafish_free_;
-  vector<int> branching_, branch_;
-  vector<int> parent_, branching_neighbor_;
+  std::vector<bool> traversed_;
+  std::vector<unsigned> leaves_, leafish_, leafish_free_;
+  std::vector<int> branching_, branch_;
+  std::vector<int> parent_, branching_neighbor_;
 };
 
 template<class Graph, class Tree, class LeafInfo>
@@ -320,7 +319,7 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 // a pair of conflicted leaves l2, xl, to which rule1 is then applied.
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  vector<optional<Edge>> support_edge(num_vertices(G));
+  std::vector<optional<Edge>> support_edge(num_vertices(G));
   // Find candidate triples of vertices.
   for (auto l1 : info.leaves()) {
     for (auto x : info.support(l1)) {
@@ -397,7 +396,7 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree, class LeafInfo>
 bool rule5(Graph& G, Tree& T, LeafInfo& info) {
-  vector<Edge> extra[num_vertices(G)];
+  std::vector<Edge> extra[num_vertices(G)];
   for (auto l : info.leaves())
     for (auto x : info.support(l)) {
       auto blx = info.branching_neighbor(l, x);
@@ -487,10 +486,10 @@ bool rule7(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree, class LeafInfo, class Condition>
 bool double_relocation(Graph& G, Tree& T, LeafInfo& info, Condition condition) {
-  vector<unsigned> lg;
+  std::vector<unsigned> lg;
   for (auto l : info.leaves()) if (info.is_long(l)) lg.push_back(l);
   unsigned n = lg.size();
-  vector<bool> m(n * n, false);
+  std::vector<bool> m(n * n, false);
   for (unsigned i = 0; i < n * n; ++i) m[i] = condition(lg[i / n], lg[i % n]);
 
   for (unsigned i = 0; i < n; ++i) {
@@ -601,7 +600,7 @@ template<class Graph, class Tree, class LeafInfo>
 bool rule13(Graph& G, Tree& T, LeafInfo& info) {
   auto const & lp = info.leafish_free();
   unsigned n = lp.size();
-  vector<int> m(n * n, -1);
+  std::vector<int> m(n * n, -1);
   for (unsigned i = 0; i < n; ++i)
     for (auto x : info.support(lp[i])) {
       if (out_degree(x, T) != 2 || info.on_trunk(x)) continue;
@@ -750,7 +749,7 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
   using detail::SupportEdge;
 
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
-  vector<SupportEdges> associated_edges(num_vertices(G));
+  std::vector<SupportEdges> associated_edges(num_vertices(G));
 
   for (auto l1 : info.leaves()) {
     auto next = [&](uint x) {return info.parent(x, l1);};
@@ -782,8 +781,8 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree>
-std::function<vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name) {
-  vector<std::function<bool(Graph&, Tree&, leaf_info<Graph, Tree>&)>> typedef Rules;
+std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name) {
+  std::vector<std::function<bool(Graph&, Tree&, leaf_info<Graph, Tree>&)>> typedef Rules;
   Rules rules = {
       rule0<Graph, Tree, leaf_info<Graph, Tree>>,
       rule1<Graph, Tree, leaf_info<Graph, Tree>>,
@@ -809,7 +808,7 @@ std::function<vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name
       rule21<Graph, Tree, leaf_info<Graph, Tree>>,
   };
 
-  vector<unsigned> active;
+  std::vector<unsigned> active;
   bool lazy = !found("eager", name);
   bool rand = found("rand", name);
   name = name.substr(0, name.find("/"));
@@ -831,7 +830,7 @@ std::function<vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name
   }
   else if (name == "none") {
     return [](Graph& G, Tree& T) {
-      return vector<unsigned>(1, 0);
+      return std::vector<unsigned>(1, 0);
     };
   }
   else {
@@ -851,7 +850,7 @@ std::function<vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name
   return [=](Graph& G, Tree& T) mutable {
     leaf_info<Graph, Tree> info(G, T, leafish, lazy);
     bool applied = true;
-    vector<unsigned> counter(active.size(), 0);
+    std::vector<unsigned> counter(active.size(), 0);
     auto order = active;
 #ifndef NDEBUG
     unsigned steps = 0;
