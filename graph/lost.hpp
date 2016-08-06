@@ -328,7 +328,7 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 // a pair of conflicted leaves l2, xl, to which rule1 is then applied.
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  std::vector<boost::optional<Edge>> support_edge(num_vertices(G));
+  std::vector<detail::SupportEdges> support_edge(num_vertices(G));
   // Find candidate triples of vertices.
   for (auto l1 : info.leaves()) {
     for (auto x : info.support(l1)) {
@@ -337,7 +337,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
       // in such case the rule can't be executed, so it's necessary
       // to record which leaf is supported by x to compare it with l2 later.
       // To save on computation record x also.
-      if (out_degree(xl, T) == 2) support_edge[xl] = Edge(l1, x);
+      if (out_degree(xl, T) == 2) support_edge[xl].add(detail::SupportEdge(l1, x));
     }
   }
 
@@ -347,14 +347,10 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
     // With an adjacency matrix it might be better to check adjacency
     // for each pair of leaf and candidate vertex xl.
     for (auto xl : range(adjacent_vertices(l2, G))) {
-      // Checking !edge(l2, xl, T).second is not necessary, as otherwise:
-      // - if l2 != x, then xl is a branching, so there is no support_edge[xl],
-      // - if l2 == x, rule1 is applicable. This one will have the same effect.
-      auto e = support_edge[xl];
-      if (e && e->first != l2) {
-        auto l1 = e->first, x = e->second;
-        add_edge(l1, x, T);
-        remove_edge(x, xl, T);
+      // This check implies that (l2, xl) is a nontree edge:
+      if (auto e = support_edge[xl].get_without(l2)) {
+        add_edge(e->leaf, e->support, T);
+        remove_edge(e->support, xl, T);
         info.update();
         rule1action(l2, xl, T, info);
         return true;
