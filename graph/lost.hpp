@@ -1,19 +1,14 @@
 // (C) 2014 Arek Olek
 
 #include <functional>
-#include <tuple>
 
 #include <boost/algorithm/cxx11/all_of.hpp>
 #include <boost/algorithm/cxx11/any_of.hpp>
-#include <boost/functional/hash.hpp>
 #include <boost/optional.hpp>
-#include <boost/range/algorithm/find_if.hpp>
 
 #include "algorithm.hpp"
 #include "debug.hpp"
 #include "range.hpp"
-
-typedef std::pair<unsigned, unsigned> Edge;
 
 namespace detail {
 
@@ -174,6 +169,8 @@ class leaf_info {
   }
 
  protected:
+  typedef std::pair<uint, uint> Edge;
+
   void update_leafish() {
     if (leafish_.empty() && leafish_free_.empty()) {
       std::vector<bool> lp(num_vertices_, false);
@@ -707,8 +704,9 @@ bool rule16(Graph& G, Tree& T, LeafInfo& info) {
       for (auto a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
         if (!is_branching(b) && (x == a || is_branching(a) || is_branching(c))) {
           if (auto l2 = supported_other(b, l, x)) {
+            a = x == a || is_branching(a) ? a : c;
             add_edge(l, x, T);
-            remove_edge(x == a || is_branching(a) ? a : c, b, T);
+            remove_edge(a, b, T);
             info.update();
             rule1action(b, *l2, T, info);
             return true;
