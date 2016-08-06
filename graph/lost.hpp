@@ -13,10 +13,6 @@
 #include "debug.hpp"
 #include "range.hpp"
 
-
-using boost::find_if;
-using boost::optional;
-
 typedef std::pair<unsigned, unsigned> Edge;
 
 namespace detail {
@@ -58,7 +54,7 @@ class SupportEdges {
   }
 
   // Returns a saved edge not incident to leaf, if available.
-  optional<SupportEdge> get_without(uint leaf) {
+  boost::optional<SupportEdge> get_without(uint leaf) {
     if (first) {
       if (!first->contains(leaf)) return first;
       if (second && !second->contains(leaf)) return second;
@@ -69,7 +65,7 @@ class SupportEdges {
  private:
   // Three edges are necessary to answer a request for edge not incident
   // to an arbitrary vertex.
-  optional<SupportEdge> first, second, third;
+  boost::optional<SupportEdge> first, second, third;
 };
 
 }  // namespace detail
@@ -319,7 +315,7 @@ bool rule2(Graph& G, Tree& T, LeafInfo& info) {
 // a pair of conflicted leaves l2, xl, to which rule1 is then applied.
 template<class Graph, class Tree, class LeafInfo>
 bool rule3(Graph& G, Tree& T, LeafInfo& info) {
-  std::vector<optional<Edge>> support_edge(num_vertices(G));
+  std::vector<boost::optional<Edge>> support_edge(num_vertices(G));
   // Find candidate triples of vertices.
   for (auto l1 : info.leaves()) {
     for (auto x : info.support(l1)) {
@@ -406,7 +402,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l2 : info.leaves())
     for (auto blx : range(adjacent_vertices(l2, G)))
       if (!edge(l2, blx, T).second) {
-        auto e = find_if(extra[blx], [=](Edge e) {
+        auto e = boost::find_if(extra[blx], [=](Edge e) {
           return e.first != l2 && e.second != l2;
         });
         // This assertion is true if rule1 and rule2 are no longer applicable.
