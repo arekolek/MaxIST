@@ -20,6 +20,61 @@ using boost::optional;
 
 typedef std::pair<unsigned, unsigned> Edge;
 
+namespace detail {
+
+struct SupportEdge {
+  // Vertices joined by a nontree edge.
+  uint leaf, support;
+  // Vertex on path from leaf to support that will remain internal after
+  // one of tree edges incident to it will be removed.
+  uint branching;
+  SupportEdge(uint leaf, uint support)
+      : SupportEdge(leaf, support, support) {
+  }
+  SupportEdge(uint leaf, uint support, uint branching)
+      : leaf(leaf),
+        support(support),
+        branching(branching) {
+  }
+  bool contains(uint x) {
+    return leaf == x || support == x;
+  }
+};
+
+class SupportEdges {
+ public:
+  // Saves an edge for later use, if storing it is worthwhile. If both its
+  // endpoints are present in already stored edges, it's not worthwhile.
+  void add(SupportEdge edge) {
+    if (first) {
+      if (!second && !edge.contains(first->leaf)) {
+        second = edge;
+      }
+      if (!third && !edge.contains(first->support)) {
+        third = edge;
+      }
+    } else {
+      first = edge;
+    }
+  }
+
+  // Returns a saved edge not incident to leaf, if available.
+  optional<SupportEdge> get_without(uint leaf) {
+    if (first) {
+      if (!first->contains(leaf)) return first;
+      if (second && !second->contains(leaf)) return second;
+      if (third && !third->contains(leaf)) return third;
+    }
+    return boost::none;
+  }
+ private:
+  // Three edges are necessary to answer a request for edge not incident
+  // to an arbitrary vertex.
+  optional<SupportEdge> first, second, third;
+};
+
+}  // namespace detail
+
 
 template<class Graph, class Tree>
 class leaf_info {
@@ -690,21 +745,21 @@ bool rule18(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree, class LeafInfo>
 bool rule19(Graph& G, Tree& T, LeafInfo& info) {
-  // AKA rule16 v2
-  auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
-  std::tuple<uint, uint, uint> typedef Extra;
-  vector<optional<Extra>> extra(num_vertices(G));
+  // AKA rule16 in O(n^2) (if Salamon is right)
+  using detail::SupportEdges;
+  using detail::SupportEdge;
 
-  for (auto l : info.leaves()) {
-    auto next = [&](uint x) {return info.parent(x, l);};
-    auto bl = info.branching(l);
-    for (auto x : info.support(l)) {
+  auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
+  vector<SupportEdges> associated_edges(num_vertices(G));
+
+  for (auto l1 : info.leaves()) {
+    auto next = [&](uint x) {return info.parent(x, l1);};
+    auto bl = info.branching(l1);
+    for (auto x : info.support(l1)) {
       for (uint a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
         if (!is_branching(b)) {
-          if (x == a || is_branching(a)) {
-            extra[b] = Extra(l, x, a);
-          } else if (is_branching(c)) {
-            extra[b] = Extra(l, x, c);
+          if (x == a || is_branching(a) || is_branching(c)) {
+            associated_edges[b].add(SupportEdge(l1, x, is_branching(c) ? c : a));
           }
         }
       }
@@ -713,12 +768,10 @@ bool rule19(Graph& G, Tree& T, LeafInfo& info) {
 
   for (auto l2 : info.leaves()) {
     for (auto b : range(adjacent_vertices(l2, G))) {
-      auto e = extra[b];
-      if(e && get<0>(*e) != l2 && get<1>(*e) != l2) {
-        uint l1, x, a;
-        std::tie(l1, x, a) = *e;
-        add_edge(l1, x, T);
-        remove_edge(a, b, T);
+      // This check implies that (l2, b) is a nontree edge:
+      if (auto e = associated_edges[b].get_without(l2)) {
+        add_edge(e->leaf, e->support, T);
+        remove_edge(e->branching, b, T);
         info.update();
         rule1action(b, l2, T, info);
         return true;
