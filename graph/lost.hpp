@@ -284,7 +284,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
     // With an adjacency matrix it might be better to check adjacency
     // for each pair of leaf and candidate vertex xl.
     for (auto xl : range(adjacent_vertices(l2, G))) {
-      // Checking !edge(l2, xl, T).second is not necessary:
+      // Checking !edge(l2, xl, T).second is not necessary, as otherwise:
       // - if l2 != x, then xl is a branching, so there is no support_edge[xl],
       // - if l2 == x, rule1 is applicable. This one will have the same effect.
       auto e = support_edge[xl];
@@ -355,6 +355,7 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
         auto e = find_if(extra[blx], [=](Edge e) {
           return e.first != l2 && e.second != l2;
         });
+        // This assertion is true if rule1 and rule2 are no longer applicable.
         assert(std::distance(extra[blx].begin(), e) == 0);
         if (e == extra[blx].end()) continue;
         auto l1 = e->first, x = e->second;
