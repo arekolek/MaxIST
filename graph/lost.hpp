@@ -402,27 +402,22 @@ bool rule4(Graph& G, Tree& T, LeafInfo& info) {
 
 template<class Graph, class Tree, class LeafInfo>
 bool rule5(Graph& G, Tree& T, LeafInfo& info) {
-  std::vector<Edge> extra[num_vertices(G)];
+  std::vector<detail::SupportEdges> associated_edges(num_vertices(G));
   for (auto l : info.leaves()) {
     for (auto x : info.support(l)) {
       auto blx = info.branching_neighbor(l, x);
-      if (x != blx && out_degree(blx, T) == 2) extra[blx].emplace_back(l, x);
+      if (x != blx && out_degree(blx, T) == 2) {
+        associated_edges[blx].add(detail::SupportEdge(l, x, info.branching(l)));
+      }
     }
   }
 
   for (auto l2 : info.leaves()) {
     for (auto blx : range(adjacent_vertices(l2, G))) {
-      if (!edge(l2, blx, T).second) {
-        auto e = boost::find_if(extra[blx], [=](Edge e) {
-          return e.first != l2 && e.second != l2;
-        });
-        // This assertion is true if rule1 and rule2 are no longer applicable.
-        assert(std::distance(extra[blx].begin(), e) == 0);
-        if (e == extra[blx].end()) continue;
-        auto l1 = e->first, x = e->second;
-        auto bl = info.branching(l1);
-        add_edge(l1, x, T);
-        remove_edge(bl, blx, T);
+      if (auto e = associated_edges[blx].get_without(l2)) {
+        // Vertex blx is forwarding, so (l2, blx) must be a nontree edge.
+        add_edge(e->leaf, e->support, T);
+        remove_edge(e->branching, blx, T);
         info.update();
         rule1action(l2, blx, T, info);
         return true;
