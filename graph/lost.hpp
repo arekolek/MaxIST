@@ -358,8 +358,7 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
 }
 
 template<class Graph, class Tree, class LeafInfo>
-bool rule20(Graph& G, Tree& T, LeafInfo& info) {
-  // AKA naive rule 3
+bool rule3naive(Graph& G, Tree& T, LeafInfo& info) {
   uint xl;
   for (auto l1 : info.leaves()) {
     for (auto x : info.support(l1)) {
@@ -424,9 +423,9 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+// naive implementation of rule 5
 template<class Graph, class Tree, class LeafInfo>
-bool rule21(Graph& G, Tree& T, LeafInfo& info) {
-  // AKA naive rule 5
+bool rule5naive(Graph& G, Tree& T, LeafInfo& info) {
   for (auto l1 : info.leaves()) {
     for (auto x : info.support(l1)) {
       auto blx = info.branching_neighbor(l1, x);
@@ -687,8 +686,46 @@ bool rule15(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+// Rule 16 in O(n^2) (if Salamon is right).
 template<class Graph, class Tree, class LeafInfo>
 bool rule16(Graph& G, Tree& T, LeafInfo& info) {
+  using detail::SupportEdges;
+  using detail::SupportEdge;
+
+  auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
+  std::vector<SupportEdges> associated_edges(num_vertices(G));
+
+  for (auto l1 : info.leaves()) {
+    auto next = [&](uint x) {return info.parent(x, l1);};
+    auto bl = info.branching(l1);
+    for (auto x : info.support(l1)) {
+      for (uint a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
+        if (!is_branching(b)) {
+          if (x == a || is_branching(a) || is_branching(c)) {
+            associated_edges[b].add(SupportEdge(l1, x, is_branching(c) ? c : a));
+          }
+        }
+      }
+    }
+  }
+
+  for (auto l2 : info.leaves()) {
+    for (auto b : range(adjacent_vertices(l2, G))) {
+      // This check implies that (l2, b) is a nontree edge:
+      if (auto e = associated_edges[b].get_without(l2)) {
+        add_edge(e->leaf, e->support, T);
+        remove_edge(e->branching, b, T);
+        info.update();
+        rule1action(b, l2, T, info);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+template<class Graph, class Tree, class LeafInfo>
+bool rule16naive(Graph& G, Tree& T, LeafInfo& info) {
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
   auto supported_other = [&](uint b, uint l, uint x) -> boost::optional<uint> {
     for(uint v : range(adjacent_vertices(b, G))) {
@@ -750,9 +787,9 @@ bool rule17(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
+// AKA rules 15 and 16 in one
 template<class Graph, class Tree, class LeafInfo>
 bool rule18(Graph& G, Tree& T, LeafInfo& info) {
-  // AKA rules 15 and 16 in one
   auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
   auto supported_other = [&](uint b, uint l, uint x) -> boost::optional<uint> {
     for(uint v : range(adjacent_vertices(b, G))) {
@@ -782,44 +819,6 @@ bool rule18(Graph& G, Tree& T, LeafInfo& info) {
   return false;
 }
 
-template<class Graph, class Tree, class LeafInfo>
-bool rule19(Graph& G, Tree& T, LeafInfo& info) {
-  // AKA rule16 in O(n^2) (if Salamon is right)
-  using detail::SupportEdges;
-  using detail::SupportEdge;
-
-  auto is_branching = [&](uint x) {return out_degree(x, T) > 2;};
-  std::vector<SupportEdges> associated_edges(num_vertices(G));
-
-  for (auto l1 : info.leaves()) {
-    auto next = [&](uint x) {return info.parent(x, l1);};
-    auto bl = info.branching(l1);
-    for (auto x : info.support(l1)) {
-      for (uint a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
-        if (!is_branching(b)) {
-          if (x == a || is_branching(a) || is_branching(c)) {
-            associated_edges[b].add(SupportEdge(l1, x, is_branching(c) ? c : a));
-          }
-        }
-      }
-    }
-  }
-
-  for (auto l2 : info.leaves()) {
-    for (auto b : range(adjacent_vertices(l2, G))) {
-      // This check implies that (l2, b) is a nontree edge:
-      if (auto e = associated_edges[b].get_without(l2)) {
-        add_edge(e->leaf, e->support, T);
-        remove_edge(e->branching, b, T);
-        info.update();
-        rule1action(b, l2, T, info);
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 template<class Graph, class Tree>
 std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string name) {
   std::vector<std::function<bool(Graph&, Tree&, leaf_info<Graph, Tree>&)>> typedef Rules;
@@ -843,9 +842,9 @@ std::function<std::vector<unsigned>(Graph&, Tree&)> make_improvement(std::string
       rule16<Graph, Tree, leaf_info<Graph, Tree>>,
       rule17<Graph, Tree, leaf_info<Graph, Tree>>,
       rule18<Graph, Tree, leaf_info<Graph, Tree>>,
-      rule19<Graph, Tree, leaf_info<Graph, Tree>>,
-      rule20<Graph, Tree, leaf_info<Graph, Tree>>,
-      rule21<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule3naive<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule5naive<Graph, Tree, leaf_info<Graph, Tree>>,
+      rule16naive<Graph, Tree, leaf_info<Graph, Tree>>,
   };
 
   std::vector<unsigned> active;
