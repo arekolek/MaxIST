@@ -101,8 +101,10 @@ void run(Suite& suite,
          Strings const & improvements,
          bool scratch,
          std::string seed) {
+#ifndef NPROGRESS
   timing total(CLOCK_REALTIME);
   total.start();
+#endif
   auto graph_type = type(Graph(0));
   auto tree_type = type(Tree(0));
   #pragma omp parallel
@@ -172,16 +174,20 @@ void run(Suite& suite,
         }
       }
 
+#ifndef NPROGRESS
       if (id == 0 || i + 1 == suite.size()) {
         std::cerr << '\t' << 100 * (i + 1) / suite.size() << "% of "
         << suite.size();
         std::cerr << '\t' << readable(total.stop()) << " elapsed    \r";
       }
+#endif
     }
     #pragma omp critical
     std::cout << buffer.str() << std::flush;
   }
+#ifndef NPROGRESS
   std::cerr << std::endl;
+#endif
 }
 
 template <class Graph, class Tree, class Sizes, class Params, class Strings>
