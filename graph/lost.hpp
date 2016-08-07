@@ -700,10 +700,8 @@ bool rule16(Graph& G, Tree& T, LeafInfo& info) {
     auto bl = info.branching(l1);
     for (auto x : info.support(l1)) {
       for (uint a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
-        if (!is_branching(b)) {
-          if (x == a || is_branching(a) || is_branching(c)) {
-            associated_edges[b].add(SupportEdge(l1, x, is_branching(c) ? c : a));
-          }
+        if (!is_branching(b) && (x == a || is_branching(a) || is_branching(c))) {
+          associated_edges[b].add(SupportEdge(l1, x, is_branching(c) ? c : a));
         }
       }
     }
