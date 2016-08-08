@@ -15,18 +15,22 @@ namespace detail {
 struct SupportEdge {
   // Vertices joined by a nontree edge.
   uint leaf, support;
-  // Vertex on path from leaf to support that will remain internal after
-  // one of tree edges incident to it will be removed.
-  uint branching;
+  // Branching will remain internal after (branching, forwarding) edge is removed.
+  // Forwarding should be adjacent to some leaf other than above.
+  uint branching, forwarding;
   SupportEdge(uint leaf, uint support)
       : SupportEdge(leaf, support, support) {
   }
   SupportEdge(uint leaf, uint support, uint branching)
+  : SupportEdge(leaf, support, branching, 0) {
+  }
+  SupportEdge(uint leaf, uint support, uint branching, uint forwarding)
       : leaf(leaf),
         support(support),
-        branching(branching) {
+        branching(branching),
+        forwarding(forwarding) {
   }
-  bool contains(uint x) {
+  bool contains(uint x) const {
     return leaf == x || support == x;
   }
 };
@@ -45,13 +49,22 @@ class SupportEdges {
   }
 
   // Returns a saved edge not incident to leaf, if available.
-  boost::optional<SupportEdge> get_without(uint leaf) {
+  boost::optional<SupportEdge> get_without(uint leaf) const {
     if (first) {
       if (!first->contains(leaf)) return first;
       if (second && !second->contains(leaf)) return second;
       if (third && !third->contains(leaf)) return third;
     }
     return boost::none;
+  }
+
+  // Returns true if no support edges have been added.
+  bool none() const {
+    return !first;
+  }
+
+  uint forwarding() {
+    return first->forwarding;
   }
  private:
   // Three edges are necessary to answer a request for edge not incident
@@ -347,10 +360,48 @@ bool rule3(Graph& G, Tree& T, LeafInfo& info) {
       // This check implies that (l2, xl) is a nontree edge:
       if (auto e = support_edge[xl].get_without(l2)) {
         add_edge(e->leaf, e->support, T);
-        remove_edge(e->support, xl, T);
+        remove_edge(e->branching, xl, T);
         info.update();
         rule1action(l2, xl, T, info);
         return true;
+      }
+    }
+  }
+  return false;
+}
+
+template<>
+bool rule3(boost::adjacency_matrix<boost::undirectedS>& G,
+           boost::adjacency_list<boost::slistS, boost::vecS, boost::undirectedS>& T,
+           leaf_info<boost::adjacency_matrix<boost::undirectedS>,
+               boost::adjacency_list<boost::slistS, boost::vecS,
+                   boost::undirectedS>>& info) {
+  std::vector<detail::SupportEdges> support_edges(num_vertices(G));
+  for (auto l1 : info.leaves()) {
+    for (auto x : info.support(l1)) {
+      auto xl = info.parent(x, l1);
+      if (out_degree(xl, T) == 2) {
+        support_edges[xl].add(detail::SupportEdge(l1, x, x, xl));
+      }
+    }
+  }
+
+  support_edges.erase(
+      std::remove_if(support_edges.begin(),
+                     support_edges.end(),
+                     [](detail::SupportEdges const & e) {return e.none();}),
+      support_edges.end());
+
+  for (auto l2 : info.leaves()) {
+    for (auto edges : support_edges) {
+      if(edge(l2, edges.forwarding(), G).second) {
+        if (auto e = edges.get_without(l2)) {
+          add_edge(e->leaf, e->support, T);
+          remove_edge(e->branching, e->forwarding, T);
+          info.update();
+          rule1action(l2, e->forwarding, T, info);
+          return true;
+        }
       }
     }
   }
@@ -417,6 +468,44 @@ bool rule5(Graph& G, Tree& T, LeafInfo& info) {
         info.update();
         rule1action(l2, blx, T, info);
         return true;
+      }
+    }
+  }
+  return false;
+}
+
+template<>
+bool rule5(boost::adjacency_matrix<boost::undirectedS>& G,
+           boost::adjacency_list<boost::slistS, boost::vecS, boost::undirectedS>& T,
+           leaf_info<boost::adjacency_matrix<boost::undirectedS>,
+               boost::adjacency_list<boost::slistS, boost::vecS,
+                   boost::undirectedS>>& info) {
+  std::vector<detail::SupportEdges> support_edges(num_vertices(G));
+  for (auto l1 : info.leaves()) {
+    for (auto x : info.support(l1)) {
+      auto blx = info.branching_neighbor(l1, x);
+      if (x != blx && out_degree(blx, T) == 2) {
+        support_edges[blx].add(detail::SupportEdge(l1, x, info.branching(l1), blx));
+      }
+    }
+  }
+
+  support_edges.erase(
+      std::remove_if(support_edges.begin(),
+                     support_edges.end(),
+                     [](detail::SupportEdges const & e) {return e.none();}),
+      support_edges.end());
+
+  for (auto l2 : info.leaves()) {
+    for (auto edges : support_edges) {
+      if(edge(l2, edges.forwarding(), G).second) {
+        if (auto e = edges.get_without(l2)) {
+          add_edge(e->leaf, e->support, T);
+          remove_edge(e->branching, e->forwarding, T);
+          info.update();
+          rule1action(l2, e->forwarding, T, info);
+          return true;
+        }
       }
     }
   }
