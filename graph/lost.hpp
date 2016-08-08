@@ -828,7 +828,7 @@ bool rule16naive(Graph& G, Tree& T, LeafInfo& info) {
       for (auto a = x, b = next(a), c = next(b); b != bl; a = b, b = c, c = next(c)) {
         if (!is_branching(b) && (x == a || is_branching(a) || is_branching(c))) {
           if (auto l2 = supported_other(b, l, x)) {
-            a = x == a || is_branching(a) ? a : c;
+            a = is_branching(c) ? c : a;
             add_edge(l, x, T);
             remove_edge(a, b, T);
             info.update();
